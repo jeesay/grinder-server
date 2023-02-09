@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Grelion</title>
+  <link rel="stylesheet" href="css/gimmick.css" type="text/css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  
+  <script type="text/javascript" src="../src/polynomial.js"></script>
+  <script type="text/javascript" src="../src/filter.js"></script>
+  <script type="text/javascript" src="../src/debug.js"></script>
+  <script type="text/javascript" src="../src/dom.js"></script>
+  <script type="text/javascript" src="../src/widget.js"></script>
+  <script type="text/javascript" src="../src/menus/menu_import.js"></script>
+  <script type="text/javascript" src="../src/menus/menu_motioncor.js"></script>
+  <script type="text/javascript" src="../src/menus/menu_picking.js"></script>
+  <script type="text/javascript" src="../src/menus/menu_extract.js"></script>
+  <script type="text/javascript" src="../src/menus/menu.js"></script>
+  <script type="text/javascript" src="../src/main.js"></script>
+</head>
+<body>
+  <header>
+  <nav>
+        <ul>
+          <li class="top_menu"><a href="#">File</a>
+            <ul>
+              <li><a  id="new_project"href="#">Re-read pipeline</a></li>
+              <li><a  id="new_project"href="#">Edit project note</a></li>
+              <li><a  id="new_project"href="#">Print all notes</a></li>
+              <li><a  id="new_project"href="#">Remake .Nodes/</a></li>
+              <li><a  id="new_project"href="#">Display</a></li>
+              <li><a  id="new_project"href="#">Show initial screen</a></li>
+              <li><a id="empty_trash" href="#">Empty Trash</a></li>
+              <li><a id="quit" href="#">Quit</a></li>
+            </ul>
+          </li>
+          <li class="top_menu"><a href="#">Jobs</a>
+            <ul>
+              <li><a  id="new_project"href="#">Save job.star</a></li>
+              <li><a  id="new_project"href="#">Load job.star</a></li>
+              <li><a  id="new_project"href="#">Order alphabetically</a></li>
+              <li><a  id="new_project"href="#">Order chronologically</a></li>
+              <li><a  id="new_project"href="#">Undelete job(s)</a></li>
+              <li><a  id="new_project"href="#">Toggle overwrite button</a></li>
+              <li><a id="empty_trash" href="#">Run scheduled jobs</a></li>
+              <li><a id="empty_trash" href="#">Stop running scheduled jobs</a></li>
+              <li><a id="empty_trash" href="#">Gently clean all jobs</a></li>
+              <li><a id="empty_trash" href="#">Harshly clean all jobs</a></li>
+            </ul>
+          </li>
+          <li class="top_menu"><a href="#">Help</a>
+          <ul>
+              <li><a  id="help"href="#"> Help</a></li>
+              <li><a id="about" href="#">About...</a></li>
+            </ul>
+          </li>
+        </ul>
+  </nav>
+  </header>
+  <aside class="tools">
+    <ul>
+      <li id="home"><a href="#"><i class="bi bi-house-door"></i> Home</a></li>
+      <li id="import"><a href="#"><i class="bi bi-download"></i> Import</a></li>
+      <li id="motioncor"><a href="#"><i class="bi bi-bezier2"></i> Motion correction</a></li>
+      <li id="ctf"><a href="#"><i class="bi bi-bullseye"></i> CTF estimation</a></li>
+      <li id="picking"><a href="#"><i class="bi bi-crop"></i> (Auto-)picking</a></li>
+      <li id="extract"><a href="#"><i class="bi bi-funnel"></i> Particle extraction</a></li>
+      <li id="class2d"><a href="#"><i class="bi bi-rulers"></i> 2D classification</a></li>
+      <li id="model"><a href="#"><i class="bi bi-cloud-lightning"></i> 3D initial model</a></li>
+      <li id="class3d"><a href="#"><i class="bi bi-trophy"></i> 3D classification</a></li>
+      <li id="refine3d"><a href="#"><i class="bi bi-trophy"></i> 3D auto-refine</a></li>
+      <li id="mbody"><a href="#"><i class="bi bi-trophy"></i> 3D multi-body</a></li>
+      <li id="subset"><a href="#"><i class="bi bi-trophy"></i> Subset selection</a></li>
+      <li id="ctfrefine"><a href="#"><i class="bi bi-bullseye"></i> CTF refinement</a></li>
+      <li id="polish"><a href="#"><i class="bi bi-trophy"></i> Bayesian polishing</a></li>
+      <li id="mask"><a href="#"><i class="bi bi-trophy"></i> Mask creation</a></li>
+      <li id="join"><a href="#"><i class="bi bi-trophy"></i> Join star files</a></li>
+      <li id="subtract"><a href="#"><i class="bi bi-trophy"></i> Particle subtraction</a></li>
+      <li id="postprocess"><a href="#"><i class="bi bi-trophy"></i> Post-processing</a></li>
+      <li id="localres"><a href="#"><i class="bi bi-trophy"></i> Local resolution</a></li>
+      <li id="external"><a href="#"><i class="bi bi-trophy"></i> External</a></li>
+     <li id="debug"><a href="#"><i class="bi bi-bug"></i>Debug</a></li>
+      <!-- li id="import"><a href="#"><i class="bi bi-folder2-open"></i> Explore</a></li -->
+    </ul>
+  </aside>
+
+  <!-- aside class="jobs">
+    <ul>
+      <li><label><i class="bi "></i> Jobs</label></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Import/job001</a></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Baseline/job002</a></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Despiking/job003</a></li>
+    </ul>
+  </aside -->
+
+  <div class="wrapper">
+    <section class="tabs">
+    </section>
+  </div>
+  <footer>
+  </footer>
+  <!-- File Explorer -->
+  <dialog aria-labelledby="dialog_title" aria-describedby="dialog_description">
+    <div class="header">
+      <nav>
+        <ul>
+        <li>File Explorer <span class="toolset"><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></span></li>
+        </ul>
+    </div>
+    <div class="main">
+      <div id="folders">
+      <ul>
+        <li><a href="#">Baseline/</a></li>
+        <li><a href="#">Despiking/</a></li>
+        <li><a href="#">Import/</a></li>
+        <li><a href="#">Normalize/</a></li>
+        <li><a href="#">RawData/</a></li>
+      </ul>
+      </div>
+      <div id="files">
+      <ul>
+        <li>../</li>
+        <li>my_spectra_file.wip</li>
+        <li>README.md.wip</li>
+        <li>another_spectra.spc</li>
+        <li>some_data.csv</li>
+      </ul>
+      </div>
+    </div>
+    <div class="flex flex-space-between">
+      <button id="confirm_dialog" class="cta">Open</button>
+      <button class="close_dialog">Cancel</button>
+
+    </div>
+  </dialog>
+  <script>
+    document.querySelectorAll('aside ul li')
+      .forEach(w => w.addEventListener('click', (ev) => {
+        document.querySelectorAll('aside ul li').forEach(ww => ww.classList.remove("active"));
+        w.classList.add("active");
+        w_navtab(document.querySelector('section'),menus[w.id]);
+      })
+    );
+    
+    // Go to Home, first
+    document.querySelector('aside #home').click();
+    
+  </script>
+  <script>
+    const dialog = document.querySelector("dialog");
+    const openDialogBtn = document.getElementById("open_dialog");
+    const closeDialogBtn = document.getElementById("close_dialog");
+
+    const elements = dialog.querySelectorAll(
+      'a, button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = elements[0];
+    const lastElement = elements[elements.length - 1];
+
+    const trapFocus = (e) => {
+      if (e.key === "Tab") {
+        const tabForwards = !e.shiftKey && document.activeElement === lastElement;
+        const tabBackwards = e.shiftKey && document.activeElement === firstElement;
+        if (tabForwards) {
+          // only TAB is pressed, not SHIFT simultaneously
+          // Prevent default behavior of keydown on TAB (i.e. focus next element)
+          e.preventDefault();
+          firstElement.focus();
+        } else if (tabBackwards) {
+          // TAB and SHIFT are pressed simultaneously
+          e.preventDefault();
+          lastElement.focus();
+        }
+      }
+    };
+
+    const openDialog = () => {
+      dialog.showModal();
+      dialog.addEventListener("keydown", trapFocus);
+    };
+
+    const closeDialog = (e) => {
+      e.preventDefault();
+      dialog.close();
+      dialog.removeEventListener("keydown", trapFocus);
+      openDialogBtn.focus();
+    };
+
+    openDialogBtn.addEventListener("click", openDialog);
+    closeDialogBtn.addEventListener("click", closeDialog);
+</script>
+</body>
+</html>

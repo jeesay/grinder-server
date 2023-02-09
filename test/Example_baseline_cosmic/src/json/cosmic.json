@@ -1,0 +1,17 @@
+{
+    "cosmic":[
+        {
+            "tool":"Z-score", 
+            "params":[
+                {
+                    "key": "m",
+                    "value": 2
+                },
+                {
+                    "key": "threshold",
+                    "value": 7
+                }
+            ]
+        }
+    ]
+}

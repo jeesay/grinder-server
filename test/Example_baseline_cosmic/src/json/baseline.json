@@ -1,0 +1,39 @@
+{
+    "baselines":[
+        {
+            "tool":"snip", 
+            "params":[
+                {
+                    "key":"half_window",
+                    "value": null
+                }
+            ]
+        },
+        {
+            "tool":"ball", 
+            "params":[
+                {
+                    "key":"max_half_window",
+                    "value": null
+                }
+            ]
+        },
+        {
+            "tool":"modpoly", 
+            "params":[
+                {
+                    "key": "poly_order",
+                    "value": 2
+                },
+                {
+                    "key": "weights",
+                    "value": null
+                },
+                {
+                    "key": "return_coef",
+                    "value": false
+                }
+            ]
+        }
+    ]
+}

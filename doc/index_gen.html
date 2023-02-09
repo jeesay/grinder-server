@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DOM generation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  <script type="text/javascript" src="../src/js/dom.js"></script>
+  <script type="text/javascript" src="../src/js/widget.js"></script>
+  
+  <style>
+  /* Tabs */
+
+  .tabs {
+    height: 100vh;
+    position: relative;
+    margin: 3rem 0;
+    background: #1abc9c;
+  }
+  .tabs::before,
+  .tabs::after {
+    content: "";
+    display: table;
+  }
+  .tabs::after {
+    clear: both;
+  }
+  .tab {
+    float: left;
+  }
+  .tab-switch {
+    display: none;
+  }
+  .tab-label {
+    position: relative;
+    display: block;
+    line-height: 2.75em;
+    height: 3em;
+    padding: 0 1.618em;
+    background: #1abc9c;
+    border-right: 0.125rem solid #16a085;
+    color: #fff;
+    cursor: pointer;
+    top: 0;
+    transition: all 0.25s;
+  }
+  .tab-label:hover {
+    top: -0.25rem;
+    transition: top 0.25s;
+  }
+  .tab-content {
+    width:100%;
+    height: 12rem;
+    position: absolute;
+    z-index: 1;
+    top: 2.75em;
+    left: 0;
+    padding: 1.618rem;
+    background: #fff;
+    color: #2c3e50;
+    border-bottom: 0.25rem solid #bdc3c7;
+    opacity: 0;
+    transition: all 0.35s;
+  }
+
+  .tab-content form label {
+    display: inline-block;
+    width: 150px;
+    text-align: right;
+    margin-right: 10px;
+  }
+
+  .tab-switch:checked + .tab-label {
+    background: #fff;
+    color: #2c3e50;
+    border-bottom: 0;
+    border-right: 0.125rem solid #fff;
+    transition: all 0.35s;
+    z-index: 1;
+    top: -0.0625rem;
+
+  }
+  .tab-switch:checked + label + .tab-content {
+    z-index: 2;
+    opacity: 1;
+    transition: all 0.35s;
+    height: 100vh;
+  }
+  </style>
+</head>
+<body>
+<section></section>
+<footer><i class="bi bi-question-circle" title="A scale factor applied to the weighted residuals to control the robustness of the fit. 
+
+Default is 3.0, as used in [^16]. Note that the original loess procedure in [^17] used a scale of ~4.05.
+- [16](1,2) Ruckstuhl, A.F., et al. Baseline subtraction using robust local regression estimation. J. Quantitative Spectroscopy and Radiative Transfer, 2001, 68, 179-193.
+- [17] Cleveland, W. Robust locally weighted regression and smoothing scatterplots. Journal of the American Statistical Association, 1979, 74(368), 829-836."></i></footer>
+<script>
+/*
+const navtab = (parent,el) => {
+    return h(`article#${el.name}.tab`, [
+      h(
+        'input#tab-1.tab-switch',
+        {
+          attrs: {type: 'radio',name: 'css-tabs'},
+          props: {checked: true}
+        }
+      ),
+      h('label.tab-label',
+        {
+          attrs: {for: 'mylabel'}
+        },
+        [
+          h(`i.bi.${el.icon}`),
+          ` ${el.title}`
+        ]),
+      h('div.main.tab-content',[
+        h('details',[
+          h('legend',el.content),
+          h('div',[
+            h('input'),
+            h('label')
+          ])
+        ])
+      ])
+    ]);
+}
+*/
+
+const poly_settings = {
+    name: 'settings',
+    title: 'Settings',
+    widget: 'navtab',
+    children: [
+    {
+      name: 'data',
+      title: 'Input Spectra',
+      option: ['-i','--input'],
+      widget: 'file',
+      help: ` The y-values of the measured data, with N data points.`,
+    },
+    {
+      name: 'x_data',
+      title: 'X Data',
+      option: ['-x','--x_data'],
+      widget: 'file',
+      default: undefined,
+      help: `The x-values of the measured data. Default is None, which will create an array from -1 to 1 with N points.`,
+    },
+    {
+      name: 'poly_order',
+      title: 'Polynomial Order',
+      option: ['-p','--poly_order'],
+      widget: 'int',
+      default: 2,
+      help: 'The polynomial order for fitting the baseline. Default is 2.'
+    },
+    {
+      name: 'weights',
+      title: 'Weights',
+      widget: 'file',
+      option: ['-w','--weights'],
+      default: undefined,
+      help: 'The weighting array. If None (default), then will be an array with size equal to N and all values set to 1.'
+    },
+    {
+      name: 'return_coef',
+      title: 'Return Coefficients',
+      option: ['-c','--return_coef'],
+      widget: 'bool',
+      default: false,
+      help: `If True, will convert the polynomial coefficients for the fit baseline to a form that fits the input x_data and return them in the params dictionary. Default is False, since the conversion takes time.`
+    }
+  ]
+};
+
+const baseline_tabs = [
+  {
+    name: 'methods',
+    title: 'Methods',
+    icon: '',
+    widget: 'navtab',
+    children: [
+      {
+        name: 'adv',
+        title: 'Advanced',
+        widget: 'h3',
+      },
+      {
+        name: 'polynomial',
+        title: 'Polynomial methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'poly',
+            title:  'Regular Polynomial',
+            widget: 'radio',
+            on_click: (ev) => w_navtab_update('settings', poly_settings)
+          },
+          {
+            name: 'modpoly',
+            title:  'Modified Polynomial',
+            widget: 'radio',
+            on_click: (ev) => w_navtab_update('settings', {children:[]})
+
+          },
+          {
+            name: 'imodpoly',
+            title: 'Improved Modified Polynomial',
+            widget: 'radio'
+          },
+          {
+            name: 'penalized_poly',
+            title:  'Penalized Polynomial',
+            widget: 'radio'
+          },
+          {
+            name: 'loess',
+            title:  'Locally Estimated Scatterplot Smoothing',
+            widget: 'radio',
+            on_click: (ev) => w_navtab_content('settings', loess_settings)
+          },
+          {
+            name: 'quant_reg',
+            title:  'Quantile Regression',
+            widget: 'radio'
+          },
+          {
+            name: 'goldindec',
+            title:'Goldindec Method',
+            widget: 'radio'
+          },
+        ]
+      },
+      {
+        name: 'whittaker',
+        title: 'Whittaker-smoothing-based methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'asls',
+            title:  'Asymmetric Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'iasls',
+            title: 'Improved Asymmetric Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'airpls',
+            title:  'Adaptive Iteratively Reweighted Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'arpls',
+            title:'Asymmetrically Reweighted Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'drpls',
+            title:'Doubly Reweighted Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'iarpls',
+            title:'Improved Asymmetrically Reweighted Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'aspls',
+            title:'Adaptive Smoothness Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'psalsa',
+            title:'Peaked Signal\'s Asymmetric Least Squares Algorithm',
+            widget: 'radio'
+          },
+          {
+            name: 'derpsalsa',
+            title:  'Derivative Peak-Screening Asymmetric Least Squares Algorithm',
+            widget: 'radio'
+          }
+        ],
+      },
+      {
+        name: 'morpho',
+        title: 'Morphological methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'mpls',
+            title:  'Morphological Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'mor',
+            title:  'Morphological',
+            widget: 'radio'
+          },
+          {
+            name: 'imor',
+            title:  'Improved Morphological',
+            widget: 'radio'
+          },
+          {
+            name: 'mormol',
+            title:  'Morphological and Mollified Baseline',
+            widget: 'radio'
+          },
+          {
+            name: 'amormol',
+            title:  'Averaging Morphological and Mollified Baseline',
+            widget: 'radio'
+          },
+          {
+            name: 'rolling_ball',
+            title:  'Rolling Ball Baseline',
+            widget: 'radio'
+          },
+          {
+            name: 'mwmv',
+            title:'Moving Window Minimum Value',
+            widget: 'radio'
+          },
+          {
+            name: 'tophat ',
+            title:'Top-hat Transformation',
+            widget: 'radio'
+          },
+          {
+            name: 'mpspline',
+            title:  'Morphology-Based Penalized Spline',
+            widget: 'radio'
+          },
+          {
+            name: 'jbcd',
+            title:  'Joint Baseline Correction and Denoising',
+            widget: 'radio'
+          }
+        ],
+      },
+      {
+        name: 'spline',
+        title:  'Spline methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'mixture_model',
+            title:  'Mixture Model',
+            widget: 'radio'
+          },
+          {
+            name: 'irsqr',
+            title:  'Iterative Reweighted Spline Quantile Regression',
+            widget: 'radio'
+          },
+          {
+            name: 'corner_cutting',
+            title:  'Corner-Cutting Method',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_asls',
+            title:  'Penalized Spline Version of asls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_iasls',
+            title:  'Penalized Spline Version of iasls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_airpls',
+            title:  'Penalized Spline Version of airpls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_arpls',
+            title:  'Penalized Spline Version of arpls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_drpls',
+            title:  'Penalized Spline Version of drpls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_iarpls',
+            title:  'Penalized Spline Version of iarpls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_aspls',
+            title:  'Penalized Spline Version of aspls',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_psalsa',
+            title:  'Penalized Spline Version of psalsa',
+            widget: 'radio'
+          },
+          {
+            name: 'pspline_derpsalsa',
+            title:  'Penalized Spline Version of derpsalsa',
+            widget: 'radio'
+          }
+        ]
+      },
+      {
+        name: 'smoothing',
+        title:  'Smoothing-based methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'noise_median',
+            title:  'Noise Median method',
+            widget: 'radio'
+          },
+          {
+            name: 'snip',
+            title:  'Statistics-sensitive Non-linear Iterative Peak-clipping',
+            widget: 'radio'
+          },
+          {
+            name: 'swima',
+            title:  'Small-Window Moving Average',
+            widget: 'radio'
+          },
+          {
+            name: 'ipsa',
+            title:  'Iterative Polynomial Smoothing Algorithm',
+            widget: 'radio'
+          },
+          {
+            name: 'ria',
+            title:  'Range Independent Algorithm',
+            widget: 'radio'
+          },
+          {
+            name: 'dietrich',
+            title:  'Dietrich\'s Classification Method',
+            family : 'Baseline/Peak Classification methods',
+            widget: 'radio'
+          },
+          {
+            name: 'golotvin',
+            title:  'Golotvin\'s Classification Method',
+            widget: 'radio'
+          },
+          {
+            name: 'std_distribution',
+            title:  'Standard Deviation Distribution',
+            widget: 'radio'
+          },
+          {
+            name: 'fastchrom',
+            title:  'FastChrom\'s Baseline Method',
+            widget: 'radio'
+          },
+          {
+            name: 'cwt_br',
+            title:  'Continuous Wavelet Transform Baseline Recognition',
+            widget: 'radio'
+          },
+          {
+            name: 'fabc',
+            title:  'Fully Automatic Baseline Correction',
+            widget: 'radio'
+          }
+        ]
+      },
+      {
+        name: 'optimizer',
+        title: 'Optimizers Methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'collab_pls',
+            title:  'Collaborative Penalized Least Squares',
+            widget: 'radio'
+          },
+          {
+            name: 'optimize_extended_range',
+            widget: 'radio'
+          },
+          {
+            name: 'adaptive_minmax',
+            title:  'Adaptive MinMax',
+            widget: 'radio'
+          }
+        ]
+      },
+      {
+        name: 'misc',
+        title:  'Miscellaneous methods',
+        widget: 'details',
+        children: [
+          {
+            name: 'interp_pts',
+            title:  'Interpolation between points',
+            widget: 'radio'
+          },
+          {
+            name: 'beads',
+            title:  'Baseline Estimation And Denoising with Sparsity',
+            widget: 'radio'
+          }
+        ]
+      }
+    ]
+  }, // End of navtab `Tools`
+  {
+    name: 'settings',
+    title: 'Settings',
+    widget: 'navtab'
+  },
+  {
+    name: 'running',
+    title: 'Run',
+    widget: 'navtab'
+  },
+];
+w_navtab(document.querySelector('section'),baseline_tabs);
+
+</script>
+</body>
+</html>
