@@ -634,14 +634,35 @@ const tools_tabs = [
         ]
       },
       {
-        name: 'do_micrographs',
-        title: 'External',
-        option: '--do_micrographs',
-        widget: 'radio',
-        group: 'toolkit',
-        help: 'Set this to Yes if you plan to import raw micrographs',
-        on_click: (ev) => w_navtab_update({settings: raw_settings})
-      },
+        name: 'extras',
+        title: 'Extras',
+        widget: 'fieldset',
+        children : [
+          {
+            name: 'crop',
+            title: 'Crop/Pad 3D map',
+            widget: 'radio',
+            group: 'toolkit',
+            help: 'Set this to Yes if you plan to import raw micrographs',
+          },
+          {
+            name: 'resize',
+            title: 'Resize 3D map',
+            widget: 'radio',
+            group: 'toolkit',
+            help: 'Set this to Yes if you plan to import raw micrographs',
+          },
+          {
+            name: 'do_micrographs',
+            title: 'External',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'toolkit',
+            help: 'Set this to Yes if you plan to import raw micrographs',
+            on_click: (ev) => w_navtab_update({settings: raw_settings})
+          },
+        ]
+      }
     ]
   },
   {

@@ -304,9 +304,11 @@ const menus = {
   home: home_tabs,
   import: import_tabs,
   motioncor: motioncor_tabs,
+  ctf: ctf_tabs,
   picking: picking_tabs,
   extract: extract_tabs,
   class2d: class2d_tabs,
+  abinitio: abinitio_tabs,
   tools: tools_tabs,
   debug: debug_tabs
 };
