@@ -306,6 +306,7 @@ const menus = {
   motioncor: motioncor_tabs,
   picking: picking_tabs,
   extract: extract_tabs,
+  class2d: class2d_tabs,
   tools: tools_tabs,
   debug: debug_tabs
 };
