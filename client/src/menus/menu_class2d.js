@@ -70,169 +70,181 @@ with X being the iteration from which one continues the previous run.`
   },
 ];
 
-
-const class2d_particles_tabs = {
-  widget: 'navtab',
+const class2d_ctf = {
+  name: 'class2d_ctf',
+  title: 'CTF',
+  widget: 'fieldset',
   children: [
-      {
-        name: 'do_ctf_correction',
-        title: 'Do CTF-correction?',
-        widget: 'bool',
-        default: true, 
-        help:`If set to Yes, CTFs will be corrected inside the MAP refinement.
+    {
+      name: 'do_ctf_correction',
+      title: 'Do CTF-correction?',
+      widget: 'bool',
+      default: true, 
+      help:`If set to Yes, CTFs will be corrected inside the MAP refinement.
     The resulting algorithm intrinsically implements the optimal linear, or Wiener filter.
     Note that CTF parameters for all images need to be given in the input STAR file.
     The command 'relion_refine --print_metadata_labels' will print a list of all possible metadata labels for that STAR file.
     See the RELION Wiki for more details.\n\n Also make sure that the correct pixel size (in Angstrom) is given above!)`
-      },
-      {
-        name: 'ctf_intact_first_peak',
-        title: 'Ignore CTFs until first peak?',
-        widget: 'bool',
-        default: false, 
-        help: `If set to Yes, then CTF-amplitude correction will \
+    },
+    {
+      name: 'ctf_intact_first_peak',
+      title: 'Ignore CTFs until first peak?',
+      widget: 'bool',
+      default: false, 
+      help: `If set to Yes, then CTF-amplitude correction will \
     only be performed from the first peak of each CTF onward. This can be useful if the CTF model is inadequate at the lowest resolution. \
     Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
     Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`
-      },
-      {
-        name: 'nr_classes',
-        title: 'Number of classes:',
-        widget: 'range',
-        default: 1, 
-        range_min: 1, 
-        range_max: 50, 
-        range_step: 1, 
-        help: `The number of classes (K) for a multi-reference refinement. \
-    These classes will be made in an unsupervised manner from a single reference by division of the data into random subsets during the first iteration.`
-      },
-      {
-        name: 'tau_fudge',
-        title: 'Regularisation parameter T:',
-        widget: 'range',
-        default: 2 , 
-        range_min: 0.1, 
-        range_min: 10, 
-        range_min: 0.1, 
-        help: `Bayes law strictly determines the relative weight between \
-    the contribution of the experimental data and the prior. However, in practice one may need to adjust this weight to put slightly more weight on \
-    the experimental data to allow optimal results. Values greater than 1 for this regularisation parameter (T in the JMB2011 paper) put more \
-    weight on the experimental data. Values around 2-4 have been observed to be useful for 3D refinements, values of 1-2 for 2D refinements. \
-    Too small values yield too-low resolution structures; too high values result in over-estimated resolutions, mostly notable by the apparition of high-frequency noise in the references.`
-      },
+    },
+  ]
+}
 
-      {
-        name: 'particle_diameter',
-        title: 'Mask diameter (A):',
-        widget: 'range',
-        default: 200, 
-        range_min: 0, 
-        range_max: 1000, 
-        range_step: 10, 
-        help: 'The experimental images will be masked with a soft \
-    circular mask with this diameter. Make sure this radius is not set too small because that may mask away part of the signal! \
-    If set to a value larger than the image size no masking will be performed.\n\n\
-    The same diameter will also be used for a spherical mask of the reference structures if no user-provided mask is specified.'
-      },
-      {
-        name: 'do_zero_mask',
-        title: 'Mask individual particles with zeros?',
-        widget: 'bool',
-        default: true, 
-        help: 'If set to Yes, then in the individual particles, \
-    the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
-    This will remove noise and therefore increase sensitivity in the alignment and classification. However, it will also introduce correlations \
-    between the Fourier components that are not modelled. When set to No, then the solvent area is filled with random noise, which prevents introducing correlations.\
-    High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-refine) tend to work better when filling the solvent area with random noise (i.e. setting this option to No), refinements of smaller complexes and most classifications go better when using zeros (i.e. setting this option to Yes).'
-      },
-      {
-        name: 'highres_limit',
-        title: 'Limit resolution E-step to (A):',
-        widget: 'range',
-        default:  -1, 
-        range_min: -1, 
-        range_max: 20, 
-        range_step: 1, 
-        help: 'If set to a positive number, then the expectation step (i.e. the alignment) will be done only including the Fourier components up to this resolution (in Angstroms). \
-    This is useful to prevent overfitting, as the classification runs in RELION are not to be guaranteed to be 100% overfitting-free (unlike the 3D auto-refine with its gold-standard FSC). In particular for very difficult data sets, e.g. of very small or featureless particles, this has been shown to give much better class averages. \
-    In such cases, values in the range of 7-12 Angstroms have proven useful.'
-      },
-      {
-        name: 'do_center',
-        title: 'Center class averages?',
-        widget: 'bool',
-        default: true, 
-        help: 'If set to Yes, every iteration the class average images will be centered on their center-of-mass. This will only work for positive signals, so the particles should be white.'
-      },
-      {
-        name: 'dont_skip_align',
-        title: 'Perform image alignment?',
-        widget: 'bool',
-        default: true, 
-        help: 'If set to No, then rather than \
-    performing both alignment and classification, only classification will be performed. This allows the use of very focused masks.\
-    This requires that the optimal orientations of all particles are already stored in the input STAR file. '
-      },
-      {
-        name: 'psi_sampling',
-        title: 'In-plane angular sampling:',
-        widget: 'range',
-        default: 6., 
-        range_min: 0.5, 
-        range_max: 20, 
-        range_step: 0.5, 
-        help: 'The sampling rate for the in-plane rotation angle (psi) in degrees. \
-    Using fine values will slow down the program. Recommended value for most 2D refinements: 5 degrees.\n\n \
-    If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
-      },
-      {
-        name: 'offset_range',
-        title: 'Offset search range (pix):',
-        widget: 'range',
-        default: 5, 
-        range_min: 0, 
-        range_max: 30, 
-        range_step: 1, 
-        help: 'Probabilities will be calculated only for translations \
-    in a circle with this radius (in pixels). The center of this circle changes at every iteration and is placed at the optimal translation \
-    for each image in the previous iteration.\n\n \
-    If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
-      },
-      {
-        name: 'offset_step',
-        title: 'Offset search step (pix):',
-        widget: 'range',
-        default: 1, 
-        range_min: 0.1, 
-        range_max: 5, 
-        range_step: 0.1, 
-        help: 'Translations will be sampled with this step-size (in pixels).\
-    Translational sampling is also done using the adaptive approach. \
-    Therefore, if adaptive=1, the translations will first be evaluated on a 2x coarser grid.\n\n \
-    If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
-      },
-      {
-        name: 'allow_coarser',
-        title: 'Allow coarser sampling?',
-        widget: 'bool',
-        default: false, 
-        help: 'If set to Yes, the program will use coarser angular and translational samplings if the estimated accuracies of the assignments is still low in the earlier iterations. This may speed up the calculations.'
-      },
-      {
-        name: 'nr_pool',
-        title: 'Number of pooled particles:',
-        widget: 'range',
-        default: 3, 
-        range_min: 1, 
-        range_max: 16, 
-        range_step: 1, 
-        help: 'Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
-    All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
-    This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.'
-      }
+const class2d_sampling = {
+  name: 'class2d_sampling',
+  title: 'Sampling',
+  widget: 'fieldset',
+  children: [
+    {
+      name: 'dont_skip_align',
+      title: 'Perform image alignment?',
+      widget: 'bool',
+      default: true, 
+      help: 'If set to No, then rather than \
+  performing both alignment and classification, only classification will be performed. This allows the use of very focused masks.\
+  This requires that the optimal orientations of all particles are already stored in the input STAR file. '
+    },
+    {
+      name: 'psi_sampling',
+      title: 'In-plane angular sampling:',
+      widget: 'range',
+      default: 6., 
+      range_min: 0.5, 
+      range_max: 20, 
+      range_step: 0.5, 
+      help: 'The sampling rate for the in-plane rotation angle (psi) in degrees. \
+  Using fine values will slow down the program. Recommended value for most 2D refinements: 5 degrees.\n\n \
+  If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
+    },
+    {
+      name: 'offset_range',
+      title: 'Offset search range (pix):',
+      widget: 'range',
+      default: 5, 
+      range_min: 0, 
+      range_max: 30, 
+      range_step: 1, 
+      help: 'Probabilities will be calculated only for translations \
+  in a circle with this radius (in pixels). The center of this circle changes at every iteration and is placed at the optimal translation \
+  for each image in the previous iteration.\n\n \
+  If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
+    },
+    {
+      name: 'offset_step',
+      title: 'Offset search step (pix):',
+      widget: 'range',
+      default: 1, 
+      range_min: 0.1, 
+      range_max: 5, 
+      range_step: 0.1, 
+      help: 'Translations will be sampled with this step-size (in pixels).\
+  Translational sampling is also done using the adaptive approach. \
+  Therefore, if adaptive=1, the translations will first be evaluated on a 2x coarser grid.\n\n \
+  If auto-sampling is used, this will be the value for the first iteration(s) only, and the sampling rate will be increased automatically after that.'
+    },
+    {
+      name: 'allow_coarser',
+      title: 'Allow coarser sampling?',
+      widget: 'bool',
+      default: false, 
+      help: 'If set to Yes, the program will use coarser angular and translational samplings if the estimated accuracies of the assignments is still low in the earlier iterations. This may speed up the calculations.'
+    },
+  ]
+};
 
-    ]
-  }
+const class2d_particles_tabs = {
+  widget: 'navtab',
+  children: [
+    class2d_ctf,
+    {
+      name: 'optimizer',
+      title: 'Optimisation',
+      widget: 'fieldset',
+      children: [
+        {
+          name: 'nr_classes',
+          title: 'Number of classes:',
+          widget: 'range',
+          default: 1, 
+          range_min: 1, 
+          range_max: 50, 
+          range_step: 1, 
+          help: `The number of classes (K) for a multi-reference refinement. \
+      These classes will be made in an unsupervised manner from a single reference by division of the data into random subsets during the first iteration.`
+        },
+        {
+          name: 'tau_fudge',
+          title: 'Regularisation parameter T:',
+          widget: 'range',
+          default: 2 , 
+          range_min: 0.1, 
+          range_min: 10, 
+          range_min: 0.1, 
+          help: `Bayes law strictly determines the relative weight between \
+      the contribution of the experimental data and the prior. However, in practice one may need to adjust this weight to put slightly more weight on \
+      the experimental data to allow optimal results. Values greater than 1 for this regularisation parameter (T in the JMB2011 paper) put more \
+      weight on the experimental data. Values around 2-4 have been observed to be useful for 3D refinements, values of 1-2 for 2D refinements. \
+      Too small values yield too-low resolution structures; too high values result in over-estimated resolutions, mostly notable by the apparition of high-frequency noise in the references.`
+        },
+        {
+          name: 'particle_diameter',
+          title: 'Mask diameter (A):',
+          widget: 'range',
+          default: 200, 
+          range_min: 0, 
+          range_max: 1000, 
+          range_step: 10, 
+          help: 'The experimental images will be masked with a soft \
+      circular mask with this diameter. Make sure this radius is not set too small because that may mask away part of the signal! \
+      If set to a value larger than the image size no masking will be performed.\n\n\
+      The same diameter will also be used for a spherical mask of the reference structures if no user-provided mask is specified.'
+        },
+        {
+          name: 'do_zero_mask',
+          title: 'Mask individual particles with zeros?',
+          widget: 'bool',
+          default: true, 
+          help: 'If set to Yes, then in the individual particles, \
+      the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
+      This will remove noise and therefore increase sensitivity in the alignment and classification. However, it will also introduce correlations \
+      between the Fourier components that are not modelled. When set to No, then the solvent area is filled with random noise, which prevents introducing correlations.\
+      High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-refine) tend to work better when filling the solvent area with random noise (i.e. setting this option to No), refinements of smaller complexes and most classifications go better when using zeros (i.e. setting this option to Yes).'
+        },
+        {
+          name: 'highres_limit',
+          title: 'Limit resolution E-step to (A):',
+          widget: 'range',
+          default:  -1, 
+          range_min: -1, 
+          range_max: 20, 
+          range_step: 1, 
+          help: 'If set to a positive number, then the expectation step (i.e. the alignment) will be done only including the Fourier components up to this resolution (in Angstroms). \
+      This is useful to prevent overfitting, as the classification runs in RELION are not to be guaranteed to be 100% overfitting-free (unlike the 3D auto-refine with its gold-standard FSC). In particular for very difficult data sets, e.g. of very small or featureless particles, this has been shown to give much better class averages. \
+      In such cases, values in the range of 7-12 Angstroms have proven useful.'
+        },
+        {
+          name: 'do_center',
+          title: 'Center class averages?',
+          widget: 'bool',
+          default: true, 
+          help: 'If set to Yes, every iteration the class average images will be centered on their center-of-mass. This will only work for positive signals, so the particles should be white.'
+        }
+      ]
+    },
+    class2d_sampling,
+  ]
+}
+      
+
 
 const class2d_helix_tabs = {
   widget: 'navtab',
@@ -302,6 +314,18 @@ const compute_tabs = [
 Otherwise, only the leader will read images and send them through the network to the followers. Parallel file systems like gluster of fhgfs are good at parallel disc I/O. NFS may break with many followers reading in parallel. If your datasets contain particles with different box sizes, you have to say Yes.'
   },
   {
+    name: 'nr_pool',
+    title: 'Number of pooled particles:',
+    widget: 'range',
+    default: 3, 
+    range_min: 1, 
+    range_max: 16, 
+    range_step: 1, 
+    help: 'Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
+All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
+This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.'
+  },
+  {
     name: 'do_preread_images',
     title: 'Pre-read all particles into RAM?',
     widget: 'bool',
@@ -352,33 +376,40 @@ const class2d_tabs = [
     widget: 'navtab',
     children: [
       {
-        name: 'class2d_particles',
-        title: '2D classification of Particles with EM algorithm',
-        widget: 'radio',
-        option: '--fn_model',
-        group: 'toolkit',
-        help: ``,
-        on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
-      },
-      {
-        name: 'class2d_particles',
-        title: '2D classification of Particles with VDAM algorithm',
-        widget: 'radio',
-        option: '--fn_model',
-        group: 'toolkit',
-        help: ``,
-        on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
-      },
-      {
-        name: 'class2d_helix',
-        title: '2D classification of Helices',
-        widget: 'radio',
-        option: '',
-        group: 'toolkit',
-        help: 'classify 2D helical segments. Note that the helical segments should come with priors of psi angles',
-        on_click: (ev) => w_navtab_update({settings: class2d_helix_tabs})
-
-      },
+        name: 'class2d_algo',
+        icon: 'bi-wrench-adjustable',
+        title: 'Algorithms',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'class2d_particles',
+            title: '2D classification of Particles with EM algorithm',
+            widget: 'radio',
+            option: '--fn_model',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+          },
+          {
+            name: 'class2d_particles',
+            title: '2D classification of Particles with VDAM algorithm',
+            widget: 'radio',
+            option: '--fn_model',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+          },
+          {
+            name: 'class2d_helix',
+            title: '2D classification of Helices',
+            widget: 'radio',
+            option: '',
+            group: 'toolkit',
+            help: 'classify 2D helical segments. Note that the helical segments should come with priors of psi angles',
+            on_click: (ev) => w_navtab_update({settings: class2d_helix_tabs})
+          },
+        ]
+      }
     ]
   },
   {

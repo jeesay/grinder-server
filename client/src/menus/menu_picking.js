@@ -7,51 +7,65 @@ const picking_tabs = [
     default:  true, 
     children: [
       {
-        name: 'relioncor2',
+        name: 'manual',
         title: 'Manual Picking',
-        widget: 'radio',
-        option: '--do_movies',
-        group: 'motioncor',
-        help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-        on_click: (ev) => w_navtab_update({settings: nakane_settings})
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'relioncor2',
+            title: 'Manual Picking',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'motioncor',
+            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
+            on_click: (ev) => w_navtab_update({settings: nakane_settings})
+          }
+        ]
       },
       {
-        name: 'relioncor2',
-        title: 'Pick 2D helical segments',
-        widget: 'radio',
-        option: '--do_movies',
-        group: 'motioncor',
-        help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-        on_click: (ev) => w_navtab_update({settings: nakane_settings})
-      },
-      
-      {
-        name: 'uscf',
-        title: 'Autopicking with Laplacian-of-Gaussian',
-        option: '--do_micrographs',
-        widget: 'radio',
-        group: 'motioncor',
-        help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-        on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-      },
-      {
-        name: 'uscf',
-        title: 'Autopicking by template matching',
-        option: '--do_micrographs',
-        widget: 'radio',
-        group: 'motioncor',
-        help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-        on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-      },
-      {
-        name: 'uscf',
-        title: 'Autopicking with Topaz',
-        option: '--do_micrographs',
-        widget: 'radio',
-        group: 'motioncor',
-        help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-        on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-      },
+        name: 'auto',
+        title: 'Auto Picking',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'relioncor2',
+            title: 'Pick 2D helical segments',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'motioncor',
+            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
+            on_click: (ev) => w_navtab_update({settings: nakane_settings})
+          },
+          
+          {
+            name: 'uscf',
+            title: 'Autopicking with Laplacian-of-Gaussian',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'motioncor',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+          {
+            name: 'uscf',
+            title: 'Autopicking by template matching',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'motioncor',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+          {
+            name: 'uscf',
+            title: 'Autopicking with Topaz',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'motioncor',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+        ]
+      }
     ]
   },
   {

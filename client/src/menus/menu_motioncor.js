@@ -323,84 +323,10 @@ const motioncor_tabs = [
     title: 'Running',
     widget: 'navtab',
     children: [
-      {
-        name: 'queue_settings',
-        title:  'Queue settings',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'submit_queue',
-            title:  'Submit to queue?',
-            widget: 'bool',
-          },
-          {
-            name: 'queue_name',
-            title:  'Queue name',
-            widget: 'text',
-          },
-          {
-            name: 'queue_command',
-            title:  'Queue submit command',
-            widget: 'text',
-          },
-          {
-            name: 'submit_script',
-            title:  'Standard submission script',
-            widget: 'text',
-          },
-          {
-            name: 'min_core',
-            title:  'Minimum dedicated cores per node',
-            default: 4,
-            widget: 'int',
-          },
-        ]
-      },
-      {
-        name: 'misc',
-        title:  'Misc.',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'extra_args',
-            title:  'Additional arguments',
-            default: '',
-            widget: 'text',
-          },
-          {
-            name: 'alias',
-            title:  'Job alias',
-            widget: 'text',
-          },
-        ]
-      },
-      {
-        name: 'extra_args',
-        title:  'Run',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'schedule',
-            title:  'Schedule',
-            widget: 'button',
-          },
-          {
-            name: 'command',
-            title:  'Check command',
-            widget: 'button',
-          },
-          {
-            name: 'run',
-            title:  'Run!',
-            widget: 'button',
-          },
-          {
-            name: 'continue',
-            title:  'Continue',
-            widget: 'button',
-          },
-        ]
-      },
+      mpi_settings,
+      thread_settings,
+      queue_settings,
+      ...submit_settings
     ]
   }
 ];
