@@ -309,6 +309,7 @@ const menus = {
   extract: extract_tabs,
   class2d: class2d_tabs,
   abinitio: abinitio_tabs,
+  postprocess: postprocess_tabs,
   tools: tools_tabs,
   debug: debug_tabs
 };

@@ -231,12 +231,7 @@ const w_navtab_update = (tab_contents) => {
     const content = document.querySelector(`article#${parent_id} .tab-content`);
     const desc = tab_contents[parent_id];
     // Update corresponding tab
-    if (parent_id == 'running') {
-      content.replaceChildren(...w_group(desc));
-    }
-    else {
-      content.replaceChildren(...w_group(desc));
-    }
+    content.replaceChildren(...w_group(desc));
   });
 
 }
