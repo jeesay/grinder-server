@@ -15,7 +15,8 @@
     HEADER: 6,
     STRING: 7,
     WORD: 8,
-    NUMBER: 9
+    NUMBER: 9,
+    EOL: 10
   };
   Object.freeze(CIF);
   
@@ -36,7 +37,8 @@ const tokenize = (txt) => {
   const isMultiLine = isFirst(';');
   const isString = isFirst('\'');
   const isNumber = (w) => (!isNaN(Number(w)));
-  const isSeparator = (w) => w.split('').every( ch => [' ','\t','\n'].includes(ch) );
+  const isEOL = (w) => (w.match(/\n/g) || []).length >= 2;
+  const isSeparator = (w) => w.split('').every( ch => [' ','\t'].includes(ch)) || w.split('').filter(ch => ch === '\n').length === 1;
   const isWord = (w) => true;
   
   // Create Basic Token
@@ -84,6 +86,10 @@ const tokenize = (txt) => {
       newToken: basicToken(CIF.SEPARATOR) 
     },
     {
+      predicate: isEOL,
+      newToken: basicToken(CIF.EOL) 
+    },
+    {
       predicate: isToken,
       newToken: basicToken(CIF.TOKEN)
     },
@@ -110,7 +116,8 @@ const tokenize = (txt) => {
     // Get Token corresponding to keyword
     const toks = keywords.reduce( (accu,kw) => {
       // const newTok = iif(kw,w,index,words).newToken();
-      console.info(w);
+//      console.info(w);
+      // HACK: EOL is replaced by SEPARATOR because tested before
       if (kw.predicate(w)) {
         accu.push(kw.newToken(w,index,words));
       }
@@ -122,8 +129,12 @@ const tokenize = (txt) => {
   };
   
   ///// M A I N /////
-  const words = txt.split(/(\s+)/);
-  console.log(words[words.length - 1]);
+ 
+  const words = txt
+    .replace(/#.*\n/g,'\n')
+    .split(/(\s+)/);
+
+//  console.log(words[words.length - 1]);
   
   let tokens = [];
   let index = 0;
@@ -134,7 +145,6 @@ const tokenize = (txt) => {
     [tok,index] = setTokenAt(index);
     tokens.push(tok);
     index++;
-    console.info(tokens);
   }
   console.info(tokens);
   return tokens;
@@ -152,7 +162,14 @@ const parseComment = (tok,obj) => {
     obj._admin_.state = CIF.NONE;
     obj._admin_.current = null;
   }
+}
 
+const parseEOL = (tok,obj) => {
+  console.log('parseEOL');
+  // Reset 
+  obj._admin_.next = [CIF.DATABLOCK,CIF.TOKEN,CIF.TABLE];
+  obj._admin_.state = CIF.NONE;
+  obj._admin_.current = null;
   return obj;
 }
 
@@ -243,16 +260,17 @@ const setRowValue = (tok,obj) => {
     last = table.rows.length-1; // Update
   }
   table.rows[last].push(tok.v);
+  obj._admin_.next = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL];
   return obj;
 }
 
 const setTokenValue = (tok,obj) => {
   let obj_block = obj._admin_.datablock;
-  console.log(obj._admin_.next,tok);
+//  console.log(obj._admin_.next,tok);
   obj_block[obj._admin_.current][obj._admin_.attr] = tok.v;
   obj._admin_.current = null;
   obj._admin_.attr = null;
-  obj._admin_.next = [CIF.DATABLOCK,CIF.TOKEN,CIF.TABLE];
+  obj._admin_.next = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL];
   return obj;
 }
 
@@ -272,6 +290,7 @@ const parseValue = (tok,obj) => {
 const parseTable = (tok,obj) => {
   obj._admin_.state = CIF.TABLE;
   obj._admin_.next = [CIF.TOKEN];
+    console.log(obj._admin_.state,'parseTable',tok);
   return obj;
 }
 
@@ -309,9 +328,10 @@ const parseDataBlock = (tok,obj) => {
  *  - STRING: 7,
  *  - WORD: 8,
  *  - NUMBER: 9
+ *  - EOL: 10
  */
 const parser = (toks) => {
-  const  setters = [parseNothing,parseNothing,parseComment,parseDataBlock,parseToken,parseTable,parseNothing,parseValue,parseValue,parseValue];
+  const  setters = [parseNothing,parseNothing,parseComment,parseDataBlock,parseToken,parseTable,parseNothing,parseValue,parseValue,parseValue,parseEOL];
 
   const model = toks.reduce( (accu,tok) => {
     if (accu._admin_.next.includes(tok.type)) {

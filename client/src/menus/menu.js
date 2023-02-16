@@ -64,18 +64,18 @@ const home_tabs = [
             help: 'Display Job History',
             children: [
               {
-                name: 'jhistory_actions',
-                title:  'Actions',
-                widget: 'tcell',
-                value: 'Select',
-                help: 'Select job.s',
-              },
-              {
                 name: 'jhistory_id',
                 title:  'ID',
                 value: 'ID',
                 widget: 'tcell',
                 help: 'Display Job ID',
+              },
+              {
+                name: 'jhistory_actions',
+                title:  'Actions',
+                widget: 'tcell',
+                value: 'Actions',
+                help: 'Select job.s',
               },
               {
                 name: 'jhistory_program',
@@ -94,7 +94,7 @@ const home_tabs = [
               {
                 name: 'jhistory_alias',
                 title:  'Job Title',
-                value: 'Job Title',
+                value: 'Job Alias',
                 widget: 'tcell',
                 help: 'Display Job Title',
               },
@@ -112,58 +112,7 @@ const home_tabs = [
             title:  'Table Body',
             widget: 'tbody',
             help: 'Display Job History',
-            children: [
-              {
-                name: 'jhistory_row',
-                title:  'Row',
-                widget: 'trow',
-                help: 'Data',
-                children: [
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    value: 'bool',
-                    help: 'DataCell',
-                  },
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    help: 'DataCell',
-                    value: '001'
-                  },
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    help: 'DataCell',
-                    value: 'baseline:rolling_ball'
-                  },
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    help: 'DataCell',
-                    value: 'lun. 30 janv. 2023 15:54:32 CET'
-                  },
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    help: 'DataCell',
-                    value: 'job005/baseline'
-                  },
-                  {
-                    name: 'jhistory_cell',
-                    title:  'Cell',
-                    widget: 'tcell',
-                    help: 'DataCell',
-                    value: 'job005/baseline'
-                  },
-                ]
-              }
-            ]
+            children: []
           }
         ]
       }

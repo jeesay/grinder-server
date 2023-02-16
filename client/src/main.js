@@ -14,32 +14,11 @@ const receive = (websocket) => {
 
     console.log(`[message] Data received from server: ${msg}`);
 
-    
+    // Dispatch data
     if (event['data'] != null){
       let data = event['data']
-      const obj = parseSTAR(msg);
+      GRELION.config = parseSTAR(msg);
 //      visualisation(data);
-    }
-
-    if ( event['action']['res'] != null){
-      selectSpectra(event['action']['res'],event['action']['name']);
-    }
-
-    if (event['log_2'] != null){
-      let field_2 = document.querySelectorAll("article#running > div > fieldset > div")[2]
-      field_2.textContent = event['log_2'];
-    }
-
-    if (event['log'] != null){
-      let field = document.querySelectorAll("article#running > div > fieldset > div")[3]
-      field.textContent = event['log'];
-      document.querySelector('button#submit').disabled = false;
-    }
-
-    if (event['error'] != null){
-      let field = document.querySelectorAll("article#running > div > fieldset")[3]
-      field.textContent = event['error'];
-      document.querySelector('button#submit').disabled = false;
     }
   });
 }

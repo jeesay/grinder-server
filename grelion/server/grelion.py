@@ -50,8 +50,8 @@ async def run(websocket,message,pathProject):
     print(message)
     event = json.loads(message)
     if event['action']['tool'] == 'grelion.py' :
-      # Opening STAR file
-      f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline_test.star")
+      # Opening config STAR file
+      f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.star")
         
       # returns star object as 
       # a dictionary
