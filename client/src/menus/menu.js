@@ -257,6 +257,7 @@ const menus = {
   picking: picking_tabs,
   extract: extract_tabs,
   class2d: class2d_tabs,
+  class3d: class3d_tabs,
   abinitio: abinitio_tabs,
   postprocess: postprocess_tabs,
   tools: tools_tabs,

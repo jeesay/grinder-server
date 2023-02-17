@@ -1,176 +1,13 @@
-const picking_tabs = [
-  {
-    name: 'do_raw',
-    title: 'Methods',
-    icon: 'bi-file-earmark-text',
-    widget: 'navtab',
-    default:  true, 
-    children: [
-      {
-        name: 'manual',
-        title: 'Manual Picking',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'relioncor2',
-            title: 'Manual Picking',
-            widget: 'radio',
-            option: '--do_movies',
-            group: 'motioncor',
-            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-            on_click: (ev) => w_navtab_update({settings: nakane_settings})
-          }
-        ]
-      },
-      {
-        name: 'auto',
-        title: 'Auto Picking',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'relioncor2',
-            title: 'Pick 2D helical segments',
-            widget: 'radio',
-            option: '--do_movies',
-            group: 'motioncor',
-            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-            on_click: (ev) => w_navtab_update({settings: nakane_settings})
-          },
-          
-          {
-            name: 'uscf',
-            title: 'Autopicking with Laplacian-of-Gaussian',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'motioncor',
-            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-          },
-          {
-            name: 'uscf',
-            title: 'Autopicking by template matching',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'motioncor',
-            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-          },
-          {
-            name: 'uscf',
-            title: 'Autopicking with Topaz',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'motioncor',
-            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-          },
-        ]
-      }
-    ]
-  },
-  {
-    name: 'settings',
-    icon: 'bi-tools',
-    title: 'Settings',
-    widget: 'navtab',
-    children: []
-  },
-  {
-    name: 'running',
-    icon: 'bi-send',
-    title: 'Running',
-    widget: 'navtab',
-    children: [
-      {
-        name: 'queue_settings',
-        title:  'Queue settings',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'submit_queue',
-            title:  'Submit to queue?',
-            widget: 'bool',
-          },
-          {
-            name: 'queue_name',
-            title:  'Queue name',
-            widget: 'text',
-          },
-          {
-            name: 'queue_command',
-            title:  'Queue submit command',
-            widget: 'text',
-          },
-          {
-            name: 'submit_script',
-            title:  'Standard submission script',
-            widget: 'text',
-          },
-          {
-            name: 'min_core',
-            title:  'Minimum dedicated cores per node',
-            default: 4,
-            widget: 'int',
-          },
-        ]
-      },
-      {
-        name: 'misc',
-        title:  'Misc.',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'extra_args',
-            title:  'Additional arguments',
-            default: '',
-            widget: 'text',
-          },
-          {
-            name: 'alias',
-            title:  'Job alias',
-            widget: 'text',
-          },
-        ]
-      },
-      {
-        name: 'extra_args',
-        title:  'Run',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'schedule',
-            title:  'Schedule',
-            widget: 'button',
-          },
-          {
-            name: 'command',
-            title:  'Check command',
-            widget: 'button',
-          },
-          {
-            name: 'run',
-            title:  'Run!',
-            widget: 'button',
-          },
-          {
-            name: 'continue',
-            title:  'Continue',
-            widget: 'button',
-          },
-        ]
-      },
-    ]
-  }
-];
 
 const manual_pick = {
+  widget: 'navtab',
   children: [
     {
       name: 'fn_in',
       title: 'Input micrographs:',
       widget: 'file',
       default: 'NODE_MICS_CPIPE',
-      default: 'Input micrographs (*.{star,mrc})',
+      placeholder: 'Input micrographs (*.{star,mrc})',
       help: 'Input STAR file (with or without CTF information), OR a unix-type wildcard with all micrographs in MRC format (in this case no CTFs can be used).',
     },
     {
@@ -254,6 +91,90 @@ to the average PLUS this value times the standard deviation. Use zero to set the
       range_step: 0.1,
       help: 'Pixel size in Angstroms. This will be used to calculate the filters and the particle diameter in pixels. If a CTF-containing STAR file is input, then the value given here will be ignored, and the pixel size will be calculated from the values in the STAR file. A negative value can then be given here.',
     },
+  ]
+}
+const manual_pick_denoising = {
+  widget: 'navtab',
+  children: [
+    {
+      name: 'fn_in',
+      title: 'Input micrographs:',
+      widget: 'file',
+      default: 'NODE_MICS_CPIPE',
+      placeholder: 'Input micrographs (*.{star,mrc})',
+      help: 'Input STAR file (with or without CTF information), OR a unix-type wildcard with all micrographs in MRC format (in this case no CTFs can be used).',
+    },
+    {
+      name: 'diameter',
+      title: 'Particle diameter (A):',
+      widget: 'range',
+      default:100, 
+      range_min: 0, 
+      range_max: 500, 
+      range_step: 50,
+      help: 'The diameter of the circle used around picked particles (in Angstroms). Only used for display.',
+    },
+    {
+      name: 'micscale',
+      title: 'Scale for micrographs:',
+      widget: 'range',
+      default:0.2, 
+      range_min: 0.1, 
+      range_max: 1, 
+      range_step: 0.05,
+      help: 'The micrographs will be displayed at this relative scale, i.e. a value of 0.5 means that only every second pixel will be displayed.',
+    },
+    {
+      name: 'sigma_contrast',
+      title: 'Sigma contrast:',
+      widget: 'range',
+      default:3, 
+      range_min: 0, 
+      range_max: 10, 
+      range_step: 0.5,
+      help: 'The micrographs will be displayed with the black value set to the average of all values MINUS this values times the standard deviation of all values in the micrograph, and the white value will be set \
+to the average PLUS this value times the standard deviation. Use zero to set the minimum value in the micrograph to black, and the maximum value to white ',
+    },
+    {
+      name: 'white_val',
+      title: 'White value:',
+      widget: 'range',
+      default:0, 
+      range_min: 0, 
+      range_max: 512, 
+      range_step: 16,
+      help: 'Use non-zero values to set the value of the whitest pixel in the micrograph.',
+    },
+    {
+      name: 'black_val',
+      title: 'Black value:',
+      widget: 'range',
+      default:0, 
+      range_min: 0, 
+      range_max: 512, 
+      range_step: 16,
+      help: 'Use non-zero values to set the value of the blackest pixel in the micrograph.',
+    },
+    {
+      name: 'highpass',
+      title: 'Highpass filter (A)',
+      widget: 'range',
+      default:-1, 
+      range_min: 100, 
+      range_max: 1000, 
+      range_step: 100,
+      help: 'Highpass filter that will be applied to the micrographs. This may be useful to get rid of background ramps due to uneven ice distributions. Give a negative value to skip the highpass filter. Useful values are often in the range of 200-400 Angstroms.',
+    },
+    {
+      name: 'angpix',
+      title: 'Pixel size (A)',
+      widget: 'range',
+      default:-1, 
+      range_min: 0.3, 
+      range_max: 5, 
+      range_step: 0.1,
+      help: 'Pixel size in Angstroms. This will be used to calculate the filters and the particle diameter in pixels. If a CTF-containing STAR file is input, then the value given here will be ignored, and the pixel size will be calculated from the values in the STAR file. A negative value can then be given here.',
+    },
     {
       name: 'do_topaz_denoise',
       title: 'OR: use Topaz denoising?',
@@ -264,83 +185,88 @@ to the average PLUS this value times the standard deviation. Use zero to set the
   ]
 }
 
-const autopick_display = {
-  children: [
-    {
-      name: 'do_startend',
-      title: 'Pick start-end coordinates helices?',
-      default:false,
-      help: 'If set to true, start and end coordinates are picked subsequently and a line will be drawn between each pair',
-    },
-    {
-      name: 'do_fom_threshold',
-      title: 'Use autopick FOM threshold?',
-      default:false,
-      help: 'If set to Yes, only particles with rlnAutopickFigureOfMerit values below the threshold below will be extracted.',
-    },
-    {
-      name: 'minimum_pick_fom',
-      title: 'Minimum autopick FOM: ',
-      widget: 'range',
-      default:0, 
-      range_min: -5, 
-      range_max: 10, 
-      range_step: 0.1,
-      help: 'The minimum value for the rlnAutopickFigureOfMerit for particles to be extracted.',
-    },
-    {
-      name: 'do_color',
-      title: 'Blue<>red color particles?',
-      default:false,
-      help: 'If set to true, then the circles for each particles are coloured from red to blue (or the other way around) for a given metadatalabel. If this metadatalabel is not in the picked coordinates STAR file \
+const autopick_display = [
+  {
+    name: 'do_startend',
+    title: 'Pick start-end coordinates helices?',
+    widget: 'bool',
+    default:false,
+    help: 'If set to true, start and end coordinates are picked subsequently and a line will be drawn between each pair',
+  },
+  {
+    name: 'do_fom_threshold',
+    title: 'Use autopick FOM threshold?',
+    widget: 'bool',
+    default:false,
+    help: 'If set to Yes, only particles with rlnAutopickFigureOfMerit values below the threshold below will be extracted.',
+  },
+  {
+    name: 'minimum_pick_fom',
+    title: 'Minimum autopick FOM: ',
+    widget: 'range',
+    default:0, 
+    range_min: -5, 
+    range_max: 10, 
+    range_step: 0.1,
+    help: 'The minimum value for the rlnAutopickFigureOfMerit for particles to be extracted.',
+  },
+  {
+    name: 'do_color',
+    title: 'Blue<>red color particles?',
+    widget: 'bool',
+    default:false,
+    help: 'If set to true, then the circles for each particles are coloured from red to blue (or the other way around) for a given metadatalabel. If this metadatalabel is not in the picked coordinates STAR file \
 (basically only the rlnAutopickFigureOfMerit or rlnClassNumber) would be useful values there, then you may provide an additional STAR file (e.g. after classification/refinement below. Particles with values -999, or that are not in the additional STAR file will be coloured the default color: green',
-    },
-    {
-      name: 'color_label',
-      title: 'MetaDataLabel for color:',
-      default: 'std::string("rlnAutopickFigureOfMerit")',
-      help: 'The Metadata label of the value to plot from red<>blue. Useful examples might be: \n \
+  },
+  {
+    name: 'color_label',
+    title: 'MetaDataLabel for color:',
+    widget: 'text',
+    default: 'rlnAutopickFigureOfMerit',
+    help: 'The Metadata label of the value to plot from red<>blue. Useful examples might be: \n \
 rlnParticleSelectZScore \n rlnClassNumber \n rlnAutopickFigureOfMerit \n rlnAngleTilt \n rlnLogLikeliContribution \n rlnMaxValueProbDistribution \n rlnNrOfSignificantSamples\n',
-    },
-    {
-      name: 'fn_color',
-      title: 'STAR file with color label: ',
-      widget: 'file',
-      default:'',
-      default:'STAR file (*.star)',
-      default:'.',
-      default:`The program will figure out which particles in this STAR file are on the current micrograph and color their circles according to the value in the corresponding column.
+  },
+  {
+    name: 'fn_color',
+    title: 'STAR file with color label: ',
+    widget: 'file',
+    default:'',
+    default:'STAR file (*.star)',
+    default:'.',
+    default:`The program will figure out which particles in this STAR file are on the current micrograph and color their circles according to the value in the corresponding column.
 Particles that are not in this STAR file, but present in the picked coordinates file will be colored green. If this field is left empty, then the color label (e.g. rlnAutopickFigureOfMerit) should be present in the coordinates STAR file.`,
-    },
-    {
-      name: 'blue_value',
-      title: 'Blue value: ',
-      widget: 'range',
-      default: 0., 
-      range_min: 0., 
-      range_max: 4., 
-      range_step: 0.1,
-      help: 'The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.',
-    },
-    {
-      name: 'red_value',
-      title: 'Red value: ',
-      default:2., 
-      range_min: 0., 
-      range_max: 4., range_step: 0.1,
-      help: 'The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.',
-    },
-  ]
-}
+  },
+  {
+    name: 'blue_value',
+    title: 'Blue value: ',
+    widget: 'range',
+    default: 0., 
+    range_min: 0., 
+    range_max: 4., 
+    range_step: 0.1,
+    help: 'The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.',
+  },
+  {
+    name: 'red_value',
+    title: 'Red value: ',
+    widget: 'range',
+    default:2., 
+    range_min: 0., 
+    range_max: 4., range_step: 0.1,
+    help: 'The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.',
+  },
+];
 
-const autopic_log = {
+const autopick_log = {
+  widget: 'navtab',
   children: [
     {
       name: 'fn_input_autopick',
       title: 'Input micrographs for autopick:',
+      widget: 'file',
       filetype: 'NODE_MICS_CPIPE',
-      default:'Input micrographs (*.{star})',
-      default:'Input STAR file (preferably with CTF information) with all micrographs to pick from.',
+      placeholder:'Input micrographs (*.{star})',
+      help:'Input STAR file (preferably with CTF information) with all micrographs to pick from.',
     },
     {
       name: 'angpix',
@@ -351,12 +277,6 @@ const autopic_log = {
       range_max: 5, 
       range_step: 0.1,
       help: 'Pixel size in Angstroms. If a CTF-containing STAR file is input, then the value given here will be ignored, and the pixel size will be calculated from the values in the STAR file. A negative value can then be given here.',
-    },
-    {
-      name: 'do_log',
-      title: 'OR: use Laplacian-of-Gaussian?',
-      default:false,
-      help: `If set to Yes, a Laplacian-of-Gaussian blob detection will be used (you can then leave the 'References' field empty. The preferred way to autopick is by setting this to no and providing references that were generated by 2D classification from this data set in RELION. The Laplacian-of-Gaussian method may be useful to kickstart a new data set. Please note that some options in the autopick tab are ignored in this method. See help messages of each option for details.`,
     },
     {
       name: 'log_diam_min',
@@ -381,6 +301,7 @@ const autopic_log = {
     {
       name: 'log_invert',
       title: 'Are the particles white?',
+      widget: 'bool',
       default:false,
       help: 'Set this option to No if the particles are black, and to Yes if the particles are white.',
     },
@@ -447,29 +368,20 @@ const autopick = {
   ]
 }
 
-const autopick_topaz = {
+const autopick_topaz_train = {
+  widget: 'navtab',
   children: [
-    {
-      name: 'do_topaz',
-      title: 'OR: use Topaz?',
-      default:false,
-      help: 'If set to Yes, topaz will be used for autopicking. Run 2 separate jobs from the Topaz tab: one for training the model and for the actual picking.',
-    },
     {
       name: 'fn_topaz_exec',
       title: 'Topaz executable',
-      default: 'std::string(default_location)',
+      widget: 'text',
+      default: 'default_location',
       help: 'The location of the Topaz executable. If you need to activate conda environment, please make a wrapper shell script to do so and specify it. You can control the default of this field by setting environment variable RELION_TOPAZ_EXECUTABLE.',
-    },
-    {
-      name: 'do_topaz_train',
-      title: 'Perform topaz training?',
-      default:false,
-      help: 'Set this option to Yes if you want to train a topaz model.',
     },
     {
       name: 'topaz_train_picks',
       title: 'Input picked coordinates for training:',
+      widget: 'file',
       filetype: 'NODE_COORDS_CPIPE',
       default: '',
       placeholder: 'Input micrographs (*.{star})',
@@ -478,17 +390,25 @@ const autopick_topaz = {
     {
       name: 'do_topaz_train_parts',
       title: 'OR train on a set of particles? ',
+      widget: 'bool',
       default:false,
       help: 'If set to Yes, the input Coordinates above will be ignored. Instead, one uses a _data.star file from a previous 2D or 3D refinement or selection to use those particle positions for training.',
     },
     {
       name: 'topaz_train_parts',
       title: 'Particles STAR file for training: ',
+      widget: 'file',
       filetype: 'NODE_PARTS_CPIPE',
       default: '',
       placeholder: 'Input STAR file (*.{star})',
       help: 'Filename of the STAR file with the particle coordinates to be used for training, e.g. from a previous 2D or 3D classification or selection.',
     },
+  ]
+};
+
+const autopick_topaz = {
+  widget: 'navtab',
+  children: [
     {
       name: 'do_topaz_pick',
       title: 'Perform topaz picking?',
@@ -795,5 +715,210 @@ Helical tubes with shorter lengths will not be picked. Note that a long helical 
 }
 
 
+const picking_tabs = [
+  {
+    name: 'do_raw',
+    title: 'Methods',
+    icon: 'bi-file-earmark-text',
+    widget: 'navtab',
+    default:  true, 
+    children: [
+      {
+        name: 'manual',
+        title: 'Manual Picking',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'pick_lowpass',
+            title: 'Manual Picking with Lowpass filtering',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'motioncor',
+            help: '',
+            on_click: (ev) => w_navtab_update({settings: manual_pick})
+          },
+          {
+            name: 'pick_denoise',
+            title: 'Manual Picking with Topaz denoising',
+            widget: 'radio',
+            option: '--do_topaz_denoise',
+            group: 'motioncor',
+            help: 'If set to true, Topaz denoising will be performed instead of lowpass filtering.',
+            on_click: (ev) => w_navtab_update({settings: manual_pick_denoising})
+          }
+
+        ]
+      },
+      {
+        name: 'helix',
+        title: 'Helices',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'pick_helix',
+            title: 'Pick 2D helical segments',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'picking',
+            help: '',
+            on_click: (ev) => w_navtab_update({settings: nakane_settings})
+          },
+        ]
+      },
+      {
+        name: 'auto',
+        title: 'Auto Picking',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'uscf',
+            title: 'Autopicking with Laplacian-of-Gaussian',
+            option: '--do_log',
+            widget: 'radio',
+            group: 'picking',
+            help: `If set to Yes, a Laplacian-of-Gaussian blob detection will be used (you can then leave the 'References' field empty. The preferred way to autopick is by setting this to no and providing references that were generated by 2D classification from this data set in RELION. The Laplacian-of-Gaussian method may be useful to kickstart a new data set. Please note that some options in the autopick tab are ignored in this method. See help messages of each option for details.`,
+            on_click: (ev) => w_navtab_update({settings: autopick_log})
+          },
+          {
+            name: 'uscf',
+            title: 'Autopicking by template matching from 2D references',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'picking',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+          {
+            name: 'uscf',
+            title: 'Autopicking by template matching from a 3D reference',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'picking',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+          {
+            name: 'topaz_train',
+            title: 'Autopicking with Topaz - Step #1: Training',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'picking',
+            help: 'Set this option to Yes if you want to train a topaz model.',
+            on_click: (ev) => w_navtab_update({settings: autopick_topaz_train})
+          },
+          {
+            name: 'topaz',
+            title: 'Autopicking with Topaz - Step #2 - Picking',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'picking',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: autopick_topaz})
+          },
+        ]
+      }
+    ]
+  },
+  {
+    name: 'display',
+    icon: 'bi-palette',
+    title: 'Display',
+    widget: 'navtab',
+    children: autopick_display
+  },
+  {
+    name: 'settings',
+    icon: 'bi-tools',
+    title: 'Settings',
+    widget: 'navtab',
+    children: []
+  },
+  {
+    name: 'running',
+    icon: 'bi-send',
+    title: 'Running',
+    widget: 'navtab',
+    children: [
+      {
+        name: 'queue_settings',
+        title:  'Queue settings',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'submit_queue',
+            title:  'Submit to queue?',
+            widget: 'bool',
+          },
+          {
+            name: 'queue_name',
+            title:  'Queue name',
+            widget: 'text',
+          },
+          {
+            name: 'queue_command',
+            title:  'Queue submit command',
+            widget: 'text',
+          },
+          {
+            name: 'submit_script',
+            title:  'Standard submission script',
+            widget: 'text',
+          },
+          {
+            name: 'min_core',
+            title:  'Minimum dedicated cores per node',
+            default: 4,
+            widget: 'int',
+          },
+        ]
+      },
+      {
+        name: 'misc',
+        title:  'Misc.',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'extra_args',
+            title:  'Additional arguments',
+            default: '',
+            widget: 'text',
+          },
+          {
+            name: 'alias',
+            title:  'Job alias',
+            widget: 'text',
+          },
+        ]
+      },
+      {
+        name: 'extra_args',
+        title:  'Run',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'schedule',
+            title:  'Schedule',
+            widget: 'button',
+          },
+          {
+            name: 'command',
+            title:  'Check command',
+            widget: 'button',
+          },
+          {
+            name: 'run',
+            title:  'Run!',
+            widget: 'button',
+          },
+          {
+            name: 'continue',
+            title:  'Continue',
+            widget: 'button',
+          },
+        ]
+      },
+    ]
+  }
+];
 
 
