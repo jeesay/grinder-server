@@ -1,0 +1,797 @@
+const auto_refine_tomo = [
+  {
+    name: 'in_optimisation',
+    title: 'Input optimisation set: ',
+    widget: 'file',
+    filetype: 'OUTNODE_TOMO_OPTIMISATION',
+    default: '',
+    placeholder: 'Optimisation set STAR file (*.star)',
+    help: `Input tomo optimisation set. Input images STAR file, reference halfmaps and reference mask files will be extracted. If input files are specified below, then they will override the components in this optimisation set.`
+  },
+];
+
+const autorefine_io = [
+  {
+    name: 'fn_img',
+    title: 'Input images STAR file:',
+    default: NODE_PARTS_CPIPE',
+    help: `"',
+    help: `STAR files (*.star) \t Image stacks (not recommended, read help!) (*.{spi,mrcs})"',
+    help: `A STAR file with all images (and their metadata). \n \n Alternatively, you may give a Spider/MRC stack of 2D images, but in that case NO metadata can be included and thus NO CTF correction can be performed, \
+nor will it be possible to perform noise spectra estimation or intensity scale corrections in image groups. Therefore, running RELION with an input stack will in general provide sub-optimal results and is therefore not recommended!! Use the Preprocessing procedure to get the input STAR file in a semi-automated manner. Read the RELION wiki for more information.`
+  },
+  {
+    name: 'fn_cont',
+    title: 'Continue from here: ',
+    default: std::string("")',
+    help: `STAR Files (*_it*_optimiser.star)"',
+    help: `CURRENT_ODIR"',
+    help: `Select the *_optimiser.star file for the iteration \
+from which you want to continue a previous run. \
+Note that the Output rootname of the continued run and the rootname of the previous run cannot be the same. \
+If they are the same, the program will automatically add a '_ctX' to the output rootname, \
+with X being the iteration from which one continues the previous run.`
+  },
+  {
+    name: 'fn_ref',
+    title: 'Reference map:',
+    default: NODE_MAP_CPIPE',
+    help: `"',
+    help: `Image Files (*.{spi,vol,mrc})"',
+    help: `A 3D map in MRC/Spider format. \
+Make sure this map has the same dimensions and the same pixel size as your input images.`
+  },
+  {
+    name: 'fn_mask',
+    title: 'Reference mask (optional):',
+    default: NODE_MASK_CPIPE',
+    help: `"',
+    help: `Image Files (*.{spi,vol,msk,mrc})"',
+    help: `\
+If no mask is provided, a soft spherical mask based on the particle diameter will be used.\n\
+\n\
+Otherwise, provide a Spider/mrc map containing a (soft) mask with the same \
+dimensions as the reference(s), and values between 0 and 1, with 1 being 100% protein and 0 being 100% solvent. \
+The reconstructed reference map will be multiplied by this mask.\n\
+\n\
+In some cases, for example for non-empty icosahedral viruses, it is also useful to use a second mask. For all white (value 1) pixels in this second mask \
+the corresponding pixels in the reconstructed map are set to the average value of these pixels. \
+Thereby, for example, the higher density inside the virion may be set to a constant. \
+Note that this second mask should have one-values inside the virion and zero-values in the capsid and the solvent areas. \
+To use a second mask, use the additional option --solvent_mask2, which may given in the Additional arguments line (in the Running tab).`
+  },
+];
+
+const autorefine = [
+  {
+    name: 'ref_correct_greyscale',
+    title: 'Ref. map is on absolute greyscale?',
+    default: false,
+    help: `Probabilities are calculated based on a Gaussian noise model, \
+which contains a squared difference term between the reference and the experimental image. This has a consequence that the \
+reference needs to be on the same absolute intensity grey-scale as the experimental images. \
+RELION and XMIPP reconstruct maps at their absolute intensity grey-scale. \
+Other packages may perform internal normalisations of the reference density, which will result in incorrect grey-scales. \
+Therefore: if the map was reconstructed in RELION or in XMIPP, set this option to Yes, otherwise set it to No. \
+If set to No, RELION will use a (grey-scale invariant) cross-correlation criterion in the first iteration, \
+and prior to the second iteration the map will be filtered again using the initial low-pass filter. \
+This procedure is relatively quick and typically does not negatively affect the outcome of the subsequent MAP refinement. \
+Therefore, if in doubt it is recommended to set this option to No.`
+  },
+  {
+    name: 'ini_high',
+    title: 'Initial low-pass filter (A):',
+    default: 60, 0, 200, 5',
+    help: `It is recommended to strongly low-pass filter your initial reference map. \
+If it has not yet been low-pass filtered, it may be done internally using this option. \
+If set to 0, no low-pass filter will be applied to the initial reference(s).`
+  },
+  {
+    name: 'sym_name',
+    title: 'Symmetry:',
+    default: std::string("C1")',
+    help: `If the molecule is asymmetric, \
+set Symmetry group to C1. Note their are multiple possibilities for icosahedral symmetry: \n \
+* I1: No-Crowther 222 (standard in Heymann, Chagoyen & Belnap, JSB, 151 (2005) 196–207) \n \
+* I2: Crowther 222 \n \
+* I3: 52-setting (as used in SPIDER?)\n \
+* I4: A different 52 setting \n \
+The command 'relion_refine --sym D2 --print_symmetry_ops' prints a list of all symmetry operators for symmetry group D2. \
+RELION uses XMIPP's libraries for symmetry operations. \
+Therefore, look at the XMIPP Wiki for more details:  http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/WebHome?topic=Symmetry`
+  },
+
+  {
+    name: 'do_ctf_correction',
+    title: 'Do CTF-correction?',
+    default: true,
+    help: `If set to Yes, CTFs will be applied to the projections of the map. This requires that CTF information is present in the input STAR file.`
+  },
+  {
+    name: 'ctf_intact_first_peak',
+    title: 'Ignore CTFs until first peak?',
+    default: false,
+    help: `If set to Yes, then CTF-amplitude correction will \
+only be performed from the first peak of each CTF onward. This can be useful if the CTF model is inadequate at the lowest resolution. \
+Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
+Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`
+  },
+
+  {
+    name: 'particle_diameter',
+    title: 'Mask diameter (A):',
+    default: 200, 0, 1000, 10',
+    help: `The experimental images will be masked with a soft \
+circular mask with this diameter. Make sure this radius is not set too small because that may mask away part of the signal! \
+If set to a value larger than the image size no masking will be performed.\n\n\
+The same diameter will also be used for a spherical mask of the reference structures if no user-provided mask is specified.`
+  },
+  {
+    name: 'do_zero_mask',
+    title: 'Mask individual particles with zeros?',
+    default: true,
+    help: `If set to Yes, then in the individual particles, \
+the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
+This will remove noise and therefore increase sensitivity in the alignment and classification. However, it will also introduce correlations \
+between the Fourier components that are not modelled. When set to No, then the solvent area is filled with random noise, which prevents introducing correlations.\
+High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-refine) tend to work better when filling the solvent area with random noise (i.e. setting this option to No), refinements of smaller complexes and most classifications go better when using zeros (i.e. setting this option to Yes).`
+  },
+  {
+    name: 'do_solvent_fsc',
+    title: 'Use solvent-flattened FSCs?',
+    default: false,
+    help: `If set to Yes, then instead of using unmasked maps to calculate the gold-standard FSCs during refinement, \
+masked half-maps are used and a post-processing-like correction of the FSC curves (with phase-randomisation) is performed every iteration. This only works when a reference mask is provided on the I/O tab. \
+This may yield higher-resolution maps, especially when the mask contains only a relatively small volume inside the box.`
+  },
+
+  {
+    name: 'sampling',
+    title: 'Initial angular sampling:',
+    default: job_sampling_options, 2',
+    help: `There are only a few discrete \
+angular samplings possible because we use the HealPix library to generate the sampling of the first two Euler angles on the sphere. \
+The samplings are approximate numbers and vary slightly over the sphere.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+  {
+    name: 'offset_range',
+    title: 'Initial offset range (pix):',
+    default: 5, 0, 30, 1',
+    help: `Probabilities will be calculated only for translations \
+in a circle with this radius (in pixels). The center of this circle changes at every iteration and is placed at the optimal translation \
+for each image in the previous iteration.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+  {
+    name: 'offset_step',
+    title: 'Initial offset step (pix):',
+    default: 1, 0.1, 5, 0.1',
+    help: `Translations will be sampled with this step-size (in pixels).\
+Translational sampling is also done using the adaptive approach. \
+Therefore, if adaptive=1, the translations will first be evaluated on a 2x coarser grid.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+  {
+    name: 'auto_local_sampling',
+    title: 'Local searches from auto-sampling:',
+    default: job_sampling_options, 4',
+    help: `In the automated procedure to \
+increase the angular samplings, local angular searches of -6/+6 times the sampling rate will be used from this angular sampling rate onwards. For most \
+lower-symmetric particles a value of 1.8 degrees will be sufficient. Perhaps icosahedral symmetries may benefit from a smaller value such as 0.9 degrees.`
+  },
+  {
+    name: 'relax_sym',
+    title: 'Relax symmetry:',
+    default: std::string("")',
+    help: `With this option, poses related to the standard local angular search range by the given point group will also be explored. For example, if you have a pseudo-symmetric dimer A-A', refinement or classification in C1 with symmetry relaxation by C2 might be able to improve distinction between A and A'. Note that the reference must be more-or-less aligned to the convention of (pseudo-)symmetry operators. For details, see Ilca et al 2019 and Abrishami et al 2020 cited in the About dialog.`
+  },
+  {
+    name: 'auto_faster',
+    title: 'Use finer angular sampling faster?',
+    default: false,
+    help: `If set to Yes, then let auto-refinement proceed faster with finer angular samplings. Two additional command-line options will be passed to the refine program: \n \n \
+--auto_ignore_angles lets angular sampling go down despite changes still happening in the angles \n \n \
+--auto_resol_angles lets angular sampling go down if the current resolution already requires that sampling at the edge of the particle.  \n\n \
+This option will make the computation faster, but hasn't been tested for many cases for potential loss in reconstruction quality upon convergence.`
+  },
+];
+
+const refine_helix = [
+  {
+    name: 'do_helix',
+    title: 'Do helical reconstruction?',
+    default: false,
+    help: `If set to Yes, then perform 3D helical reconstruction.`
+  },
+  {
+    name: 'helical_tube_inner_diameter',
+    title: 'Tube diameter - inner (A):',
+    default: std::string("-1"),"Inner and outer diameter (in Angstroms) of the reconstructed helix spanning across Z axis. \
+Set the inner diameter to negative value if the helix is not hollow in the center. The outer diameter should be slightly larger than the actual width of helical tubes because it also decides the shape of 2D \
+particle mask for each segment. If the psi priors of the extracted segments are not accurate enough due to high noise level or flexibility of the structure, then set the outer diameter to a large value.`
+  },
+  {
+    name: 'helical_tube_outer_diameter',
+    title: 'Tube diameter - outer (A):',
+    default: std::string("-1"),"Inner and outer diameter (in Angstroms) of the reconstructed helix spanning across Z axis. \
+Set the inner diameter to negative value if the helix is not hollow in the center. The outer diameter should be slightly larger than the actual width of helical tubes because it also decides the shape of 2D \
+particle mask for each segment. If the psi priors of the extracted segments are not accurate enough due to high noise level or flexibility of the structure, then set the outer diameter to a large value.`
+  },
+  {
+    name: 'range_rot',
+    title: 'Angular search range - rot (deg):',
+    default: std::string("-1")',
+    help: `Local angular searches will be performed \
+within +/- of the given amount (in degrees) from the optimal orientation in the previous iteration. The default negative value means that no local searches will be performed. \
+A Gaussian prior will be applied, so that orientations closer to the optimal orientation \
+in the previous iteration will get higher weights than those further away.\n\nThese ranges will only be applied to the \
+rot, tilt and psi angles in the first few iterations (global searches for orientations) in 3D helical reconstruction. \
+Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation time will be used. \
+A range of 15 degrees means sigma = 5 degrees.\n\nThese options will be invalid if you choose to perform local angular searches or not to perform image alignment on 'Sampling' tab.`
+  },
+  {
+    name: 'range_tilt',
+    title: 'Angular search range - tilt (deg):',
+    default: std::string("15")',
+    help: `Local angular searches will be performed \
+within +/- the given amount (in degrees) from the optimal orientation in the previous iteration. \
+A Gaussian prior (also see previous option) will be applied, so that orientations closer to the optimal orientation \
+in the previous iteration will get higher weights than those further away.\n\nThese ranges will only be applied to the \
+rot, tilt and psi angles in the first few iterations (global searches for orientations) in 3D helical reconstruction. \
+Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation time will be used. \
+A range of 15 degrees means sigma = 5 degrees.\n\nThese options will be invalid if you choose to perform local angular searches or not to perform image alignment on 'Sampling' tab.`
+  },
+  {
+    name: 'range_psi',
+    title: 'Angular search range - psi (deg):',
+    default: std::string("10")',
+    help: `Local angular searches will be performed \
+within +/- the given amount (in degrees) from the optimal orientation in the previous iteration. \
+A Gaussian prior (also see previous option) will be applied, so that orientations closer to the optimal orientation \
+in the previous iteration will get higher weights than those further away.\n\nThese ranges will only be applied to the \
+rot, tilt and psi angles in the first few iterations (global searches for orientations) in 3D helical reconstruction. \
+Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation time will be used. \
+A range of 15 degrees means sigma = 5 degrees.\n\nThese options will be invalid if you choose to perform local angular searches or not to perform image alignment on 'Sampling' tab.`
+  },
+  {
+    name: 'do_apply_helical_symmetry',
+    title: 'Apply helical symmetry?',
+    default: true,
+    help: `If set to Yes, helical symmetry will be applied in every iteration. Set to No if you have just started a project, helical symmetry is unknown or not yet estimated.`
+  },
+  {
+    name: 'helical_nr_asu',
+    title: 'Number of unique asymmetrical units:',
+    default: 1, 1, 100, 1',
+    help: `Number of unique helical asymmetrical units in each segment box. If the inter-box distance (set in segment picking step) \
+is 100 Angstroms and the estimated helical rise is ~20 Angstroms, then set this value to 100 / 20 = 5 (nearest integer). This integer should not be less than 1. The correct value is essential in measuring the \
+signal to noise ratio in helical reconstruction.`
+  },
+  {
+    name: 'helical_twist_initial"] =  JobOption("Initial helical twist (deg):',
+    default: std::string("0"),"Initial helical symmetry. Set helical twist (in degrees) to positive value if it is a right-handed helix. \
+Helical rise is a positive value in Angstroms. If local searches of helical symmetry are planned, initial values of helical twist and rise should be within their respective ranges.`
+  },
+  {
+    name: 'helical_rise_initial',
+    title: 'Initial helical rise (A):',
+    default: std::string("0")',
+    help: `Initial helical symmetry. Set helical twist (in degrees) to positive value if it is a right-handed helix. \
+Helical rise is a positive value in Angstroms. If local searches of helical symmetry are planned, initial values of helical twist and rise should be within their respective ranges.`
+  },
+  {
+    name: 'helical_z_percentage',
+    title: 'Central Z length (%):',
+    default: 30., 5., 80., 1.',
+    help: `Reconstructed helix suffers from inaccuracies of orientation searches. \
+The central part of the box contains more reliable information compared to the top and bottom parts along Z axis, where Fourier artefacts are also present if the \
+number of helical asymmetrical units is larger than 1. Therefore, information from the central part of the box is used for searching and imposing \
+helical symmetry in real space. Set this value (%) to the central part length along Z axis divided by the box size. Values around 30% are commonly used.`
+  },
+  {
+    name: 'do_local_search_helical_symmetry',
+    title: 'Do local searches of symmetry?',
+    default: false,
+    help: `If set to Yes, then perform local searches of helical twist and rise within given ranges.`
+  },
+  {
+    name: 'helical_twist_min',
+    title: 'Helical twist search (deg) - Min:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical twist search. Set helical twist (in degrees) \
+to positive value if it is a right-handed helix. Generally it is not necessary for the user to provide an initial step (less than 1 degree, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_twist_max',
+    title: 'Helical twist search (deg) - Max:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical twist search. Set helical twist (in degrees) \
+to positive value if it is a right-handed helix. Generally it is not necessary for the user to provide an initial step (less than 1 degree, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_twist_inistep',
+    title: 'Helical twist search (deg) - Step:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical twist search. Set helical twist (in degrees) \
+to positive value if it is a right-handed helix. Generally it is not necessary for the user to provide an initial step (less than 1 degree, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_rise_min',
+    title: 'Helical rise search (A) - Min:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical rise search. Helical rise is a positive value in Angstroms. \
+Generally it is not necessary for the user to provide an initial step (less than 1% the initial helical rise, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_rise_max',
+    title: 'Helical rise search (A) - Max:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical rise search. Helical rise is a positive value in Angstroms. \
+Generally it is not necessary for the user to provide an initial step (less than 1% the initial helical rise, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_rise_inistep',
+    title: 'Helical rise search (A) - Step:',
+    default: std::string("0")',
+    help: `Minimum, maximum and initial step for helical rise search. Helical rise is a positive value in Angstroms. \
+Generally it is not necessary for the user to provide an initial step (less than 1% the initial helical rise, 5~1000 samplings as default). But it needs to be set manually if the default value \
+does not guarantee convergence. The program cannot find a reasonable symmetry if the true helical parameters fall out of the given ranges. Note that the final reconstruction can still converge if wrong helical and point group symmetry are provided.`
+  },
+  {
+    name: 'helical_range_distance',
+    title: 'Range factor of local averaging:',
+    default: -1., 1., 5., 0.1',
+    help: `Local averaging of orientations and translations will be performed within a range of +/- this value * the box size. Polarities are also set to be the same for segments coming from the same tube during local refinement. \
+Values of ~ 2.0 are recommended for flexible structures such as MAVS-CARD filaments, ParM, MamK, etc. This option might not improve the reconstructions of helices formed from curled 2D lattices (TMV and VipA/VipB). Set to negative to disable this option.`
+  },
+  {
+    name: 'keep_tilt_prior_fixed',
+    title: 'Keep tilt-prior fixed:',
+    default: true,
+    help: `If set to yes, the tilt prior will not change during the optimisation. If set to No, at each iteration the tilt prior will move to the optimal tilt value for that segment from the previous iteration.`
+  },
+];
+
+const compute_tab = [
+  {
+    name: 'do_parallel_discio',
+    title: 'Use parallel disc I/O?',
+    default: true,
+    help: `If set to Yes, all MPI followers will read their own images from disc. \
+Otherwise, only the leader will read images and send them through the network to the followers. Parallel file systems like gluster of fhgfs are good at parallel disc I/O. NFS may break with many followers reading in parallel. If your datasets contain particles with different box sizes, you have to say Yes.`
+  },
+  {
+    name: 'nr_pool',
+    title: 'Number of pooled particles:',
+    default: 3, 1, 16, 1',
+    help: `Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
+All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
+This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.`
+  },
+  {
+    name: 'do_pad1',
+    title: 'Skip padding?',
+    default: false,
+    help: `If set to Yes, the calculations will not use padding in Fourier space for better interpolation in the references. Otherwise, references are padded 2x before Fourier transforms are calculated. Skipping padding (i.e. use --pad 1) gives nearly as good results as using --pad 2, but some artifacts may appear in the corners from signal that is folded back.`
+  },
+  {
+    name: 'do_preread_images',
+    title: 'Pre-read all particles into RAM?',
+    default: false,
+    help: `If set to Yes, all particle images will be read into computer memory, which will greatly speed up calculations on systems with slow disk access. However, one should of course be careful with the amount of RAM available. \
+Because particles are read in float-precision, it will take ( N * box_size * box_size * 8 / (1024 * 1024 * 1024) ) Giga-bytes to read N particles into RAM. For 100 thousand 200x200 images, that becomes 15Gb, or 60 Gb for the same number of 400x400 particles. \
+Remember that running a single MPI follower on each node that runs as many threads as available cores will have access to all available RAM. \n \n If parallel disc I/O is set to No, then only the leader reads all particles into RAM and sends those particles through the network to the MPI followers during the refinement iterations.`
+  },
+const char *default_scratch = getenv("RELION_SCRATCH_DIR`
+  },
+if (default_scratch == NULL)
+{
+default_scratch = DEFAULTSCRATCHDIR;
+}
+  {
+    name: 'scratch_dir',
+    title: 'Copy particles to scratch directory:',
+    default: std::string(default_scratch)',
+    help: `If a directory is provided here, then the job will create a sub-directory in it called relion_volatile. If that relion_volatile directory already exists, it will be wiped. Then, the program will copy all input particles into a large stack inside the relion_volatile subdirectory. \
+Provided this directory is on a fast local drive (e.g. an SSD drive), processing in all the iterations will be faster. If the job finishes correctly, the relion_volatile directory will be wiped. If the job crashes, you may want to remove it yourself.`
+  },
+  {
+    name: 'do_combine_thru_disc',
+    title: 'Combine iterations through disc?',
+    default: false,
+    help: `If set to Yes, at the end of every iteration all MPI followers will write out a large file with their accumulated results. The MPI leader will read in all these files, combine them all, and write out a new file with the combined results. \
+All MPI salves will then read in the combined results. This reduces heavy load on the network, but increases load on the disc I/O. \
+This will affect the time it takes between the progress-bar in the expectation step reaching its end (the mouse gets to the cheese) and the start of the ensuing maximisation step. It will depend on your system setup which is most efficient.`
+  },
+  {
+    name: 'use_gpu',
+    title: 'Use GPU acceleration?',
+    default: false,
+    help: `If set to Yes, the job will try to use GPU acceleration.`
+  },
+  {
+    name: 'gpu_ids',
+    title: 'Which GPUs to use:',
+    default: std::string("")',
+    help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','.  For example: '0,0:1,1:0,0:1,1'`
+  },
+]
+
+
+const multibody = [
+  {
+    name: 'fn_in',
+    title: 'Consensus refinement optimiser.star: ',
+    default: std::string("")',
+    help: `STAR Files (run_it*_optimiser.star)"',
+    help: `Refine3D/."',
+    help: `Select the *_optimiser.star file for the iteration of the consensus refinement \
+from which you want to start multi-body refinement.`
+  },
+
+  {
+    name: 'fn_cont',
+    title: 'Continue from here: ',
+    default: std::string("")',
+    help: `STAR Files (*_optimiser.star)"',
+    help: `CURRENT_ODIR"',
+    help: `Select the *_optimiser.star file for the iteration \
+from which you want to continue this multi-body refinement. \
+Note that the Output rootname of the continued run and the rootname of the previous run cannot be the same. \
+If they are the same, the program will automatically add a '_ctX' to the output rootname, \
+with X being the iteration from which one continues the previous run.`
+  },
+
+  {
+    name: 'fn_bodies',
+    title: 'Body STAR file:',
+    default: std::string("")',
+    help: `STAR Files (*.{star})"',
+    help: `."',
+    help: ` Provide the STAR file with all information about the bodies to be used in multi-body refinement. \
+An example for a three-body refinement would look like this: \n\
+\n\
+data_\n\
+loop_\n\
+_rlnBodyMaskName\n\
+_rlnBodyRotateRelativeTo\n\
+_rlnBodySigmaAngles\n\
+_rlnBodySigmaOffset\n\
+large_body_mask.mrc 2 10 2\n\
+small_body_mask.mrc 1 10 2\n\
+head_body_mask.mrc 2 10 2\n\
+\n\
+Where each data line represents a different body, and: \n \
+ - rlnBodyMaskName contains the name of a soft-edged mask with values in [0,1] that define the body; \n\
+ - rlnBodyRotateRelativeTo defines relative to which other body this body rotates (first body is number 1); \n\
+ - rlnBodySigmaAngles and _rlnBodySigmaOffset are the standard deviations (widths) of Gaussian priors on the consensus rotations and translations; \n\
+\n \
+Optionally, there can be a fifth column with _rlnBodyReferenceName. Entries can be 'None' (without the ''s) or the name of a MRC map with an initial reference for that body. In case the entry is None, the reference will be taken from the density in the consensus refinement.\n \n\
+Also note that larger bodies should be above smaller bodies in the STAR file. For more information, see the multi-body paper.`
+  },
+
+  {
+    name: 'do_subtracted_bodies',
+    title: 'Reconstruct subtracted bodies?',
+    default: true,
+    help: `If set to Yes, then the reconstruction of each of the bodies will use the subtracted images. This may give \
+useful insights about how well the subtraction worked. If set to No, the original particles are used for reconstruction (while the subtracted ones are still used for alignment). This will result in fuzzy densities for bodies outside the one used for refinement.`
+  },
+
+  {
+    name: 'sampling',
+    title: 'Initial angular sampling:',
+    default: job_sampling_options, 4',
+    help: `There are only a few discrete \
+angular samplings possible because we use the HealPix library to generate the sampling of the first two Euler angles on the sphere. \
+The samplings are approximate numbers and vary slightly over the sphere.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+  {
+    name: 'offset_range',
+    title: 'Initial offset range (pix):',
+    default: 3, 0, 30, 1',
+    help: `Probabilities will be calculated only for translations \
+in a circle with this radius (in pixels). The center of this circle changes at every iteration and is placed at the optimal translation \
+for each image in the previous iteration.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+  {
+    name: 'offset_step',
+    title: 'Initial offset step (pix):',
+    default: 0.75, 0.1, 5, 0.1',
+    help: `Translations will be sampled with this step-size (in pixels).\
+Translational sampling is also done using the adaptive approach. \
+Therefore, if adaptive=1, the translations will first be evaluated on a 2x coarser grid.\n\n \
+Note that this will only be the value for the first few iteration(s): the sampling rate will be increased automatically after that.`
+  },
+
+
+  {
+    name: 'do_analyse',
+    title: 'Run flexibility analysis?',
+    default: true,
+    help: `If set to Yes, after the multi-body refinement has completed, a PCA analysis will be run on the orientations all all bodies in the data set. This can be set to No initially, and then the job can be continued afterwards to only perform this analysis.`
+  },
+  {
+    name: 'nr_movies',
+    title: 'Number of eigenvector movies:',
+    default: 3, 0, 16, 1',
+    help: `Series of ten output maps will be generated along this many eigenvectors. These maps can be opened as a 'Volume Series' in UCSF Chimera, and then displayed as a movie. They represent the principal motions in the particles.`
+  },
+  {
+    name: 'do_select',
+    title: 'Select particles based on eigenvalues?',
+    default: false,
+    help: `If set to Yes, a particles.star file is written out with all particles that have the below indicated eigenvalue in the selected range.`
+  },
+  {
+    name: 'select_eigenval',
+    title: 'Select on eigenvalue:',
+    default: 1, 1, 20, 1',
+    help: `This is the number of the eigenvalue to be used in the particle subset selection (start counting at 1).`
+  },
+  {
+    name: 'eigenval_min',
+    title: 'Minimum eigenvalue:',
+    default: -999., -50, 50, 1',
+    help: `This is the minimum value for the selected eigenvalue; only particles with the selected eigenvalue larger than this value will be included in the output particles.star file`
+  },
+  {
+    name: 'eigenval_max',
+    title: 'Maximum eigenvalue:',
+    default: 999., -50, 50, 1',
+    help: `This is the maximum value for the selected eigenvalue; only particles with the selected eigenvalue less than this value will be included in the output particles.star file`
+  },
+
+  {
+    name: 'do_parallel_discio',
+    title: 'Use parallel disc I/O?',
+    default: true,
+    help: `If set to Yes, all MPI followers will read their own images from disc. \
+Otherwise, only the leader will read images and send them through the network to the followers. Parallel file systems like gluster of fhgfs are good at parallel disc I/O. NFS may break with many followers reading in parallel. If your datasets contain particles with different box sizes, you have to say Yes.`
+  },
+  {
+    name: 'nr_pool',
+    title: 'Number of pooled particles:',
+    default: 3, 1, 16, 1',
+    help: `Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
+All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
+This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.`
+  },
+  {
+    name: 'do_pad1',
+    title: 'Skip padding?',
+    default: false,
+    help: `If set to Yes, the calculations will not use padding in Fourier space for better interpolation in the references. Otherwise, references are padded 2x before Fourier transforms are calculated. Skipping padding (i.e. use --pad 1) gives nearly as good results as using --pad 2, but some artifacts may appear in the corners from signal that is folded back.`
+  },
+  {
+    name: 'do_preread_images',
+    title: 'Pre-read all particles into RAM?',
+    default: false,
+    help: `If set to Yes, all particle images will be read into computer memory, which will greatly speed up calculations on systems with slow disk access. However, one should of course be careful with the amount of RAM available. \
+Because particles are read in float-precision, it will take ( N * box_size * box_size * 8 / (1024 * 1024 * 1024) ) Giga-bytes to read N particles into RAM. For 100 thousand 200x200 images, that becomes 15Gb, or 60 Gb for the same number of 400x400 particles. \
+Remember that running a single MPI follower on each node that runs as many threads as available cores will have access to all available RAM. \n \n If parallel disc I/O is set to No, then only the leader reads all particles into RAM and sends those particles through the network to the MPI followers during the refinement iterations.`
+  },
+const char *default_scratch = getenv("RELION_SCRATCH_DIR`
+  },
+if (default_scratch == NULL)
+{
+default_scratch = DEFAULTSCRATCHDIR;
+}
+  {
+    name: 'scratch_dir',
+    title: 'Copy particles to scratch directory:',
+    default: std::string(default_scratch)',
+    help: `If a directory is provided here, then the job will create a sub-directory in it called relion_volatile. If that relion_volatile directory already exists, it will be wiped. Then, the program will copy all input particles into a large stack inside the relion_volatile subdirectory. \
+Provided this directory is on a fast local drive (e.g. an SSD drive), processing in all the iterations will be faster. If the job finishes correctly, the relion_volatile directory will be wiped. If the job crashes, you may want to remove it yourself.`
+  },
+  {
+    name: 'do_combine_thru_disc',
+    title: 'Combine iterations through disc?',
+    default: false,
+    help: `If set to Yes, at the end of every iteration all MPI followers will write out a large file with their accumulated results. The MPI leader will read in all these files, combine them all, and write out a new file with the combined results. \
+All MPI salves will then read in the combined results. This reduces heavy load on the network, but increases load on the disc I/O. \
+This will affect the time it takes between the progress-bar in the expectation step reaching its end (the mouse gets to the cheese) and the start of the ensuing maximisation step. It will depend on your system setup which is most efficient.`
+  },
+  {
+    name: 'use_gpu',
+    title: 'Use GPU acceleration?',
+    default: false,
+    help: `If set to Yes, the job will try to use GPU acceleration.`
+  },
+  {
+    name: 'gpu_ids',
+    title: 'Which GPUs to use:',
+    default: std::string("")',
+    help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','.  For example: '0,0:1,1:0,0:1,1'`
+  },
+}
+
+];
+
+const subtract = [
+  {
+    name: 'fn_opt',
+    title: 'Input optimiser.star: ',
+    default: NODE_OPTIMISER_CPIPE',
+    help: `"',
+    help: `STAR Files (*_optimiser.star)"',
+    help: `Select the *_optimiser.star file for the iteration of the 3D refinement/classification \
+which you want to use for subtraction. It will use the maps from this run for the subtraction, and of no particles input STAR file is given below, it will use all of the particles from this run.`
+  },
+  {
+    name: 'fn_mask',
+    title: 'Mask of the signal to keep:',
+    default: NODE_MASK_CPIPE',
+    help: `"',
+    help: `Image Files (*.{spi,vol,msk,mrc})"',
+    help: `Provide a soft mask where the protein density you wish to subtract from the experimental particles is black (0) and the density you wish to keep is white (1).`
+  },
+  {
+    name: 'do_data',
+    title: 'Use different particles?',
+    default: false,
+    help: `If set to Yes, subtraction will be performed on the particles in the STAR file below, instead of on all the particles of the 3D refinement/classification from the optimiser.star file.`
+  },
+  {
+    name: 'fn_data',
+    title: 'Input particle star file:',
+    default: NODE_PARTS_CPIPE',
+    help: `"',
+    help: `particle STAR file (*.star)"',
+    help: `The particle STAR files with particles that will be used in the subtraction. Leave this field empty if all particles from the input refinement/classification run are to be used.`
+  },
+  {
+    name: 'do_float16',
+    title: 'Write output in float16?',
+    default: true ,"If set to Yes, this program will write output images in float16 MRC format. This will save a factor of two in disk space compared to the default of writing in float32. Note that RELION and CCPEM will read float16 images, but other programs may not (yet) do so.`
+  },
+
+  {
+    name: 'do_fliplabel',
+    title: 'OR revert to original particles?',
+    default: false,
+    help: `If set to Yes, no signal subtraction is performed. Instead, the labels of rlnImageName and rlnImageOriginalName are flipped in the input STAR file given in the field below. This will make the STAR file point back to the original, non-subtracted images.`
+  },
+  {
+    name: 'fn_fliplabel',
+    title: 'revert this particle star file:',
+    default: NODE_PARTS_CPIPE',
+    help: `"',
+    help: `particle STAR file (*.star)"',
+    help: `The particle STAR files with particles that will be used for label reversion.`
+  },
+
+  {
+    name: 'do_center_mask',
+    title: 'Do center subtracted images on mask?',
+    default: true,
+    help: `If set to Yes, the subtracted particles will be centered on projections of the center-of-mass of the input mask.`
+  },
+  {
+    name: 'do_center_xyz',
+    title: 'Do center on my coordinates?',
+    default: false,
+    help: `If set to Yes, the subtracted particles will be centered on projections of the x,y,z coordinates below. The unit is pixel, not angstrom. The origin is at the center of the box, not at the corner.`
+  },
+  {
+    name: 'center_x',
+    title: 'Center coordinate (pix) - X:',
+    default: std::string("0")',
+    help: `X-coordinate of the 3D center (in pixels).`
+  },
+  {
+    name: 'center_y',
+    title: 'Center coordinate (pix) - Y:',
+    default: std::string("0")',
+    help: `Y-coordinate of the 3D center (in pixels).`
+  },
+  {
+    name: 'center_z',
+    title: 'Center coordinate (pix) - Z:',
+    default: std::string("0")',
+    help: `Z-coordinate of the 3D center (in pixels).`
+  },
+
+  {
+    name: 'new_box',
+    title: 'New box size:',
+    default: -1, 64, 512, 32',
+    help: `Provide a non-negative value to re-window the subtracted particles in a smaller box size." );
+}
+];
+
+const refine_tabs = [
+  {
+    name: 'refine_tools',
+    icon: 'bi-wrench-adjustable',
+    title: 'Tools',
+    widget: 'navtab',
+    children: [
+      {
+        name: 'class2d_algo',
+        icon: 'bi-wrench-adjustable',
+        title: 'Auto-refinement',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'class2d_particles',
+            title: '3D auto-refine',
+            widget: 'radio',
+            option: '--fn_model',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+          }
+        ]
+      },
+      {
+        name: 'class2d_algo',
+        icon: 'bi-wrench-adjustable',
+        title: 'Tools',
+        widget: 'fieldset',
+        children: [
+
+          {
+            name: 'class2d_particles',
+            title: 'Multibody Refinement',
+            widget: 'radio',
+            option: '--fn_model',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+          },
+          {
+            name: 'class2d_particles',
+            title: 'Particle subtraction',
+            widget: 'radio',
+            option: '--fn_model',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'settings',
+    icon: 'bi-tools',
+    title: 'Settings',
+    widget: 'navtab',
+    children: []
+  },
+  {
+    name: 'compute',
+    icon: 'bi-cpu',
+    title: 'Compute',
+    widget: 'navtab',
+    children: compute_tabs
+  },
+  {
+    name: 'running',
+    icon: 'bi-send',
+    title: 'Running',
+    widget: 'navtab',
+    children: [
+      mpi_settings,
+      thread_settings,
+      queue_settings,
+      ...submit_settings
+    ]
+  },
+  {
+    name:'result',
+    icon: 'bi-eye',
+    title: 'Result',
+    widget: 'navtab',
+    children: []
+  }
+];

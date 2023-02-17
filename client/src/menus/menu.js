@@ -259,6 +259,7 @@ const menus = {
   class2d: class2d_tabs,
   class3d: class3d_tabs,
   abinitio: abinitio_tabs,
+  refine3d: refine_tabs,
   postprocess: postprocess_tabs,
   tools: tools_tabs,
   debug: debug_tabs
