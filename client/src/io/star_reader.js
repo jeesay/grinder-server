@@ -235,10 +235,9 @@ const parseToken = (tok,obj) => {
   // Remove the leading underscore `_` and Split `category` and `attribute` 
   let [cat,attr] = tok.v.slice(1).split('.');
   if (!attr) {
-    attr = cat;
-    cat = 'global';
+    attr = (obj._admin_.state === CIF.TABLE) ? cat : 'value';
   }
-  return (obj._admin_.state === CIF.TABLE) ? setHeader(cat,attr,obj) : setCategory(cat,attr,obj);
+  return (obj._admin_.state === CIF.TABLE) ? setHeader('table',attr,obj) : setCategory(cat,attr,obj);
 }
 
 /**
@@ -290,7 +289,7 @@ const parseValue = (tok,obj) => {
 const parseTable = (tok,obj) => {
   obj._admin_.state = CIF.TABLE;
   obj._admin_.next = [CIF.TOKEN];
-    console.log(obj._admin_.state,'parseTable',tok);
+  console.log(obj._admin_.state,'parseTable',tok);
   return obj;
 }
 
@@ -351,8 +350,9 @@ const parseSTAR = (txt) => {
   // First Pass
   const tokens = tokenize(txt);
 
-  // Second Pass -Parse
+  // Second Pass - Parse
   let structure = parser(tokens);
+  delete structure._admin_;
   console.log(structure);
   console.info('End');
   return structure;

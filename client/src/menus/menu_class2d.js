@@ -382,7 +382,7 @@ const class2d_tabs = [
         widget: 'fieldset',
         children: [
           {
-            name: 'class2d_particles',
+            name: 'class2d_em',
             title: '2D classification of Particles with EM algorithm',
             widget: 'radio',
             option: '--fn_model',
@@ -391,7 +391,7 @@ const class2d_tabs = [
             on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
           },
           {
-            name: 'class2d_particles',
+            name: 'class2d_vdam',
             title: '2D classification of Particles with VDAM algorithm',
             widget: 'radio',
             option: '--fn_model',
@@ -432,8 +432,14 @@ const class2d_tabs = [
     title: 'Running',
     widget: 'navtab',
     children: [
-      mpi_settings,
-      thread_settings,
+      {
+        widget: 'fieldset',
+        title: 'Processes and Threads',
+        children: [
+          mpi_settings,
+          thread_settings,
+        ]
+      },
       queue_settings,
       ...submit_settings
     ]

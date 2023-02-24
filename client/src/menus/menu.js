@@ -50,6 +50,7 @@ const home_tabs = [
     title: 'Job History',
     icon: 'bi-clock-history',
     widget: 'navtab',
+    on_click: create_history,
     children: [
       {
         name: 'jhistory',
@@ -252,7 +253,7 @@ const debug_tabs = [
 const menus = {
   home: home_tabs,
   import: import_tabs,
-  motioncor: motioncor_tabs,
+  motioncorr: motioncor_tabs,
   ctf: ctf_tabs,
   picking: picking_tabs,
   extract: extract_tabs,
@@ -265,6 +266,25 @@ const menus = {
   debug: debug_tabs
 };
 
+const actions = {
+  home: home_tabs,
+  import: import_tabs,
+  motioncorr: motioncor_tabs,
+  ctffind: ctf_tabs,
+  manualpick: picking_tabs,
+  extract: extract_tabs,
+  select: tools_tabs,
+  class2d: class2d_tabs,
+  autopick: picking_tabs,
+  initialmodel: abinitio_tabs,
+  class3d: class3d_tabs,
+  refine3d: refine_tabs,
+  maskcreate: tools_tabs,
+  postprocess: postprocess_tabs,
+  polish: postprocess_tabs,
+  joinstar: tools_tabs,
+  ctfrefine: ctf_tabs,
+}
 
 
 

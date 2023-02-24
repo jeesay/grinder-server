@@ -18,7 +18,6 @@ const receive = (websocket) => {
     if (event['data'] != null){
       let data = event['data']
       GRELION.config = parseSTAR(msg);
-//      visualisation(data);
     }
   });
 }

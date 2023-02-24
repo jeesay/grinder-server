@@ -52,9 +52,9 @@ To use a second mask, use the additional option --solvent_mask2, which may given
   },
 ];
 
-const class3d_particles = {
-  widget: 'navtab',
-  children: [
+
+
+const reference_class3d = [
   {
     name: 'ref_correct_greyscale',
     title: 'Ref. map is on absolute greyscale?',
@@ -98,6 +98,9 @@ The command 'relion_refine --sym D2 --print_symmetry_ops' prints a list of all s
 RELION uses XMIPP's libraries for symmetry operations. 
 Therefore, look at the XMIPP Wiki for more details:  http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/WebHome?topic=Symmetry`
   },
+];
+
+const ctf_class3d = [
   {
     name: 'do_ctf_correction',
     title: 'Do CTF-correction?',
@@ -121,7 +124,9 @@ only be performed from the first peak of each CTF onward. This can be useful if 
 Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
 Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`
   },
+];
 
+const optimisation_class3d = [
   {
     name: 'nr_classes',
     title: 'Number of classes:',
@@ -205,7 +210,9 @@ High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-
 This is useful to prevent overfitting, as the classification runs in RELION are not to be guaranteed to be 100% overfitting-free (unlike the 3D auto-refine with its gold-standard FSC). In particular for very difficult data sets, e.g. of very small or featureless particles, this has been shown to give much better class averages. \
 In such cases, values in the range of 7-12 Angstroms have proven useful.`
   },
+];
 
+const sampling_class3d = [
   {
     name: 'dont_skip_align',
     title: 'Perform image alignment?',
@@ -276,21 +283,45 @@ A Gaussian prior (also see previous option) will be applied, so that orientation
 in the previous iteration will get higher weights than those further away.`
   },
   {
-    name: 'allow_coarser',
-    title: 'Allow coarser sampling?',
-    widget: 'bool',
-    default: false,
-    help: ` If set to Yes, the program will use coarser angular and translational samplings if the estimated accuracies of the assignments is still low in the earlier iterations. This may speed up the calculations.`
-  },
-  {
     name: 'relax_sym',
     title: 'Relax symmetry:',
     widget: 'text',
     default: '',
     help: ` With this option, poses related to the standard local angular search range by the given point group will also be explored. For example, if you have a pseudo-symmetric dimer A-A', refinement or classification in C1 with symmetry relaxation by C2 might be able to improve distinction between A and A'. Note that the reference must be more-or-less aligned to the convention of (pseudo-)symmetry operators. For details, see Ilca et al 2019 and Abrishami et al 2020 cited in the About dialog.`
   },
+  {
+    name: 'allow_coarser',
+    title: 'Allow coarser sampling?',
+    widget: 'bool',
+    default: false,
+    help: ` If set to Yes, the program will use coarser angular and translational samplings if the estimated accuracies of the assignments is still low in the earlier iterations. This may speed up the calculations.`
+  },
+];
 
-]
+const class3d_particles = {
+  widget: 'navtab',
+  children: [
+    {
+      widget: 'fieldset',
+      title: 'Reference',
+      children: reference_class3d,
+    },
+    {
+      widget: 'fieldset',
+      title: 'CTF',
+      children: ctf_class3d,
+    },
+    {
+      widget: 'fieldset',
+      title: 'Optimisation',
+      children: optimisation_class3d,
+    },
+    {
+      widget: 'fieldset',
+      title: 'Sampling',
+      children: sampling_class3d,
+    },
+  ]
 };
 
 

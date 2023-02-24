@@ -137,10 +137,78 @@ const w_float = (desc) => {
   return w_int(desc);
 }
 
-const w_range = (desc) => {
-  // TODO
-  return w_int(desc);
-}
+const w_range = (desc) => h('div.row',
+  [
+    h('label',{attrs: {'for':desc.name}},desc.title),
+    h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
+    h('div.range_slider',
+      {
+        style: {display:'flex'}
+      },
+      [
+        h('a',
+          {
+            props:{href:'#',title:'Modify'},
+            on: {
+              click: (ev) => {
+                const slider = ev.target.closest(".range_slider");
+                slider.style.display = 'none';
+                slider.nextElementSibling.style.display = 'flex';
+              } 
+            }
+          },
+          [h('i.bi.bi-pencil-square')],
+        ),
+        h(`input#${desc.name}.param`, 
+          {
+            attrs: {
+              type:'range',
+              min: desc.range_min,
+              max: desc.range_max,
+              step: desc.range_step,
+              value: desc.default,
+              name:desc.name
+            },
+            dataset: ('option' in desc) ? {option: desc.option} : {},
+            on: {input: (ev) => {ev.target.nextElementSibling.value = ev.target.value} }
+          }
+        ),
+        h('output', desc.default.toString()),
+      ]
+    ),
+    h('div.range_text',
+      {
+        style: {display:'none'}
+      },
+      [
+        h('a',
+          {
+            props:{href:'#',title:'Modify'},
+            on: {
+              click: (ev) => {
+                const rtext = ev.target.closest(".range_text");
+                rtext.style.display = 'none';
+                rtext.previousElementSibling.style.display = 'flex';
+              } 
+            }
+
+    //        on:{'click': (ev) => view(ev)} 
+          },
+          [h('i.bi.bi-sliders')],
+        ),
+        h(`input#${desc.name}.param`, 
+          {
+            attrs: {
+              type:'number',
+              value: desc.default,
+              name:desc.name
+            },
+            dataset: ('option' in desc) ? {option: desc.option} : {}
+          }
+        )
+      ])
+    ]
+  );
 
 const w_bool = (desc) => h('div.row',
   [
@@ -198,10 +266,11 @@ const w_radio = (desc) => h('div.row',
 
 
 const w_navtab = (parent,desc) => {
-  // Remove all the children
+  // Remove all the previous children
   parent.innerHTML = '';
   // Step #1 Header
   desc.forEach( (child,i) => {
+    console.log('TABS',child);
     const el = h(`article#${child.name}.tab`, 
       [
         h(`input#tab-${i+1}.tab-switch`, 
@@ -212,7 +281,8 @@ const w_navtab = (parent,desc) => {
             },
             props: {
               checked: (i==0) ? true : false
-            }
+            },
+            on: ('on_click' in child) ? {click: child.on_click} : {}
           }
         ),
         h('label.tab-label',{attrs: {'for': `tab-${i+1}`}},[h(`i.bi.${child.icon}`),' ',child.title]),
@@ -339,5 +409,5 @@ const submit_command = (tool) => (ev) => {
   field.appendChild(textdiv);
   console.log("Send");
   console.log(event);
-  GIMMICK.websocket.send(JSON.stringify(event));
+  GRELION.websocket.send(JSON.stringify(event));
 }

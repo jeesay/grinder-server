@@ -10,8 +10,9 @@ const create_history = (ev) => {
   else {
     console.log(GRELION.config.datablocks[1].global);
     let table = document.querySelector('#jhistory_body');
+    table.innerHTML = '';
     // GRELION.config.datablocks[1].global.header.forEach(row => {});
-    GRELION.config.datablocks[1].global.rows.forEach(row => {
+    GRELION.config.datablocks[1].table.rows.forEach(row => {
       const job_id = row[0].match(/\d{3}/g).join("");
       table.appendChild(
         h('tr.jhistory_row',
@@ -24,29 +25,25 @@ const create_history = (ev) => {
             h('td.jhistory_cell', [
               h('a',
                 {
-                  props:{href:'#'},
+                  props:{href:'#',title:'View'},
                   on:{'click': (ev) => view(ev)} 
                 },
                 [h('i.bi.bi-eye')],
               ),
               h('a',
                 {
-                  props:{href:'#'},
+                  props:{href:'#',title: 'Copy and create a new job'},
                   on:{'click': (ev) => copy(ev)} 
                 },
                 [h('i.bi-clipboard-plus')],
               ),
               h('a',
                 {
-                  props:{href:'#'},
+                  props:{href:'#', title: 'Move to Trash'},
                   on:{'click': (ev) => askTrash(ev.target.parentElement.parentElement.parentElement.children[4].textContent)} 
                 },
                 [h('i.bi-trash')],
               ),
-              h('a',
-                {props:{href:'#'}},
-                [h('i.bi.bi-x-square')]
-              )
             ]),
             h('td.jhistory_cell', row[2]),
             h('td.jhistory_cell', row[2]),
@@ -59,5 +56,3 @@ const create_history = (ev) => {
   }
 }
 
-
-document.querySelector('#history #tab-2').addEventListener('click',create_history);
