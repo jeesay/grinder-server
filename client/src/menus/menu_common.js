@@ -158,6 +158,7 @@ This will affect the time it takes between the progress-bar in the expectation s
   {
     name: 'use_gpu',
     title: 'Use GPU acceleration?',
+    option: '--gpu',
     widget: 'bool',
     default: false, 
     help: 'If set to Yes, the job will try to use GPU acceleration.'

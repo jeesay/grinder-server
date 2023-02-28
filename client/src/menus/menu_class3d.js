@@ -631,7 +631,7 @@ const class3d_tabs = [
   },
   {
     name: 'io',
-    icon: 'bi-tools',
+    icon: 'bi-arrow-down-up',
     title: 'I/O',
     widget: 'navtab',
     children: class3d_io

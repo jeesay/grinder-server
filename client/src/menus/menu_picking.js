@@ -340,33 +340,33 @@ const autopick_log = {
 }
 
 
-const autopick = {
-  children: [
-    {
-      name: 'fn_input_autopick',
-      title: 'Input micrographs for autopick:',
-      filetype: 'NODE_MICS_CPIPE',
-      placeholder: 'Input micrographs (*.{star})',
-      default:'Input STAR file (preferably with CTF information) with all micrographs to pick from.',
-    },
-    {
-      name: 'angpix',
-      title: 'Pixel size in micrographs (A)',
-      widget: 'range',
-      default:-1, 
-      range_min: 0.3, 
-      range_max: 5, 
-      range_step: 0.1,
-      help: 'Pixel size in Angstroms. If a CTF-containing STAR file is input, then the value given here will be ignored, and the pixel size will be calculated from the values in the STAR file. A negative value can then be given here.',
-    },
-    {
-      name: 'continue_manual',
-      title: 'OR: continue manually?',
-      default:false,
-      help: 'If set to Yes, an Autopick job can be continued as a manualpick job, so that incorrect picks can be corrected interactively.',
-    },
-  ]
-}
+const autopick_io = [
+  {
+    name: 'fn_input_autopick',
+    title: 'Input micrographs for autopick:',
+    widget: 'file',
+    filetype: 'NODE_MICS_CPIPE',
+    placeholder: 'Input micrographs (*.{star})',
+    default:'Input STAR file (preferably with CTF information) with all micrographs to pick from.',
+  },
+  {
+    name: 'angpix',
+    title: 'Pixel size in micrographs (A)',
+    widget: 'range',
+    default:-1, 
+    range_min: 0.3, 
+    range_max: 5, 
+    range_step: 0.1,
+    help: 'Pixel size in Angstroms. If a CTF-containing STAR file is input, then the value given here will be ignored, and the pixel size will be calculated from the values in the STAR file. A negative value can then be given here.',
+  },
+  {
+    name: 'continue_manual',
+    title: 'OR: continue manually?',
+    widget: 'bool',
+    default:false,
+    help: 'If set to Yes, an Autopick job can be continued as a manualpick job, so that incorrect picks can be corrected interactively.',
+  },
+];
 
 const autopick_topaz_train = {
   widget: 'navtab',
@@ -627,35 +627,11 @@ This option is ignored in the Laplacian-of-Gaussian picker.`,
       help: 'This is useful to speed up the calculations, and to make them less memory-intensive. The micrographs will be downscaled (shrunk) to calculate the cross-correlations, and peak searching will be done in the downscaled FOM maps. When set to 0, the micrographs will de downscaled to the lowpass filter of the references, a value between 0 and 1 will downscale the micrographs by that factor. Note that the results will not be exactly the same when you shrink micrographs!\
 \n\nIn the Laplacian-of-Gaussian picker, this option is ignored and the shrink factor always becomes 0.',
     },
-    {
-      name: 'use_gpu',
-      title: 'Use GPU acceleration?',
-      default:false,
-      help: 'If set to Yes, the job will try to use GPU acceleration. The Laplacian-of-Gaussian picker does not support GPU.',
-    },
-    {
-      name: 'gpu_ids',
-      title: 'Which GPUs to use:',
-      default: '',
-      help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':'. For example: 0:1:0:1:0:1`,
-    },
   ]
 }
 
 const pick_helices = {
   children: [
-    {
-      name: 'do_pick_helical_segments',
-      title: 'Pick 2D helical segments?',
-      default:false,
-      help: 'Set to Yes if you want to pick 2D helical segments.',
-    },
-    {
-      name: 'do_amyloid',
-      title: 'Pick amyloid segments?',
-      default:false,
-      help: 'Set to Yes if you want to use the algorithm that was developed specifically for picking amyloids.',
-    },
     {
       name: 'helical_tube_outer_diameter',
       title: 'Tube diameter (A): ',
@@ -755,13 +731,22 @@ const picking_tabs = [
         widget: 'fieldset',
         children: [
           {
-            name: 'pick_helix',
+            name: 'do_pick_helical_segments',
             title: 'Pick 2D helical segments',
             widget: 'radio',
-            option: '--do_movies',
+            option: '--do_pick_helical_segments',
             group: 'picking',
-            help: '',
-            on_click: (ev) => w_navtab_update({settings: nakane_settings})
+            help: 'Set to Yes if you want to pick 2D helical segments.',
+            on_click: (ev) => w_navtab_update({settings: pick_helices})
+          },
+          {
+            name: 'do_amyloid',
+            title: 'Pick amyloid segments',
+            widget: 'radio',
+            option: '--do_amyloid',
+            group: 'picking',
+            help: 'Set to Yes if you want to use the algorithm that was developed specifically for picking amyloids.',
+            on_click: (ev) => w_navtab_update({settings: pick_helices})
           },
         ]
       },
@@ -798,18 +783,27 @@ const picking_tabs = [
             on_click: (ev) => w_navtab_update({settings: ucsf_settings})
           },
           {
-            name: 'topaz_train',
-            title: 'Autopicking with Topaz - Step #1: Training',
-            option: '--do_micrographs',
+            name: 'do_topaz_train',
+            title: 'Autopicking with Topaz - Step #1: Training from input coordinates (default)',
+            option: '--topaz_train',
             widget: 'radio',
             group: 'picking',
             help: 'Set this option to Yes if you want to train a topaz model.',
             on_click: (ev) => w_navtab_update({settings: autopick_topaz_train})
           },
           {
-            name: 'topaz',
+            name: 'do_topaz_train_parts',
+            title: 'Autopicking with Topaz - Step #1: Training  from set of particles ',
+            option: '--topaz_train_parts',
+            widget: 'radio',
+            group: 'picking',
+            help: 'Set this option to Yes if you want to train a topaz model.',
+            on_click: (ev) => w_navtab_update({settings: autopick_topaz_train})
+          },
+          {
+            name: 'do_topaz_pick',
             title: 'Autopicking with Topaz - Step #2 - Picking',
-            option: '--do_micrographs',
+            option: '--do_topaz_pick',
             widget: 'radio',
             group: 'picking',
             help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
@@ -818,6 +812,13 @@ const picking_tabs = [
         ]
       }
     ]
+  },
+  {
+    name: 'io',
+    icon: 'bi-arrow-down-up',
+    title: 'I/O',
+    widget: 'navtab',
+    children: autopick_io
   },
   {
     name: 'display',
