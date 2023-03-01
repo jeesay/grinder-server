@@ -6,8 +6,9 @@
  *#
 '''
 from enum import Enum
-from . import io
 
+
+import io.star.star_tokenizer as starstok
 
 ## Constants for state
 class CIF(Enum):
@@ -24,7 +25,7 @@ class CIF(Enum):
   EOL: 10
   
 
-io.star.tokenize('# version 3001')
+tokenize('# version 3001')
 
 
 

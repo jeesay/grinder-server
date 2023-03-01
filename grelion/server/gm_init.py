@@ -52,7 +52,6 @@ def parse_note(f,dict):
   return dict
   
 
-
 def parse_job(root,dict):
   # returns object as 
   # a dictionary
@@ -78,9 +77,32 @@ def parse_job(root,dict):
   
   return dict
 
+def parse_pipeline(lines):
+  _pipeline = []
+  start = False
+  for line in lines:
+    if ('data_pipeline_processes' in line):
+      start = True
+    if ('# version 30001' in line):
+      start = False
+    if start:
+      print(line)
+      words = line.split()
+      if (len(words) == 4):
+        _pipeline.append({
+          'id': re.findall(r'\d+',words[0])[-1], 
+          'dir': words[0],
+          'alias':words[1],
+          'process': words[2],
+          'status': words[3]
+        })
+
+  return _pipeline
+
 def update_project():
   collection = []
-
+  pipeline = []
+  
   for root,dirs,files in os.walk('./'):
 
     if 'Nodes' not in root:
@@ -106,6 +128,11 @@ def update_project():
             status += 1
         elif basename[0:4] != 'job_' and basename[0:8] != 'default_' and file_extension == '.star':
           job['outputs'].append(name)
+        elif os.path.join(root, name) == './default_pipeline.star':
+          # Simplistic Parsing
+          with open('./default_pipeline.star') as f:
+            lines=f.readlines()
+            pipeline = parse_pipeline(lines)
         if status == 2:
           # print(job)
           # Write as job.json
@@ -115,16 +142,22 @@ def update_project():
       # Add job in the list
       print(job['path'])
       if (len(job['cli']) > 0):
+        pid = re.findall(r'\d+',job['path'])[-1]
+        # Find obj from pipeline
+        processes = [p for i,p in enumerate(pipeline) if p['id'] ==  pid]
+          
         collection.append({
-          'id': re.findall(r'\d+',job['path'])[-1], 
-          'job_alias': 'None',
-          'job_date': job['cli'][0]['date'],
-          'job_path': job['path'],
-          'job_type': job['jobtype'] 
+          'id': pid, 
+          'alias': processes[0]['alias'],
+          'date': job['cli'][0]['date'],
+          'path': job['path'],
+          'type': job['jobtype'],
+          'status': processes[0]['status'],
         })
 
   with open('./default_pipeline.json', 'w') as f:  # Use file to refer to the file object
-    f.write(json.dumps(collection, indent=2))
+    sortcoll = sorted(collection, key=lambda d: d['id'])
+    f.write(json.dumps(sortcoll, indent=2))
 
 
 ########### MAIN ###########
