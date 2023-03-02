@@ -1,6 +1,7 @@
 # grelion
-GRADm
-[G]UI for [R]elion [A]nd [D]atamining
+GRADm - [G]UI for [R]elion [A]nd [D]ata[m]ining
+GRIND - [G]UI for [R]el[I]o[N] and [D]atamining
+GRAND - [G]UI for [R]elion [AN]d [D]atamining
 
 GUI for Relion
 

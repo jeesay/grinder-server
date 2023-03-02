@@ -1,4 +1,7 @@
 
+import re
+from .star_common import CIF
+
 #####################::: P A R S E R :::#####################
 
 #
@@ -6,51 +9,49 @@
 #
 def parseComment(tok,obj):
   ## Reset if CIF.TABLE
-  if (obj._admin_.state === CIF.TABLE) {
-    obj._admin_.next = [CIF.TOKEN,CIF.TABLE];
-    obj._admin_.state = CIF.NONE;
-    obj._admin_.current = null;
-  }
+  if obj['_admin_state'] == CIF.TABLE:
+    obj['_admin_next'] = [CIF.TOKEN,CIF.TABLE]
+    obj['_admin_state'] = CIF.NONE
+    obj['_admin_current'] = None
 
 
 def parseEOL(tok,obj):
-  print('parseEOL');
-  ## Reset 
-  obj._admin_.next = [CIF.DATABLOCK,CIF.TOKEN,CIF.TABLE];
-  obj._admin_.state = CIF.NONE;
-  obj._admin_.current = null;
-  return obj;
+  # Reset 
+  obj['_admin_next'] = [CIF.DATABLOCK,CIF.TOKEN,CIF.TABLE]
+  obj['_admin_state'] = CIF.NONE
+  obj['_admin_current'] = None
+  return obj
 
 
 def setHeader(cat,attr,obj) :
-  obj_block = obj._admin_.datablock;
-  if (cat in obj_block === False) {
+  obj_block = obj['_admin_datablock']
+  if cat not in obj_block:
     ## Create Table
     obj_block[cat] = {
-      header: [],
-      rows: [[]]
-    };
-  }
-  obj_block[cat].header.push(attr);
-  obj._admin_.current = cat; ## Current Category to fill in
-  obj._admin_.next = [CIF.TOKEN,CIF.NUMBER,CIF.STRING,CIF.WORD];
-  return obj;
+      'header': [],
+      'rows': [[]]
+    }
+
+  obj_block[cat]['header'].append(attr)
+  obj['_admin_current'] = cat # Current Category to fill in
+  obj['_admin_next'] = [CIF.TOKEN,CIF.NUMBER,CIF.STRING,CIF.WORD]
+  return obj
 
 
 
- def parseNothing(tok,obj):
-    '''
-      * Parse nothing - Use for skipping token(s)
-      *
-      * @param {Token} - `tok` a token composed of 
-      * @param {Object} - `obj` the Data Structure
-      * @returns {object} - The UNmodified Data Structure
-      *
-      * @author Jean-Christophe Taveau
-    '''
-    #
-    # do nothing
-
+def parseNothing(tok,obj):
+  '''
+    * Parse nothing - Use for skipping token(s)
+    *
+    * @param {Token} - `tok` a token composed of 
+    * @param {Object} - `obj` the Data Structure
+    * @returns {object} - The UNmodified Data Structure
+    *
+    * @author Jean-Christophe Taveau
+  '''
+  #
+  # do nothing
+  print('Nothing')
 
 def setCategory(cat,attr,obj):
   '''
@@ -63,16 +64,16 @@ def setCategory(cat,attr,obj):
    * @author Jean-Christophe Taveau
   '''
 
-  obj_block = obj._admin_.datablock;
+  obj_block = obj['_admin_datablock']
   ## Create object if needed
-  if (cat in obj_block === False) {
-    obj_block[cat] = {};
-  }
-  obj_block[cat][attr] = 0;
-  obj._admin_.next = [CIF.NUMBER,CIF.STRING,CIF.WORD];
-  obj._admin_.current = cat;
-  obj._admin_.attr = attr;
-  return obj;
+  if cat not in list(obj_block.keys()):
+    obj_block[cat] = {}
+
+  obj_block[cat][attr] = 0
+  obj['_admin_next'] = [CIF.NUMBER,CIF.STRING,CIF.WORD]
+  obj['_admin_current'] = cat
+  obj['_admin_token'] = attr
+  return obj
 
 
 
@@ -88,12 +89,15 @@ def parseToken(tok,obj):
   '''
   
   ## Remove the leading underscore `_` and Split `category` and `attribute` 
-  [cat,attr] = tok.v[1).split('.');
-  if (!attr) {
-    attr = (obj._admin_.state === CIF.TABLE) ? cat : 'value';
-  }
-  return (obj._admin_.state === CIF.TABLE) ? setHeader('table',attr,obj) : setCategory(cat,attr,obj);
-}
+  array = tok['v'][1:].split('.')
+  cat = array[0]
+  attr = ''
+  if len(array) == 1: 
+    attr = array[0] if obj['_admin_state'] == CIF.TABLE else 'value'
+  else:
+    attr = array[1]
+  return setHeader('table',attr,obj) if obj['_admin_state'] == CIF.TABLE else setCategory(cat,attr,obj)
+
 
 
 def setRowValue(tok,obj):
@@ -107,32 +111,32 @@ def setRowValue(tok,obj):
    @author Jean-Christophe Taveau
  '''
  
-  obj_block = obj._admin_.datablock;
+  obj_block = obj['_admin_datablock']
 
-  table = obj_block[obj._admin_.current];
-  last = table.rows.length-1;
-  if (table.rows[last].length >= table.header.length) {
-    table.rows.push([]); ## Add a new row in the table
-    last = table.rows.length-1; ## Update
-  }
-  table.rows[last].push(tok.v);
-  obj._admin_.next = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL];
-  return obj;
+  table = obj_block[obj['_admin_current']]
+  last = len(table['rows']) - 1
+  if len(table['rows'][last]) >= len(table['header']): 
+    table['rows'].append([]) # Add a new row in the table
+    last += 1 # Update
+
+  table['rows'][last].append(tok['v'])
+  obj['_admin_next'] = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL]
+  return obj
 
 
 def setTokenValue(tok,obj):
-  obj_block = obj._admin_.datablock;
-##  print(obj._admin_.next,tok);
-  obj_block[obj._admin_.current][obj._admin_.attr] = tok.v;
-  obj._admin_.current = null;
-  obj._admin_.attr = null;
-  obj._admin_.next = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL];
-  return obj;
+  obj_block = obj['_admin_datablock']
+##  print(obj['_admin_next'],tok)
+  obj_block[obj['_admin_current']][obj['_admin_token']] = tok['v']
+  obj['_admin_current'] = None
+  obj['_admin_token']= None
+  obj['_admin_next'] = [CIF.STRING,CIF.WORD,CIF.NUMBER, CIF.EOL]
+  return obj
 
 
-const parseValue = (tok,obj) => {
-  return (obj._admin_.state === CIF.TABLE) ? setRowValue(tok,obj) : setTokenValue(tok,obj);
-}
+def parseValue(tok,obj):
+  return setRowValue(tok,obj) if obj['_admin_state'] == CIF.TABLE else setTokenValue(tok,obj)
+
 
 
 def parseTable(tok,obj):
@@ -145,11 +149,10 @@ def parseTable(tok,obj):
    *
    * @author Jean-Christophe Taveau
  '''
-  obj._admin_.state = CIF.TABLE;
-  obj._admin_.next = [CIF.TOKEN];
-  print(obj._admin_.state,'parseTable',tok);
-  return obj;
-}
+  obj['_admin_state'] = CIF.TABLE
+  obj['_admin_next'] = [CIF.TOKEN]
+  # print(obj['_admin_state'],'parseTable',tok)
+  return obj
 
 
 def parseDataBlock(tok,obj):
@@ -163,60 +166,59 @@ def parseDataBlock(tok,obj):
    * @author Jean-Christophe Taveau
    *
  '''
-  print('new DB',tok.v);
-  obj._admin_.next = [CIF.TOKEN,CIF.TABLE]; ## TOKEN, TABLE
-  const db = {id: tok.v};
-  obj.datablocks.push(db);
-  obj._admin_.datablock = db;
-  obj._admin_.current = null;
-  obj._admin_.attr = null;
+  print('new DB',tok['v'])
+  obj['_admin_next'] = [CIF.TOKEN,CIF.TABLE] ## TOKEN, TABLE
+  db = {'id': tok['v']}
+  obj['datablocks'].append(db)
+  obj['_admin_datablock'] = db
+  obj['_admin_current'] = None
 
-  print(obj);
-  return obj;
+  return obj
 
 
-#**
- * Parsers for the following tokens:
- *  - NONE: 0 ,
- *  - SEPARATOR: 1,
- *  - COMMENT: 2,
- *  - DATABLOCK: 3,
- *  - TOKEN: 4,
- *  - TABLE: 5,
- *  - HEADER: 6,
- *  - STRING: 7,
- *  - WORD: 8,
- *  - NUMBER: 9
- *  - EOL: 10
- *#
-def parser (toks):
+
+def parser(toks):
+  '''
+   * Parsers for the following tokens:
+   *  - NONE: 0 ,
+   *  - SEPARATOR: 1,
+   *  - COMMENT: 2,
+   *  - DATABLOCK: 3,
+   *  - TOKEN: 4,
+   *  - TABLE: 5,
+   *  - HEADER: 6,
+   *  - STRING: 7,
+   *  - WORD: 8,
+   *  - NUMBER: 9
+   *  - EOL: 10
+  '''
+  
+  indexes = [CIF.NONE,CIF.SEPARATOR,CIF.COMMENT,CIF.DATABLOCK,CIF.TOKEN,CIF.TABLE,CIF.HEADER,CIF.STRING,CIF.WORD,CIF.NUMBER,CIF.EOL]
   setters = [
     parseNothing,parseNothing,parseComment,
     parseDataBlock,parseToken,parseTable,
     parseNothing,parseValue,parseValue,parseValue,parseEOL
-  ];
+  ]
 
-  model = toks.reduce( (accu,tok) => {
-    if (accu._admin_.next.includes(tok.type)) {
-      return setters[tok.type](tok,accu);
-    }
-    return accu;
-  },{_admin_: {next: [CIF.DATABLOCK],state: CIF.NONE}, datablocks: []});
+  model = {
+    '_admin_next': [CIF.DATABLOCK],
+    '_admin_state': CIF.NONE,
+    'datablocks': []
+  }
+  
+  for tok in toks:
+    if tok['type'] in model['_admin_next']:
+      idx = indexes.index(tok['type'])
+      setters[idx](tok,model)
+      
+  # print(tok,model['datablocks'])
 
-  return model;
+  # Delete _admin_*
+  del model['_admin_next']
+  del model['_admin_state']
+  del model['_admin_current']
+  del model['_admin_token']
+  del model['_admin_datablock']
+  
+  return model
 
-
-def parseSTAR(txt):
-  '''
-    mmCIF Parser
-  '''
-
-  ## First Pass
-  tokens = tokenize(txt);
-
-  ## Second Pass - Parse
-  structure = parser(tokens);
-  dee structure._admin_;
-  print(structure);
-  print('End');
-  return structure;

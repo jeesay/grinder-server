@@ -1,12 +1,16 @@
+
 #####################::: T O K E N I Z E R :::#####################
 
+import re
+from .star_common import CIF
 
-## Predicates
+###### Predicates ######
+
 def isDataBlock(w):
-  w[0:5] == 'data_'
+  return w[0:5] == 'data_'
   
 def isTable(w):
-  w == 'loop_'
+  return w[0:5] == 'loop_'
   
 def isFirst(symbol,w):
   return (w[0] == symbol)
@@ -32,15 +36,16 @@ def isNumber(w):
   return True
    
 def isEOL(w):
-  return (w.match('\n') or []).length >= 2;
+  return re.search('\n\n+',w)
 
-'''
 def isSeparator(w):
-  return w.split('').every( ch => [' ','\t'].includes(ch)) || w.split('').filter(ch => ch == '\n').length == 1;
-'''
-
+  #return w.split('').every( ch => [' ','\t'].includes(ch)) || w.split('').filter(ch => ch == '\n').length == 1;
+  return re.search(r'([ \t]+\n?|\n)',w)
+  
 def isWord(w):
   return True
+
+###### Token Creation ######
 
 ## Create Basic Token
 def basicToken(typ):
@@ -52,7 +57,8 @@ def basicToken(typ):
 def numericToken (typ):
   def func(w,i,array):
     return [{'type': typ,'v':float(w)},i];
-
+  return func
+  
 ## Create StringToken using Recursion
 def appendWord(predicate,array,j,str=''):
   word = array[++j]
@@ -61,7 +67,6 @@ def appendWord(predicate,array,j,str=''):
     return [j,str] 
   else: 
     return appendWord(predicate,array,j,str)
-
 
 def stringToken(typ,predicate):
   def func(w,i,array) :
@@ -82,22 +87,15 @@ keywords = [
   },
   {
     'predicate': isComment,
-    'newToken': stringToken(CIF.COMMENT,word => {
-      if (!word) {
-        return False;
-      }
-      else {
-        return word[0] !== '\n';
-      }
-    })
-  },
-  {
-    'predicate': isSeparator,
-    'newToken': basicToken(CIF.SEPARATOR) 
+    'newToken': stringToken(CIF.COMMENT,lambda word: False if word == '' else word[0] != '\n')
   },
   {
     'predicate': isEOL,
     'newToken': basicToken(CIF.EOL) 
+  },
+  {
+    'predicate': isSeparator,
+    'newToken': basicToken(CIF.SEPARATOR) 
   },
   {
     'predicate': isToken,
@@ -105,7 +103,7 @@ keywords = [
   },
   {
     'predicate': isMultiLine,
-    'newToken': stringToken(CIF.STRING, word => (word[0] !== ';') )
+    'newToken': stringToken(CIF.STRING, lambda word: word[0] != ';' )
   },
   {
     'predicate': isNumber,
@@ -113,55 +111,45 @@ keywords = [
   },
   {
     'predicate': isString,
-    'newToken': stringToken(CIF.STRING, word => word[word.length-1] !== '\'')
+    'newToken': stringToken(CIF.STRING, lambda word: word[word.length-1] != '\'')
   },
   {
     'predicate': isWord,
     'newToken': basicToken(CIF.WORD) 
   }
-];
+]
 
-def setToken = (words) => (index) => {
-  w = words[index];
+def setToken(words,index):
+  w = words[index]
   ## Get Token corresponding to keyword
-  toks = keywords.reduce( (accu,kw) => {
-    ## const newTok = iif(kw,w,index,words).newToken();
-##      print(w);
-    ## HACK: EOL is replaced by SEPARATOR because tested before
-    if (kw.predicate(w)) {
-      accu.push(kw.newToken(w,index,words));
-    }
-    return accu;
-  },[]);
+  toks = []
+  for kw in keywords:
+    if kw['predicate'](w):
+      toks.append(kw['newToken'](w,index,words));
   
-  ## Add new Token. Only the first one because the last one is always `CIF.WORD`
-  return toks[0]; ## keyword.newToken(w,index,words);
-};
+  # Add new Token. Only the first one because the other(s) are less priorotary. The last one is always `CIF.WORD`
+  return toks[0]; # keyword.newToken(w,index,words);
 
 def tokenize(txt):
   '''
     mmCIF Tokenizer
   '''
-  print('TOKENIZE')
   
-  ##### M A I N #####
- 
-  words = txt
+  # Remove comments
   clean = re.sub('#.*\n','\n',txt)
-  words = re.split('(\s+)',clean);
+  # Split
+  words = re.split(r'(\s+)',clean)
 
-  print(words[words.length - 1]);
-  
   tokens = [];
   index = 0;
-  setTokenAt = setToken(words);
 
   ## TODO Use (tail) recursion
-  while (index < words.length) {
-    [tok,index] = setTokenAt(index);
-    tokens.push(tok);
-    index++;
-  }
-  print(tokens);
+  while index < len(words):
+    if len(words[index]) != 0:
+      [tok,index] = setToken(words,index);
+      tokens.append(tok);
+    index += 1
+
+  # print(tokens);
   return tokens;
-}
+

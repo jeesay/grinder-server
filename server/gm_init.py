@@ -3,6 +3,7 @@
 import os
 import json
 import re
+import star_gate as sg
 
 def to_number(s):
   try:
@@ -130,10 +131,9 @@ def update_project():
           job['outputs'].append(name)
         elif os.path.join(root, name) == './default_pipeline.star':
           print('Scanning `./default_pipeline.star`...')
-          # Simplistic Parsing
-          with open('./default_pipeline.star') as f:
-            lines=f.readlines()
-            pipeline = parse_pipeline(lines)
+          # STAR Parsing
+          pipeline = sg.StarGate('./default_pipeline.star')
+          processes = pipeline.datablock('pipeline_processes').table().rows()
         if status == 2:
           # print(job)
           # Write as job.json
@@ -141,19 +141,19 @@ def update_project():
             f.write(json.dumps(job, indent=2))
           
       # Add job in the list
+
       # print(job['path'])
       if (len(job['cli']) > 0):
         pid = re.findall(r'\d+',job['path'])[-1]
         # Find obj from pipeline
-        processes = [p for i,p in enumerate(pipeline) if p['id'] ==  pid]
-          
+        process = [p for i,p in enumerate(processes) if pid in p[0] ]
         collection.append({
           'id': pid, 
-          'alias': processes[0]['alias'],
+          'alias': process[0][1],
           'date': job['cli'][0]['date'],
           'path': job['path'],
           'type': job['jobtype'],
-          'status': processes[0]['status'],
+          'status': process[0][3],
         })
 
   with open('./default_pipeline.json', 'w') as f:  # Use file to refer to the file object
