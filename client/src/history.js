@@ -4,22 +4,24 @@
 
 const create_history = (ev) => {
   console.log('create history table');
-  if (!GRELION.config) {
+  if (!GRELION.jobs) {
     alert('Please connect to the ws server');
   }
   else {
-    console.log(GRELION.config.datablocks[1].global);
+    console.log(GRELION.jobs);
     let table = document.querySelector('#jhistory_body');
     table.innerHTML = '';
     // GRELION.config.datablocks[1].global.header.forEach(row => {});
-    GRELION.config.datablocks[1].table.rows.forEach(row => {
-      const job_id = row[0].match(/\d{3}/g).join("");
+    GRELION.jobs.forEach(row => {
+      const job_id = row.id;
       table.appendChild(
         h('tr.jhistory_row',
           [
             h('td.jhistory_cell', 
               [
-                h('span',job_id),(row[3] === 'Failed') ? h('i.bi.bi-exclamation-triangle-fill') : h('i.bi.bi-check-circle')
+                h('span',job_id),
+                (row.steps > 1) ? h('i.bi.bi-arrow-clockwise',[h('sup',{},(row.steps - 1).toString())]) : '',
+                (row.status === 'Failed') ? h('i.bi.bi-exclamation-triangle-fill') : h('i.bi.bi-check-circle')
               ]
             ),
             h('td.jhistory_cell', [
@@ -45,10 +47,10 @@ const create_history = (ev) => {
                 [h('i.bi-trash')],
               ),
             ]),
-            h('td.jhistory_cell', row[2]),
-            h('td.jhistory_cell', row[2]),
-            h('td.jhistory_cell', row[1]),
-            h('td.jhistory_cell', row[0])
+            h('td.jhistory_cell', row.path),
+            h('td.jhistory_cell', row.alias),
+            h('td.jhistory_cell', row.date),
+            h('td.jhistory_cell', row.type)
           ]
         )
       );

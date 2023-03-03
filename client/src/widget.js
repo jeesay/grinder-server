@@ -146,19 +146,6 @@ const w_range = (desc) => h('div.row',
         style: {display:'flex'}
       },
       [
-        h('a',
-          {
-            props:{href:'#',title:'Modify'},
-            on: {
-              click: (ev) => {
-                const slider = ev.target.closest(".range_slider");
-                slider.style.display = 'none';
-                slider.nextElementSibling.style.display = 'flex';
-              } 
-            }
-          },
-          [h('i.bi.bi-pencil-square')],
-        ),
         h(`input#${desc.name}.param`, 
           {
             attrs: {
@@ -174,6 +161,19 @@ const w_range = (desc) => h('div.row',
           }
         ),
         h('output', desc.default.toString()),
+        h('a',
+          {
+            props:{href:'#',title:'Type Value'},
+            on: {
+              click: (ev) => {
+                const slider = ev.target.closest(".range_slider");
+                slider.style.display = 'none';
+                slider.nextElementSibling.style.display = 'flex';
+              } 
+            }
+          },
+          [h('i.bi.bi-pencil-square')],
+        ),
       ]
     ),
     h('div.range_text',
@@ -181,6 +181,16 @@ const w_range = (desc) => h('div.row',
         style: {display:'none'}
       },
       [
+        h(`input#${desc.name}.param`, 
+          {
+            attrs: {
+              type:'number',
+              value: desc.default,
+              name:desc.name
+            },
+            dataset: ('option' in desc) ? {option: desc.option} : {}
+          }
+        ),
         h('a',
           {
             props:{href:'#',title:'Modify'},
@@ -195,16 +205,6 @@ const w_range = (desc) => h('div.row',
     //        on:{'click': (ev) => view(ev)} 
           },
           [h('i.bi.bi-sliders')],
-        ),
-        h(`input#${desc.name}.param`, 
-          {
-            attrs: {
-              type:'number',
-              value: desc.default,
-              name:desc.name
-            },
-            dataset: ('option' in desc) ? {option: desc.option} : {}
-          }
         )
       ])
     ]

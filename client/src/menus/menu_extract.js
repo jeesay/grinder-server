@@ -294,37 +294,51 @@ Pixels values higher than this many times the image stddev will be replaced with
 
 const extract_tabs = [
   {
-    name:'do_raw',
+    name: 'methods',
+    icon: 'bi-wrench-adjustable',
     title: 'Methods',
-    icon: 'bi-file-earmark-text',
     widget: 'navtab',
     default:  true, 
     children: [
       {
-        name:'io',
-        title: 'Extract particles',
-        widget: 'radio',
-        on_click: (ev) => w_navtab_update({io: extract_io})
+        name: 'p_extract',
+        title: 'Particle extraction',
+        widget: 'fieldset',
+        children: [
+          {
+            name:'io',
+            title: 'Extract particles',
+            widget: 'radio',
+            on_click: (ev) => w_navtab_update({io: extract_io})
+          },
+          {
+            name:'io',
+            title: 'Re-extract refined particles',
+            widget: 'radio',
+            help: 'If set to Yes, relion uses a _data.star file from a previous 2D or 3D refinement to re-extract the particles in that refinement, possibly re-centered with their refined origin offsets. This is particularly useful when going from binned to unbinned particles.',
+            on_click: (ev) => w_navtab_update({io: re_extract_io})
+          },
+          {
+            name:'io',
+            title: 'Re-extract refined particles with a particle re-centering',
+            widget: 'radio',
+            help: 'If set to Yes, the input coordinates will be re-centered according to the refined origin offsets in the provided _data.star file. The unit is pixel, not angstrom. The origin is at the center of the box, not at the corner.',
+            on_click: (ev) => w_navtab_update({io: re_extract_io_center})
+          },
+        ]
       },
       {
-        name:'io',
-        title: 'Re-extract refined particles',
-        widget: 'radio',
-        help: 'If set to Yes, relion uses a _data.star file from a previous 2D or 3D refinement to re-extract the particles in that refinement, possibly re-centered with their refined origin offsets. This is particularly useful when going from binned to unbinned particles.',
-        on_click: (ev) => w_navtab_update({io: re_extract_io})
-      },
-      {
-        name:'io',
-        title: 'Re-extract refined particles with a particle re-centering',
-        widget: 'radio',
-        help: 'If set to Yes, the input coordinates will be re-centered according to the refined origin offsets in the provided _data.star file. The unit is pixel, not angstrom. The origin is at the center of the box, not at the corner.',
-        on_click: (ev) => w_navtab_update({io: re_extract_io_center})
-      },
-     {
-        name:'io',
-        title: 'Extract helices',
-        widget: 'radio',
-      },
+        name: 'h_extract',
+        title: 'Helix extraction',
+        widget: 'fieldset',
+        children: [
+          {
+            name:'io',
+            title: 'Extract helices',
+            widget: 'radio',
+          },
+        ]
+      }
     ]
   },
   {

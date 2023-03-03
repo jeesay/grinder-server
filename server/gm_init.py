@@ -30,12 +30,12 @@ def parse_note(f,dict):
       new_cli['script'] = []
       dict['cli'].append(new_cli)
       
-    _params = re.findall("`which (.*)\n", line)
+    _params = re.findall("(`which|relion)(.*)\n", line)
     if _params:
       commands = {}
       for i,cli in enumerate(_params):
-        words = cli.split()
-        commands['command'] = words[0][0:-1]
+        words = cli[1].split()
+        commands['command'] = f'relion{words[0]}' if words[0][0] == '_' else words[0][0:-1].strip()
         commands['options'] = {}
         last=''
         lasti=0
@@ -77,27 +77,6 @@ def parse_job(root,dict):
         dict['process'][words[0]] = value
   
   return dict
-
-def parse_pipeline(lines):
-  _pipeline = []
-  start = False
-  for line in lines:
-    if ('data_pipeline_processes' in line):
-      start = True
-    if ('# version 30001' in line):
-      start = False
-    if start:
-      words = line.split()
-      if (len(words) == 4):
-        _pipeline.append({
-          'id': re.findall(r'\d+',words[0])[-1], 
-          'dir': words[0],
-          'alias':words[1],
-          'process': words[2],
-          'status': words[3]
-        })
-
-  return _pipeline
 
 def update_project():
   collection = []
@@ -154,6 +133,7 @@ def update_project():
           'path': job['path'],
           'type': job['jobtype'],
           'status': process[0][3],
+          'steps': len(job['cli']),
         })
 
   with open('./default_pipeline.json', 'w') as f:  # Use file to refer to the file object

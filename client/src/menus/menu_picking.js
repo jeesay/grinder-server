@@ -693,9 +693,9 @@ Helical tubes with shorter lengths will not be picked. Note that a long helical 
 
 const picking_tabs = [
   {
-    name: 'do_raw',
+    name: 'methods',
+    icon: 'bi-wrench-adjustable',
     title: 'Methods',
-    icon: 'bi-file-earmark-text',
     widget: 'navtab',
     default:  true, 
     children: [
@@ -723,31 +723,6 @@ const picking_tabs = [
             on_click: (ev) => w_navtab_update({settings: manual_pick_denoising})
           }
 
-        ]
-      },
-      {
-        name: 'helix',
-        title: 'Helices',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'do_pick_helical_segments',
-            title: 'Pick 2D helical segments',
-            widget: 'radio',
-            option: '--do_pick_helical_segments',
-            group: 'picking',
-            help: 'Set to Yes if you want to pick 2D helical segments.',
-            on_click: (ev) => w_navtab_update({settings: pick_helices})
-          },
-          {
-            name: 'do_amyloid',
-            title: 'Pick amyloid segments',
-            widget: 'radio',
-            option: '--do_amyloid',
-            group: 'picking',
-            help: 'Set to Yes if you want to use the algorithm that was developed specifically for picking amyloids.',
-            on_click: (ev) => w_navtab_update({settings: pick_helices})
-          },
         ]
       },
       {
@@ -810,7 +785,32 @@ const picking_tabs = [
             on_click: (ev) => w_navtab_update({settings: autopick_topaz})
           },
         ]
-      }
+      },
+      {
+        name: 'helix',
+        title: 'Helices',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'do_pick_helical_segments',
+            title: 'Pick 2D helical segments',
+            widget: 'radio',
+            option: '--do_pick_helical_segments',
+            group: 'picking',
+            help: 'Set to Yes if you want to pick 2D helical segments.',
+            on_click: (ev) => w_navtab_update({settings: pick_helices})
+          },
+          {
+            name: 'do_amyloid',
+            title: 'Pick amyloid segments',
+            widget: 'radio',
+            option: '--do_amyloid',
+            group: 'picking',
+            help: 'Set to Yes if you want to use the algorithm that was developed specifically for picking amyloids.',
+            on_click: (ev) => w_navtab_update({settings: pick_helices})
+          },
+        ]
+      },
     ]
   },
   {

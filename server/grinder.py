@@ -1,6 +1,6 @@
 '''
 
-Authors : Texier Louis
+Authors : Texier Louis, Jean-Christophe Taveau
 '''
 
 #!/bin/env/python
@@ -11,6 +11,8 @@ import sys
 import asyncio
 import subprocess
 import websockets
+
+import gm_init as init
 
 
 def list_files(startpath):
@@ -51,7 +53,7 @@ async def run(websocket,message,pathProject):
     event = json.loads(message)
     if event['action']['tool'] == 'grelion.py' :
       # Opening config STAR file
-      f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.star")
+      f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.json")
         
       # returns star object as 
       # a dictionary
@@ -111,29 +113,8 @@ if not os.path.exists("./.grelion_lock") :
   if os.path.exists('./.grelion') and os.path.exists('./.grelion/config.json'):
     pass
   elif os.path.exists('default_pipeline.star') :
-    # Create grelion_pipeline.star
-    fi = open('./default_pipeline.star')
-    fo = open('./grelion_pipeline.star', 'w')
-    table = f'''
-# version 30001
-
-data_pipeline_general
-
-_rlnPipeLineJobCounter                     {counter}
- 
-
-# version 30001
-
-data_pipeline_processes
-
-loop_ 
-_rlnPipeLineProcessName #1 
-_rlnPipeLineProcessAlias #2 
-_rlnPipeLineProcessTypeLabel #3 
-_rlnPipeLineProcessStatusLabel #4
-_rlnPipelineProcessTime #5 '''
-    fo.write(table)
-    fo.close()
+    # Create/ Update JSON configuration files
+    init.update_project()
   else:
 
     answer = input(f"Do you want to create a new project [Y/n] ? ")

@@ -17,7 +17,7 @@ const receive = (websocket) => {
     // Dispatch data
     if (event['data'] != null){
       let data = event['data']
-      GRELION.config = parseSTAR(msg);
+      GRELION.jobs = JSON.parse(msg);
     }
   });
 }
@@ -36,13 +36,13 @@ const connect_to_ws_server = () => {
 
   GRELION.websocket.onopen = function(e) {
     alert(`[open] Connection established with server ws://${ip_address}:${port}/`);
-    // Step #1 - Get default_pipeline.star of Project
+    // Step #1 - Get default_pipeline.json of Project
     let cli = {
       end:0,
       action: {
         tool: 'grelion.py',
         title:'project',
-        args:'--get default_pipeline.star'
+        args:'--get default_pipeline.json'
       }
     };
     GRELION.websocket.send(JSON.stringify(cli));

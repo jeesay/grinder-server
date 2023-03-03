@@ -198,6 +198,29 @@ This will affect the time it takes between the progress-bar in the expectation s
 
 const abinitio_tabs = [
   {
+    name: 'methods',
+    icon: 'bi-wrench-adjustable',
+    title: 'Methods',
+    widget: 'navtab',
+    children: [
+      {
+        name: 'auto',
+        title: 'Ab initio',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'uscf',
+            title: 'Relion Ab initio Model',
+            option: '--do_log',
+            widget: 'radio',
+            group: 'abinitio',
+            help: `TODO`,
+          },
+        ]
+      }
+    ]
+  },
+  {
     name: 'io',
     icon: 'bi-arrow-down-up',
     title: 'I/O',

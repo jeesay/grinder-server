@@ -79,18 +79,11 @@ const home_tabs = [
                 help: 'Select job.s',
               },
               {
-                name: 'jhistory_program',
-                title:  'Program',
-                value: 'Program',
+                name: 'jhistory_dir',
+                title:  'Job Directory',
+                value: 'Job Directory',
                 widget: 'tcell',
-                help: 'Display Job Program',
-              },
-              {
-                name: 'jhistory_date',
-                title:  'Date',
-                value: 'Date',
-                widget: 'tcell',
-                help: 'Display Job Date',
+                help: 'Display Job Directory',
               },
               {
                 name: 'jhistory_alias',
@@ -100,12 +93,19 @@ const home_tabs = [
                 help: 'Display Job Title',
               },
               {
-                name: 'jhistory_dir',
-                title:  'Job Directory',
-                value: 'Job Directory',
+                name: 'jhistory_date',
+                title:  'Date',
+                value: 'Date',
                 widget: 'tcell',
-                help: 'Display Job Directory',
-              }
+                help: 'Display Job Date',
+              },
+              {
+                name: 'jhistory_program',
+                title:  'Program',
+                value: 'Program',
+                widget: 'tcell',
+                help: 'Display Job Program',
+              },
             ]
           },
           {

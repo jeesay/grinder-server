@@ -370,15 +370,14 @@ This will affect the time it takes between the progress-bar in the expectation s
 
 const class2d_tabs = [
   {
-    name: 'class2d_tools',
+    name: 'methods',
     icon: 'bi-wrench-adjustable',
-    title: 'Tools',
+    title: 'Methods',
     widget: 'navtab',
     children: [
       {
-        name: 'class2d_algo',
-        icon: 'bi-wrench-adjustable',
-        title: 'Algorithms',
+        name: 'class2d_ptcls',
+        title: 'Particles',
         widget: 'fieldset',
         children: [
           {
@@ -399,6 +398,13 @@ const class2d_tabs = [
             help: ``,
             on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
           },
+        ]
+      },
+      {
+        name: 'class2d_hlx',
+        title: 'Helices',
+        widget: 'fieldset',
+        children: [
           {
             name: 'class2d_helix',
             title: '2D classification of Helices',

@@ -1,9 +1,7 @@
-# grelion
-GRADm - [G]UI for [R]elion [A]nd [D]ata[m]ining
-GRIND - [G]UI for [R]el[I]o[N] and [D]atamining
-GRAND - [G]UI for [R]elion [AN]d [D]atamining
+# GRINDER - [G]UI for [R]el[I]o[N] and [D]atamin[ER]
 
-GUI for Relion
+
+## GUI for Relion
 
 <input type="range" value="24" min="1" max="100" oninput="this.nextElementSibling.value = this.value">
 <output>24</output>
