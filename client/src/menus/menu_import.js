@@ -157,6 +157,7 @@ const import_tabs = [
     name: 'do_raw',
     title: 'Files',
     icon: 'bi-file-earmark-text',
+    job: 'relion.import',
     widget: 'navtab',
     default:  true, 
     children: [
@@ -167,6 +168,8 @@ const import_tabs = [
         children : [
           {
             name: 'do_movies',
+            class: 'jobtype',
+            job: 'relion.import.movies',
             title: 'Raw movies',
             widget: 'radio',
             option: '--do_movies',
@@ -176,6 +179,7 @@ const import_tabs = [
           },
           {
             name: 'do_micrographs',
+            class: 'jobtype',
             title: 'Raw micrographs',
             option: '--do_micrographs',
             widget: 'radio',
@@ -193,44 +197,51 @@ const import_tabs = [
         default:  false, 
         children : [
           {
-            name: 'other_filename',
+            name: 'other_pctls_coords',
+            class: 'jobtype',
             title:  'Particles coordinates (.box, *_pick.star)',
             group: 'node_types',
             widget: 'radio',
             on_click: (ev) => w_navtab_update({settings: other_settings})
           },
           {
-            name: 'other_filename',
+            name: 'other_pctls_star',
+            class: 'jobtype',
             title:  'Particles STAR file (.star)',
             group: 'node_types',
             widget: 'radio',
           },
           {
-            name: 'other_filename',
+            name: 'other_refs',
+            class: 'jobtype',
             title:  'Multiple (2D or 3D) references (.star or .mrcs)',
             group: 'node_types',
             widget: 'radio',
           },
           {
-            name: 'other_filename',
+            name: 'other_ugraph_star',
+            class: 'jobtype',
             title:  'Micrographs STAR file (.star)',
             group: 'node_types',
             widget: 'radio',
           },
           {
-            name: 'other_filename',
+            name: 'other_ref3d',
+            class: '.jobtype',
             title:  '3D reference (.star)',
             widget: 'radio',
             group: 'node_types',
           },
           {
-            name: 'other_filename',
+            name: 'other_mask',
+            class: 'jobtype',
             title:  '3D mask (.mrc)',
             widget: 'radio',
             group: 'node_types',
           },
           {
-            name: 'other_filename',
+            name: 'other_unfil',
+            class: 'jobtype',
             title:  'Unfiltered half-mask (unfil.mrc)',
             widget: 'radio',
             group: 'node_types',
@@ -311,11 +322,6 @@ const import_tabs = [
           {
             name: 'schedule',
             title:  'Schedule',
-            widget: 'button',
-          },
-          {
-            name: 'command',
-            title:  'Check command',
             widget: 'button',
           },
           {

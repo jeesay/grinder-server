@@ -1,205 +1,325 @@
-/*
+// Select
 
-const select = {
-  hidden_name: '.gui_select',
-  children: [
-
-
+const select_io_none = [
+  {
+    name: 'fn_none',
+    title: 'Choose file type above',
+    widget: 'fieldset',
+    help: ``,
+    children:[]
+  }
+];
+const select_io_class = [
   {
     name: 'fn_model',
     title: 'Select classes from job:',
-    default:  NODE_OPTIMISER_CPIPE, "',
-    help: `STAR files (*_optimiser.star)',
+    widget: 'file',
+    filetype: 'NODE_OPTIMISER_CPIPE',
+    placeholder: 'STAR files (*_optimiser.star)',
     help: `A _optimiser.star (or for backwards compatibility also a _model.star) file from a previous 2D or 3D classification run to select classes from.`,
-  },
+  }
+];
+
+const select_io_ugraph = [
   {
     name: 'fn_mic',
-    title: 'OR select from micrographs.star:',
-    default:  NODE_MICS_CPIPE, "',
-    help: `STAR files (*.star)',
+    title: 'Select from micrographs.star:',
+    widget: 'file',
+    filetype:  'NODE_MICS_CPIPE',
+    placeholder: 'STAR files (*.star)',
     help: `A micrographs.star file to select micrographs from.`,
   },
+];
+
+const select_io_ptcls = [
   {
     name: 'fn_data',
-    title: 'OR select from particles.star:',
-    default:  NODE_PARTS_CPIPE, "',
-    help: `STAR files (*.star)',
+    title: 'Select from particles.star:',
+    widget: 'file',
+    filetype: 'NODE_PARTS_CPIPE',
+    help: 'STAR files (*.star)',
     help: `A particles.star file to select individual particles from.`,
   },
+]
 
+const select_add = (ev) => {
+  console.log('change',ev.target, ev.target.value);
+  const el = ev.target;
+  const parent = el.closest('.tab-content');
+  if (parent.children.length > 1) {
+    parent.removeChild(parent.lastElementChild);
+  }
+  // Add 
+  desc = ''
+  switch (el.value) {
+  case '0': select_io_none[0]; break;
+  case '1': desc = select_io_class[0]; break;
+  case '2': desc = select_io_ugraph[0]; break;
+  case '3': desc = select_io_ptcls[0]; break;
+  default:
+    desc = select_io_none[0];
+  }
+  parent.appendChild(w_fieldset({children: [desc]}));
+}
+
+const select_io_settings = {
+  widget: 'navtab',
+  children: [
+    {
+      name: 'select_io_filetype',
+      title: 'Select subsets from:',
+      widget: 'select', 
+      default: 0,
+      help: '',
+      children: [
+        {
+          name:'fn_none_io',
+          title: 'None',
+          widget: 'option',
+          select: true,
+          value: 0
+        },
+        {
+          name:'fn_model_io',
+          title: 'Classes from job',
+          widget: 'option',
+          value: 1
+        },
+        {
+          name:'fn_mic_io',
+          title: 'micrographs.star',
+          widget: 'option',
+          value: 2
+        },
+        {
+          name:'fn_ptcls_io',
+          title: 'particles.star',
+          widget: 'option',
+          value: 3
+        },
+      ],
+      on_change: select_add
+    },
+  ]
+}
+
+const select_ranker = [
   {
     name: 'do_class_ranker',
     title: 'Automatically select 2D classes?',
+    widget: 'bool',
     default:  false, 
     help: `If set to True, the class_ranker program will be used to make an automated class selection, based on the parameters below. This option only works when selecting classes from a relion_refine job (input optimiser.star on the I.O tab)`,
   },
   {
     name: 'rank_threshold',
     title: 'Minimum threshold for auto-selection: ',
-    default:  0.5, 0, 1, 0.05, "Only classes with a pre dicted threshold above this value will be selected.`,
+    widget: 'range',
+    default:  0.5, 
+    range_min: 0, 
+    range_max: 1, 
+    range_step: 0.05,
+    help: `Only classes with a predicted threshold above this value will be selected.`,
   },
   {
     name: 'select_nr_parts',
     title: 'Select at least this many particles: ',
-    default:  -1, -1, 10000, 500, "Even if they have scores below the minimum threshold, select at least this many particles with the best scores.`,
+    widget: 'range',
+    default:  -1, 
+    range_min: -1, 
+    range_max: 10000, 
+    range_step: 500,
+    help: `Even if they have scores below the minimum threshold, select at least this many particles with the best scores.`,
   },
   {
     name: 'select_nr_classes',
     title: 'OR: select at least this many classes: ',
-    default:  -1, -1, 24, 1, "Even if they have scores below the minimum threshold, select at least this many classes with the best scores.`,
+    widget: 'range',
+    default:  -1, 
+    range_min: -1, 
+    range_max: 24, 
+    range_step: 1,
+    help: `Even if they have scores below the minimum threshold, select at least this many classes with the best scores.`,
   },
   {
     name: 'python_exe',
     title: 'Python executable: ',
-    default:  std::string(default_location), "This version of python should include torch and numpy. We have found that the one from topaz (which is also used for auto-picking) works well. At the LMB, it is here: /public/EM/anaconda3/envs/topaz/bin/python`,
+    widget: 'text',
+    default: 'default_location',
+    help: `This version of python should include torch and numpy. We have found that the one from topaz (which is also used for auto-picking) works well. At the LMB, it is here: /public/EM/anaconda3/envs/topaz/bin/python`,
   },
   {
     name: 'do_recenter',
     title: 'Re-center the class averages?',
-    default:  true, "This option is only used when selecting particles from 2D classes. The selected class averages will all re-centered on their center-of-mass. This is useful when you plane to use these class averages as templates for auto-picking.`,
+    widget: 'bool',
+    default:  true,
+    help: `This option is only used when selecting particles from 2D classes. The selected class averages will all re-centered on their center-of-mass. This is useful when you plane to use these class averages as templates for auto-picking.`,
   },
   {
     name: 'do_regroup',
     title: 'Regroup the particles?',
-    default:  false, "If set to Yes, then the program will regroup the selected particles in 'more-or-less' the number of groups indicated below. For re-grouping from individual particle _data.star files, a _model.star file with the same prefix should exist, i.e. the particle star file should be generated by relion_refine`,
+    widget: 'bool',
+    default:  false,
+    help: `If set to Yes, then the program will regroup the selected particles in 'more-or-less' the number of groups indicated below. For re-grouping from individual particle _data.star files, a _model.star file with the same prefix should exist, i.e. the particle star file should be generated by relion_refine`,
   },
   {
     name: 'nr_groups',
     title: 'Approximate nr of groups: ',
-    default:  1, 50, 20, 1, "It is normal that the actual number of groups may deviate a little from this number. `,
+    widget: 'range',
+    default:  1, 
+    range_min: 50, 
+    range_max: 20, 
+    range_step: 1,
+    help: `It is normal that the actual number of groups may deviate a little from this number. `,
   },
+];
+
+const select_meta = [
   {
     name: 'do_select_values',
     title: 'Select based on metadata values?',
-    default:  false, "If set to Yes, the job will be non-interactive and the selected star file will be based only on the value of the corresponding metadata label. Note that this option is only valid for micrographs or particles STAR files.`,
+    widget: 'bool',
+    default:  false,
+    help: `If set to Yes, the job will be non-interactive and the selected star file will be based only on the value of the corresponding metadata label. Note that this option is only valid for micrographs or particles STAR files.`,
   },
   {
     name: 'select_label',
     title: 'Metadata label for subset selection:',
-    default:  (std::string)"rlnCtfMaxResolution',
+    widget: 'text',
+    default: 'rlnCtfMaxResolution',
     help: `This column from the input STAR file will be used for the subset selection.`,
   },
   {
     name: 'select_minval',
     title: 'Minimum metadata value:',
-    default:   (std::string)"-9999.',
+    widget: 'float',
+    default: -9999.,
     help: `Only lines in the input STAR file with the corresponding metadata value larger than or equal to this value will be included in the subset.`,
   },
   {
     name: 'select_maxval',
     title: 'Maximum metadata value:',
-    default:   (std::string)"9999.',
+    widget: 'float',
+    default: 9999.,
     help: `Only lines in the input STAR file with the corresponding metadata value smaller than or equal to this value will be included in the subset.`,
   },
+];
+
+const select_stats = [
   {
     name: 'do_discard',
     title: 'OR: select on image statistics?',
-    default:  false, "If set to Yes, the job will be non-interactive and all images in the input star file that have average and/or stddev pixel values that are more than the specified sigma-values away from the ensemble mean will be discarded.`,
+    widget: 'bool',
+    default:  false,
+    help: `If set to Yes, the job will be non-interactive and all images in the input star file that have average and/or stddev pixel values that are more than the specified sigma-values away from the ensemble mean will be discarded.`,
   },
   {
     name: 'discard_label',
     title: 'Metadata label for images:',
-    default:  (std::string)"rlnImageName',
+    default: 'rlnImageName',
     help: `Specify which column from the input STAR contains the names of the images to be used to calculate the average and stddev values.`,
   },
   {
     name: 'discard_sigma',
     title: 'Sigma-value for discarding images:',
-    default:  4, 1, 10, 0.1, "Images with average and/or stddev values that are more than this many times the ensemble stddev away from the ensemble mean will be discarded.`,
+    widget: 'range',
+    default:  4, 
+    range_min: 1, 
+    range_max: 10, 
+    range_step: 0.1,
+    help: `Images with average and/or stddev values that are more than this many times the ensemble stddev away from the ensemble mean will be discarded.`,
   },
+];
 
-  {
-    name: 'do_split',
-    title: 'OR: split into subsets?',
-    default:  false, "If set to Yes, the job will be non-interactive and the star file will be split into subsets as defined below.`,
-  },
+// Select -> Split
+
+const split_size = [
   {
     name: 'do_random',
     title: 'Randomise order before making subsets?:',
-    default:  false, "If set to Yes, the input STAR file order will be randomised. If set to No, the original order in the input STAR file will be maintained.`,
+    widget: 'bool',
+    default: false, 
+    help: `If set to Yes, the input STAR file order will be randomised. If set to No, the original order in the input STAR file will be maintained.`,
   },
   {
     name: 'split_size',
-    title: 'Subset size: ',
-    default:  100, 100, 10000, 100, "The number of lines in each of the output subsets. When this is -1, items are divided into a number of subsets specified in the next option.`,
+    title: 'Subset size:',
+    widget: 'range',
+    default:  100, 
+    range_min: 100, 
+    range_max: 10000, 
+    range_step: 100, 
+    help: `The number of lines in each of the output subsets. When this is -1, items are divided into a number of subsets specified in the next option.`,
   },
   {
     name: 'nr_split',
     title: 'OR: number of subsets: ',
-    default:  -1, 1, 50, 1, "Give a positive integer to specify into how many equal-sized subsets the data will be divided. When the subset size is also specified, only this number of subsets, each with the specified size, will be written, possibly missing some items. When this is -1, all items are used, generating as many subsets as necessary.`,
+    widget: 'range',
+    default:  -1, 
+    range_min: 1, 
+    range_max: 50, 
+    range_step: 1, 
+    help: `Give a positive integer to specify into how many equal-sized subsets the data will be divided. When the subset size is also specified, only this number of subsets, each with the specified size, will be written, possibly missing some items. When this is -1, all items are used, generating as many subsets as necessary.`,
   },
+];
 
+const split_n_groups = [
+  {
+    name: 'do_split',
+    title: 'OR: split into subsets?',
+    widget: 'bool',
+    default:  false, 
+    help: `If set to Yes, the job will be non-interactive and the star file will be split into subsets as defined below.`,
+  },
+  {
+    name: 'do_random',
+    title: 'Randomise order before making subsets?:',
+    widget: 'bool',
+    default: false, 
+    help: `If set to Yes, the input STAR file order will be randomised. If set to No, the original order in the input STAR file will be maintained.`,
+  },
+  {
+    name: 'nr_split',
+    title: 'Number of subsets:',
+    widget: 'range',
+    default:  -1, 
+    range_min: 1, 
+    range_max: 50, 
+    range_step: 1, 
+    help: `Give a positive integer to specify into how many equal-sized subsets the data will be divided. When the subset size is also specified, only this number of subsets, each with the specified size, will be written, possibly missing some items. When this is -1, all items are used, generating as many subsets as necessary.`,
+  },
+];
+
+const duplicates = [
   {
     name: 'do_remove_duplicates',
     title: 'OR: remove duplicates?',
-    default:  false, "If set to Yes, duplicated particles that are within a given distance are removed leaving only one. Duplicated particles are sometimes generated when particles drift into the same position during alignment. They inflate and invalidate gold-standard FSC calculation.`,
+    widget: 'bool',
+    default:  false, 
+    help: `If set to Yes, duplicated particles that are within a given distance are removed leaving only one. Duplicated particles are sometimes generated when particles drift into the same position during alignment. They inflate and invalidate gold-standard FSC calculation.`,
   },
   {
     name: 'duplicate_threshold',
     title: 'Minimum inter-particle distance (A)',
-    default:  30, 0, 1000, 1, "Particles within this distance are removed leaving only one.`,
+    widget: 'range',
+    default:  30, 
+    range_min: 0, 
+    range_max: 1000, 
+    range_step: 1, 
+    help: `Particles within this distance are removed leaving only one.`,
   },
   {
     name: 'image_angpix',
     title: 'Pixel size before extraction (A)',
-    default:  -1, -1, 10, 0.01, "The pixel size of particles (relevant to rlnOriginX/Y) is read from the STAR file. When the pixel size of the original micrograph used for auto-picking and extraction (relevant to rlnCoordinateX/Y) is different, specify it here. In other words, this is the pixel size after binning during motion correction, but before down-sampling during extraction.`,
+    widget: 'range',
+    default:  -1, 
+    range_min: -1, 
+    range_max: 10, 
+    range_step: 0.01, 
+    help: `The pixel size of particles (relevant to rlnOriginX/Y) is read from the STAR file. When the pixel size of the original micrograph used for auto-picking and extraction (relevant to rlnCoordinateX/Y) is different, specify it here. In other words, this is the pixel size after binning during motion correction, but before down-sampling during extraction.`,
   },
-}
+];
 
-  ]
-};
-
-*/
-
-/*
-const mask = {
-  hidden_name: '.gui_maskcreate',
-  children: [
-  {
-    name: 'fn_in',
-    title: 'Input 3D map:',
-    default:  NODE_MAP_CPIPE, "',
-    help: `MRC map files (*.mrc)',
-    help: `Provide an input MRC map from which to start binarizing the map.`,
-  },
-  {
-    name: 'lowpass_filter',
-    title: 'Lowpass filter map (A)',
-    default:  15, 10, 100, 5, "Lowpass filter that will be applied to the input map, prior to binarization. To calculate solvent masks, a lowpass filter of 15-20A may work well.`,
-  },
-  {
-    name: 'angpix',
-    title: 'Pixel size (A)',
-    default:  -1, 0.3, 5, 0.1, "Provide the pixel size of the input map in Angstroms to calculate the low-pass filter. This value is also used in the output image header.`,
-  },
-  {
-    name: 'inimask_threshold',
-    title: 'Initial binarisation threshold:',
-    default:  0.02, 0., 0.5, 0.01, "This threshold is used to make an initial binary mask from the average of the two unfiltered half-reconstructions. \
-If you don't know what value to use, display one of the unfiltered half-maps in a 3D surface rendering viewer and find the lowest threshold that gives no noise peaks outside the reconstruction.`,
-  },
-  {
-    name: 'extend_inimask',
-    title: 'Extend binary map this many pixels:',
-    default:  3, 0, 20, 1, "The initial binary mask is extended this number of pixels in all directions." );
-  {
-    name: 'width_mask_edge',
-    title: 'Add a soft-edge of this many pixels:',
-    default:  3, 0, 20, 1, "The extended binary mask is further extended with a raised-cosine soft edge of the specified width." );
-  {
-    name: 'do_helix',
-    title: 'Mask a 3D helix?',
-    default:  false, "Generate a mask for 3D helix which spans across Z axis of the box.`,
-  },
-  {
-    name: 'helical_z_percentage',
-    title: 'Central Z length (%):',
-    default:  30., 5., 80., 1., "Reconstructed helix suffers from inaccuracies of orientation searches. \
-The central part of the box contains more reliable information compared to the top and bottom parts along Z axis. Set this value (%) to the central part length along Z axis divided by the box size. Values around 30% are commonly used but you may want to try different lengths.`,
-  },
-  ]
-};
-*/
 
 const joinstar_particles = {
   widget: 'navtab',
@@ -346,35 +466,40 @@ const external = {
     {
       name: 'in_mic',
       title: 'Input micrographs: ',
-      filetype: 'NODE_MICS_CPIPE, "',
+      filetype: 'NODE_MICS_CPIPE',
+      default: '',
       placeholder: 'micrographs STAR file (*.star)',
       help: `Input micrographs. This will be passed with a --in_mics argument to the executable.`,
     },
     {
       name: 'in_part',
       title: 'Input particles: ',
-      filetype: 'NODE_PARTS_CPIPE, "',
+      filetype: 'NODE_PARTS_CPIPE',
+      default : '',
       placeholder: 'particles STAR file (*.star)',
       help: `Input particles. This will be passed with a --in_parts argument to the executable.`,
     },
     {
       name: 'in_coords',
       title: 'Input coordinates: ',
-      filetype: 'NODE_COORDS_CPIPE, "',
+      filetype: 'NODE_COORDS_CPIPE',
+      default: '',
       placeholder: 'STAR files (coords_suffix*.star)',
       help: `Input coordinates. This will be passed with a --in_coords argument to the executable.`,
     },
     {
       name: 'in_3dref',
       title: 'Input 3D reference: ',
-      filetype: 'NODE_MAP_CPIPE, "',
+      filetype: 'NODE_MAP_CPIPE',
+      default: '',
       placeholder: 'MRC files (*.mrc)',
       help: `Input 3D reference map. This will be passed with a --in_3dref argument to the executable.`,
     },
     {
       name: 'in_mask',
       title: 'Input 3D mask: ',
-      filetype: 'NODE_MASK_CPIPE, "',
+      filetype: 'NODE_MASK_CPIPE',
+      default: '',
       placeholder: 'MRC files (*.mrc)',
       help: `Input 3D mask. This will be passed with a --in_mask argument to the executable.`,
     },
@@ -523,29 +648,61 @@ const external = {
   ]
 };
 
+// Tabs
+
+const rank_io_settings = {
+  widget: 'navtab',
+  children: select_io_class
+}
+
+const rank_settings = {
+  widget: 'navtab',
+  children: select_ranker
+}
+
+const select_meta_settings = {
+  widget: 'navtab',
+  children: select_meta
+}
 
 const tools_tabs = [
   {
-    name: 'do_raw',
+    name: 'tools',
     title: 'Tools',
     icon: 'bi-wrench-adjustable',
     widget: 'navtab',
     default:  true, 
     children: [
       {
-        name: 'do_movies',
+        name: 'select_auto',
         title: 'Subset selection',
         widget: 'fieldset',
         children: [
           {
-            name: 'fn_model',
-            title: 'Select classes from job',
+            name: 'fn_metadata',
+            title: 'Subset selection based on metadata',
             widget: 'radio',
             option: '--fn_model',
             group: 'toolkit',
             help: `A _optimiser.star (or for backwards compatibility also a _model.star) file from a previous 2D or 3D classification run to select classes from.`,
-            on_click: (ev) => w_navtab_update({settings: joinstar_particles})
+            on_click: (ev) => w_navtab_update({io: select_io_settings,settings: select_meta_settings})
           },
+          {
+            name: 'fn_stats',
+            title: 'Subset selection based on statistics',
+            widget: 'radio',
+            option: '--fn_mic',
+            group: 'toolkit',
+            help: `A micrographs.star file to select micrographs from.`,
+            on_click: (ev) => w_navtab_update({settings: joinstar_particles})
+          }
+        ]
+      },
+      {
+        name: 'select_auto',
+        title: 'Automatic class selection',
+        widget: 'fieldset',
+        children: [
           {
             name: 'do_class_ranker',
             title: 'Select automatically from 2D classes',
@@ -553,24 +710,32 @@ const tools_tabs = [
             option: '--do_class_ranker',
             group: 'toolkit',
             help: `If set to True, the class_ranker program will be used to make an automated class selection, based on the parameters below. This option only works when selecting classes from a relion_refine job (input optimiser.star on the I.O tab)`,
+            on_click: (ev) => w_navtab_update({io: rank_io_settings,settings: rank_settings})
           },
-          {
-            name: 'fn_mic',
-            title: 'Select from micrographs.star',
-            widget: 'radio',
-            option: '--fn_mic',
-            group: 'toolkit',
-            help: `A micrographs.star file to select micrographs from.`,
-            on_click: (ev) => w_navtab_update({settings: joinstar_particles})
-          },
+        ]
+      },
+      {
+        name: 'do_split',
+        title: 'Split data',
+        widget: 'fieldset',
+        children: [
           {
             name: 'fn_data',
-            title: 'Select from particles.star',
+            title: 'Split in subsets of E elements',
             widget: 'radio',
             option: '--fn_data',
             group: 'toolkit',
             help: `A particles.star file to select individual particles from.`,
-            on_click: (ev) => w_navtab_update({settings: joinstar_particles})
+            on_click: (ev) => w_navtab_update({settings: split_size_ptcls})
+          },
+          {
+            name: 'fn_data',
+            title: 'Split in N subsets of elements',
+            widget: 'radio',
+            option: '--fn_data',
+            group: 'toolkit',
+            help: `If set to Yes, the job will be non-interactive and the star file will be split into subsets as defined below.`,
+            on_click: (ev) => w_navtab_update({settings: split_n_ptcls})
           },
         ]
       },
@@ -609,31 +774,6 @@ const tools_tabs = [
         ]
       },
       {
-        name: 'mask',
-        title: 'Mask creation',
-        widget: 'fieldset',
-        children : [
-          {
-            name: 'do_micrographs',
-            title: 'Mask creation',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'toolkit',
-            help: 'Set this to Yes if you plan to import raw micrographs',
-            on_click: (ev) => w_navtab_update({settings: raw_settings})
-          },
-          {
-            name: 'do_micrographs',
-            title: 'Mask creation for 3D helical volume',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'toolkit',
-            help: 'Set this to Yes if you plan to import raw micrographs',
-            on_click: (ev) => w_navtab_update({settings: raw_settings})
-          },
-        ]
-      },
-      {
         name: 'extras',
         title: 'Extras',
         widget: 'fieldset',
@@ -664,6 +804,13 @@ const tools_tabs = [
         ]
       }
     ]
+  },
+  {
+    name: 'io',
+    icon: 'bi-arrow-down-up',
+    title: 'I/O',
+    widget: 'navtab',
+    children: []
   },
   {
     name: 'settings',

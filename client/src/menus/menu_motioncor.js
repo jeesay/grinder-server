@@ -40,6 +40,14 @@ const motion_io = [
       range_step: 1, 
       help: `The number of hardware frames to group into one fraction. This option is relevant only for Falcon4 movies in the EER format. Note that all 'frames' in the GUI (e.g. first and last frame for corrected sum, dose per frame) refer to fractions, not raw detector frames. See https://www3.mrc-lmb.cam.ac.uk/relion/index.php/Image_compression#Falcon4_EER for detailed guidance on EER processing.`,
     },
+
+]
+
+const motion_writef16 = {
+  name: 'motion_params',
+  title: 'Ouput image file format',
+  widget: 'fieldset',
+  children: [
     {
       name: 'do_float16',
       title: 'Write output in float16',
@@ -47,14 +55,14 @@ const motion_io = [
       default: true ,
       help: `If set to Yes, RelionCor2 will write output images in float16 MRC format. This will save a factor of two in disk space compared to the default of writing in float32. Note that RELION and CCPEM will read float16 images, but other programs may not (yet) do so. For example, Gctf will not work with float16 images. Also note that this option does not work with UCSF MotionCor2. For CTF estimation, use CTFFIND-4.1 with pre-calculated power spectra (activate the 'Save sum of power spectra' option).`,
     }
-
-]
-
+  ]
+};
+  
 const motion_settings = {
-    name: 'motion_params',
-    title: 'Parameters',
-    widget: 'fieldset',
-    children: [
+  name: 'motion_params',
+  title: 'Parameters',
+  widget: 'fieldset',
+  children: [
     // Common arguments RELION and UCSF implementation
     {
       name: 'bfactor',
@@ -268,39 +276,71 @@ const dose_weight = {
 
 
 const relioncor2_settings = {
-  children: [motion_settings,dose_weight]
+  children: [motion_writef16,motion_settings,dose_weight]
+}
+
+const relioncor2_nodose_settings = {
+  children: [motion_writef16,motion_settings]
 }
 
 const ucsf_settings = {
   children: [...ucsf_exec, motion_settings,dose_weight]
 }
 
+const ucsf_nodose_settings = {
+  children: [...ucsf_exec, motion_settings]
+}
+
 const motioncor_tabs = [
   {
     name: 'do_raw',
-    title: 'Versions',
-    icon: 'bi-file-earmark-text',
+    title: 'Tools',
+    icon: 'bi-wrench-adjustable',
     widget: 'navtab',
     default:  true, 
     children: [
       {
-        name: 'relioncor2',
+        name: 'motion',
         title: 'Relion Motioncor2-like implementation',
-        widget: 'radio',
-        option: '--do_movies',
-        group: 'motioncor',
-        help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-        on_click: (ev) => w_navtab_update({settings: relioncor2_settings})
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'relioncor2',
+            title: 'Motion correction WITH dose weighting',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'motioncor',
+            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
+            on_click: (ev) => w_navtab_update({settings: relioncor2_settings})
+          },
+          {
+            name: 'relioncor2',
+            title: 'Motion correction without dose weighting',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'motioncor',
+            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
+            on_click: (ev) => w_navtab_update({settings: relioncor2_nodose_settings})
+          },
+
+        ]
       },
       {
-        name: 'uscf',
-        title: 'UCSF MotionCor2 implementation',
-        option: '--do_micrographs',
-        widget: 'radio',
-        group: 'motioncor',
-        help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
-        on_click: (ev) => w_navtab_update({settings: ucsf_settings})
-      },
+        name: 'motion',
+        title: 'UCSF Implementation',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'uscf',
+            title: 'UCSF MotionCor2 implementation',
+            option: '--do_micrographs',
+            widget: 'radio',
+            group: 'motioncor',
+            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            on_click: (ev) => w_navtab_update({settings: ucsf_settings})
+          },
+        ]
+      }
     ]
   },
   {

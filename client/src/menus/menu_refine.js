@@ -743,14 +743,15 @@ const refine_tabs = [
     widget: 'navtab',
     children: [
       {
-        name: 'class2d_algo',
+        name: 'refine3d_algo',
         icon: 'bi-wrench-adjustable',
         title: 'Auto-refinement',
         widget: 'fieldset',
         children: [
           {
-            name: 'class2d_particles',
+            name: 'refine3d',
             title: '3D auto-refine',
+            job: 'relion.refine3d',
             widget: 'radio',
             option: '--fn_model',
             group: 'toolkit',

@@ -254,6 +254,7 @@ const menus = {
   home: home_tabs,
   import: import_tabs,
   motioncorr: motioncor_tabs,
+  enhance: enhance_tabs,
   ctf: ctf_tabs,
   picking: picking_tabs,
   extract: extract_tabs,

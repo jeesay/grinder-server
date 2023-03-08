@@ -380,6 +380,7 @@ const ctf_tabs = [
           {
             name: 'use_ctffind4',
             title: 'CTF with CTFFIND 4.1',
+            job: 'relion.ctffind.ctffind4',
             widget: 'radio',
             option: '--use_ctffind4',
             group: 'toolkit',
@@ -389,6 +390,7 @@ const ctf_tabs = [
           {
             name: 'use_gctf',
             title: 'CTF with gctf',
+            job: 'relion.ctffind.gctf',
             widget: 'radio',
             option: '--use_gctf',
             group: 'toolkit',
@@ -405,6 +407,7 @@ const ctf_tabs = [
          {
             name: 'use_gctf',
             title: 'CTF refinement',
+            job: 'relion.ctfrefine',
             widget: 'radio',
             option: '--use_gctf',
             group: 'toolkit',

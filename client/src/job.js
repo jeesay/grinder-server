@@ -11,6 +11,7 @@ const view_job = (job) => {
   // Create empty menus
   w_navtab(document.querySelector('section'),job.tabs);
   // Set the various parameters
+  
 }
 
 const jobtypes = [
@@ -38,6 +39,11 @@ const jobtypes = [
   {
     type: "relion.class2d",
     widget: 'class2d',
+    subtypes: {
+      '--grad': 'vdam',
+      '--helix': 'helix',
+      '--em': 'em'
+    },
     gui: {
       main: class2d_tabs
     }

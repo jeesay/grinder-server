@@ -27,7 +27,10 @@ const w_label = (desc) => {
 const w_option = (desc) => {
   // TODO
   return h('option',{
-      props: {selected: desc.select}
+      props: {
+        selected: desc.select,
+        value: desc.value
+      }
     },
     desc.title);
 }
@@ -312,7 +315,12 @@ const w_select = (desc) => {
     h('label',{attrs: {'for': desc.name}},desc.title + ' '),
     h('i.bi.bi-question-circle',{attrs: {title: desc.help}}),
     h('div.select-dropdown',[
-      h('select',w_group(desc))
+      h('select',
+        {
+          on: ('on_change' in desc) ? {click: desc.on_change} : {}
+        },
+        w_group(desc),
+       )
     ])
   ]);
 }
@@ -361,11 +369,11 @@ const w_table_cell = (desc) => {
 const w_group = (desc) => {
   // Primitive Widgets
   const types = [
-    'h3','button','bool','int','float','file','text','range',
+    'label','h3','button','bool','int','float','file','text','range',
     'radio','select','option','switch','fieldset','details',
     'table','thead','tbody','trow','tcell'];
   const creators = [
-    w_h3,w_button,w_bool,w_int,w_float,w_file,w_text,w_range,
+    w_label,w_h3,w_button,w_bool,w_int,w_float,w_file,w_text,w_range,
     w_radio,w_select,w_option,w_switch,
     w_fieldset,w_details,
     w_table,w_table_head,w_table_body,w_table_row,w_table_cell

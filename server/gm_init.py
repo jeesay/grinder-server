@@ -5,6 +5,103 @@ import json
 import re
 import star_gate as sg
 
+JOBTYPES = [
+  {
+    'type': "relion.autopick.ref2d",
+    'menu': 'picking'
+  },
+  {
+    'type': "relion.autopick.topaz.pick",
+    'menu': 'picking'
+  },
+  {
+    'type': "relion.autopick.topaz.train",
+    'menu': 'picking'
+  },
+  {
+    'type': "relion.class2d",
+    'menu': 'class2d'
+    'subtypes': {
+      '--grad': 'vdam',
+      '--helix': 'helix',
+      '--em': 'em'
+    },
+  },
+  {
+    'type': "relion.class3d",
+    'menu': 'class3d'
+  },
+  {
+    'type': "relion.ctffind.ctffind4",
+    'menu': 'ctf'
+  },
+  {
+    'type': "relion.ctfrefine",
+    'menu': 'ctf'
+  },
+  {
+    'type': "relion.ctfrefine.anisomag",
+    'menu': 'ctf'
+  },
+  {
+    'type': "relion.extract",
+    'menu': 'extract'
+  },
+  {
+    'type': "relion.extract.reextract",
+    'menu': 'extract'
+  },
+  {
+    'type': "relion.import.movies",
+    'menu': 'import'
+  },
+  {
+    'type': "relion.import.other",
+    'menu': 'import',
+    'subtypes': {}
+  },
+  {
+    'type': "relion.initialmodel",
+    'menu': 'abinitio'
+  },
+  {
+    'type': "relion.maskcreate",
+    'menu': 'tools',
+  },
+  {
+    'type': "relion.motioncorr.own",
+    'menu': 'motioncorr',
+  },
+  {
+    'type': "relion.polish",
+    'menu': 'postprocess',
+  },
+  {
+    'type': "relion.polish.train",
+    'menu': 'postprocess',
+  },
+  {
+    'type': "relion.postprocess",
+    'menu': 'postprocess',
+  },
+  {
+    'type': "relion.refine3d",
+    'menu': 'refine3d',
+  },
+  {
+    'type': "relion.select.interactive",
+    'menu': 'tools',
+  },
+  {
+    'type': "relion.select.onvalue",
+    'menu': 'tools',
+  },
+  {
+    'type': "relion.select.split",
+    'menu': 'tools',
+  }
+]
+
 def to_number(s):
   try:
     float_value = float(s)
