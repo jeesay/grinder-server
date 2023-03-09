@@ -57,7 +57,28 @@ const w_button = (desc) => {
 
 const w_switch = (desc) => {
   // TODO
-  return h('label',desc.title);
+  return h('div.row',
+    [
+      h('label',desc.title),
+      h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
+      h('div.switch',
+        [
+          h(`input#${desc.name}_on_off.param`, 
+            {
+              attrs: {
+                type:'checkbox',
+                name:desc.name
+              },
+              props: {
+                checked: (desc.default === true) ? true : false
+              },
+            },
+          ),
+          h('label',{attrs:{'for':`${desc.name}_on_off`}},'Toggle')
+        ]
+      )
+    ]
+  );
 }
 
 const w_file = (desc) => h('div.row',

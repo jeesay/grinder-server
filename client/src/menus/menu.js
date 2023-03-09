@@ -46,6 +46,63 @@ const home_tabs = [
     ]
   },
   {
+    name: 'config',
+    title: 'Configuration',
+    icon: 'bi-gear',
+    widget: 'navtab',
+    children: [
+      {
+        name: 'software',
+        title:  'Softwares',
+        widget: 'table',
+        help: 'Display Softwares found',
+        children: [
+          {
+            name: 'software_head',
+            title:  'Table Header',
+            widget: 'thead',
+            help: 'Display',
+            children: [
+              {
+                name: 'software_name',
+                title:  'Name',
+                value: 'Name',
+                widget: 'tcell',
+                help: 'Display Software name',
+              },
+              {
+                name: 'software_status',
+                title:  'Status',
+                value: 'Status',
+                widget: 'tcell',
+                help: 'Display Software status',
+              },
+              {
+                name: 'software_path',
+                title: 'Path',
+                value: 'Path',
+                widget: 'tcell',
+                help: 'Display Software path',
+              },
+            ]
+          },
+          /*
+            Relion
+            UCSF motioncor2, CTFFIND 4.xx, gctf, topaz, localres, python, numpy, pytorch, etc.
+          */
+          {
+            name: 'software_body',
+            title:  'Table Body',
+            widget: 'tbody',
+            help: 'Display Software found',
+            children: [
+            ]
+          }
+        ]
+      },
+    ]
+  },
+  {
     name: 'history',
     title: 'Job History',
     icon: 'bi-clock-history',
@@ -264,6 +321,7 @@ const menus = {
   refine3d: refine_tabs,
   postprocess: postprocess_tabs,
   tools: tools_tabs,
+  metrics: metrics_tabs,
   debug: debug_tabs
 };
 

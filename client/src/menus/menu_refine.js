@@ -110,7 +110,7 @@ Therefore, look at the XMIPP Wiki for more details:  http://xmipp.cnb.csic.es/tw
   {
     name: 'do_ctf_correction',
     title: 'Do CTF-correction?',
-    widget: 'bool',
+    widget: 'switch',
     default: true,
     help: `If set to Yes, CTFs will be applied to the projections of the map. This requires that CTF information is present in the input STAR file.`
   },
@@ -735,6 +735,11 @@ which you want to use for subtraction. It will use the maps from this run for th
   }
 ];
 
+const autorefine_tab = {
+  widget: 'navtab',
+  children: autorefine
+}
+
 const refine_tabs = [
   {
     name: 'refine_tools',
@@ -756,7 +761,7 @@ const refine_tabs = [
             option: '--fn_model',
             group: 'toolkit',
             help: ``,
-            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+            on_click: (ev) => w_navtab_update({settings: autorefine_tab})
           }
         ]
       },

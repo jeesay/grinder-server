@@ -249,7 +249,7 @@ Pixels values higher than this many times the image stddev will be replaced with
       {
         name:'do_rescale',
         title: 'Rescale particles?',
-        widget: 'bool',
+        widget: 'switch',
         default:false,
         help: 'If set to Yes, particles will be re-scaled. Note that the particle diameter below will be in the down-scaled images.',
       },
@@ -273,7 +273,7 @@ Pixels values higher than this many times the image stddev will be replaced with
       {
         name:'do_fom_threshold',
         title: 'Use autopick FOM threshold?',
-        widget: 'bool',
+        widget: 'switch',
         default:false,
         help: 'If set to Yes, only particles with rlnAutopickFigureOfMerit values below the threshold below will be extracted.',
       },

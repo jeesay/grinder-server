@@ -4,115 +4,129 @@ const ugraph_settings = {
   widget: 'navtab',
   help: 'Import Movies or Micrographs',
   children: [
-      {
-        name: 'fn_in_raw',
-        title: 'Raw input files:',
-        widget: 'file',
-        placeholder:  'Micrographs/*.tif',
-        filter:  '(std::string)"Movie or Image (*.{mrc,mrcs,tif,tiff})',
-        option: '--i',
-        default:  '.',
-        help:  `Provide a Linux wildcard that selects all raw movies or micrographs to be imported. The path must be a relative path from the project directory. To import files outside the project directory, first make a symbolic link by an absolute path and then specify the link by a relative path. See the FAQ page on RELION wiki (https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#What_is_the_right_way_to_import_files_outside_the_project_directory.3F) for details.")`
-      },
-/*
-Unnecessary
-      {
-        name: 'is_multiframe',
-        title: 'Are these multi-frame movies?',
-        widget: 'bool',
-        default:  true, 
-        help: "Set to Yes for multi-frame movies, set to No for single-frame micrographs."
-      },
-*/
-      {
-        name: 'optics_group_name',
-        widget: 'text',
-        title: 'Optics group name:',
-        option: '--optics_group_name',
-        default:  'opticsGroup1',
-        help:  'Name of this optics group. Each group of movies/micrographs with different optics characteristics for CTF refinement should have a unique name.'
-      },
-      {
-        name: 'fn_mtf',
-        title: 'MTF of the detector:',
-        option: '--optics_group_mtf',
-        widget: 'file',
-        default:  '',
-        placeholder:  'STAR Files (*.star)',
-        filter:  '.',
-        help:  `As of release-3.1, the MTF of the detector is used in the refinement stages of refinement.
-    If you know the MTF of your detector, provide it here. Curves for some well-known detectors may be downloaded from the RELION Wiki. Also see there for the exact format.
-    If you do not know the MTF of your detector and do not want to measure it, then by leaving this entry empty, you include the MTF of your detector in your overall estimated B-factor upon sharpening the map. Although that is probably slightly less accurate, the overall quality of your map will probably not suffer very much.
+    {
+      name: 'inputs',
+      title: 'Inputs',
+      widget: 'fieldset',
+      children: [
+        {
+          name: 'fn_in_raw',
+          title: 'Raw input files:',
+          widget: 'file',
+          placeholder:  'Micrographs/*.tif',
+          filter:  '(std::string)"Movie or Image (*.{mrc,mrcs,tif,tiff})',
+          option: '--i',
+          default:  '',
+          help:  `Provide a Linux wildcard that selects all raw movies or micrographs to be imported. The path must be a relative path from the project directory. To import files outside the project directory, first make a symbolic link by an absolute path and then specify the link by a relative path. See the FAQ page on RELION wiki (https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#What_is_the_right_way_to_import_files_outside_the_project_directory.3F) for details.")`
+        },
+  /*
+  Unnecessary
+        {
+          name: 'is_multiframe',
+          title: 'Are these multi-frame movies?',
+          widget: 'bool',
+          default:  true, 
+          help: "Set to Yes for multi-frame movies, set to No for single-frame micrographs."
+        },
+  */
+        {
+          name: 'optics_group_name',
+          widget: 'text',
+          title: 'Optics group name:',
+          option: '--optics_group_name',
+          default:  'opticsGroup1',
+          help:  'Name of this optics group. Each group of movies/micrographs with different optics characteristics for CTF refinement should have a unique name.'
+        },
+        {
+          name: 'fn_mtf',
+          title: 'MTF of the detector:',
+          option: '--optics_group_mtf',
+          widget: 'file',
+          default:  '',
+          placeholder:  'STAR Files (*.star)',
+          filter:  '.',
+          help:  `As of release-3.1, the MTF of the detector is used in the refinement stages of refinement.
+      If you know the MTF of your detector, provide it here. Curves for some well-known detectors may be downloaded from the RELION Wiki. Also see there for the exact format.
+      If you do not know the MTF of your detector and do not want to measure it, then by leaving this entry empty, you include the MTF of your detector in your overall estimated B-factor upon sharpening the map. Although that is probably slightly less accurate, the overall quality of your map will probably not suffer very much.
 
-    Note that when combining data from different detectors, the differences between their MTFs can no longer be absorbed in a single B-factor, and providing the MTF here is important!`
-      },
-      {
-        name: 'angpix',
-        title: 'Pixel size (Angstrom):',
-        option: '--angpix',
-        widget: 'range',
-        default:  1.4, 
-        range_min: 0.5, 
-        range_max: 3, 
-        range_step: 0.1, 
-        help: 'Pixel size in Angstroms.'
-      },
-      {
-        name: 'kV',
-        title: 'Voltage (kV):',
-        widget: 'range',
-        option: '--kV',
-        default:  300, 
-        range_min: 50, 
-        range_max: 500, 
-        range_step: 10, 
-        help: 'Voltage the microscope was operated on (in kV)'
-      },
-      {
-        name: 'Cs',
-        title: 'Spherical aberration (mm):',
-        option: '--Cs',
-        default:  2.7, 
-        widget: 'range',
-        range_min: 0, 
-        range_max: 8, 
-        range_step: 0.1, 
-        help: 'Spherical aberration of the microscope used to collect these images (in mm). Typical values are 2.7 (FEI Titan & Talos, most JEOL CRYO-ARM), 2.0 (FEI Polara), 1.4 (some JEOL CRYO-ARM) and 0.01 (microscopes with a Cs corrector)."'
-      },
-      {
-        name: 'Q0',
-        title: 'Amplitude contrast:',
-        option: '--Q0',
-        default:  0.1, 
-        widget: 'range',
-        range_min: 0, 
-        range_max: 0.3, 
-        range_step: 0.01, 
-        help: 'Fraction of amplitude contrast. Often values around 10% work better than theoretically more accurate lower values..."'
-      },
-      {
-        name: 'beamtilt_x',
-        title: 'Beamtilt in X (mrad):',
-        option: '--beamtilt_x',
-        widget: 'range',
-        default:  0.0, 
-        range_min: -1.0, 
-        range_max: 1.0, 
-        range_step: 0.1, 
-        help: 'Known beamtilt in the X-direction (in mrad). Set to zero if unknown.'
-      },
-      {
-        name: 'beamtilt_y',
-        title: 'Beamtilt in Y (mrad):',
-        option: '--beamtilt_y',
-        widget: 'range',
-        default:  0.0, 
-        range_min: -1.0, 
-        range_max: 1.0, 
-        range_step: 0.1, 
-        help: 'Known beamtilt in the Y-direction (in mrad). Set to zero if unknown."'
-      },
-    ]
+      Note that when combining data from different detectors, the differences between their MTFs can no longer be absorbed in a single B-factor, and providing the MTF here is important!`
+        },
+      ]
+    },
+    {
+      name: 'params',
+      title: 'Parameters',
+      widget: 'fieldset',
+      children: [
+        {
+          name: 'angpix',
+          title: 'Pixel size (Angstrom):',
+          option: '--angpix',
+          widget: 'range',
+          default:  1.4, 
+          range_min: 0.5, 
+          range_max: 3, 
+          range_step: 0.1, 
+          help: 'Pixel size in Angstroms.'
+        },
+        {
+          name: 'kV',
+          title: 'Voltage (kV):',
+          widget: 'range',
+          option: '--kV',
+          default:  300, 
+          range_min: 50, 
+          range_max: 500, 
+          range_step: 10, 
+          help: 'Voltage the microscope was operated on (in kV)'
+        },
+        {
+          name: 'Cs',
+          title: 'Spherical aberration (mm):',
+          option: '--Cs',
+          default:  2.7, 
+          widget: 'range',
+          range_min: 0, 
+          range_max: 8, 
+          range_step: 0.1, 
+          help: 'Spherical aberration of the microscope used to collect these images (in mm). Typical values are 2.7 (FEI Titan & Talos, most JEOL CRYO-ARM), 2.0 (FEI Polara), 1.4 (some JEOL CRYO-ARM) and 0.01 (microscopes with a Cs corrector)."'
+        },
+        {
+          name: 'Q0',
+          title: 'Amplitude contrast:',
+          option: '--Q0',
+          default:  0.1, 
+          widget: 'range',
+          range_min: 0, 
+          range_max: 0.3, 
+          range_step: 0.01, 
+          help: 'Fraction of amplitude contrast. Often values around 10% work better than theoretically more accurate lower values..."'
+        },
+        {
+          name: 'beamtilt_x',
+          title: 'Beamtilt in X (mrad):',
+          option: '--beamtilt_x',
+          widget: 'range',
+          default:  0.0, 
+          range_min: -1.0, 
+          range_max: 1.0, 
+          range_step: 0.1, 
+          help: 'Known beamtilt in the X-direction (in mrad). Set to zero if unknown.'
+        },
+        {
+          name: 'beamtilt_y',
+          title: 'Beamtilt in Y (mrad):',
+          option: '--beamtilt_y',
+          widget: 'range',
+          default:  0.0, 
+          range_min: -1.0, 
+          range_max: 1.0, 
+          range_step: 0.1, 
+          help: 'Known beamtilt in the Y-direction (in mrad). Set to zero if unknown."'
+        },
+      ]
+    }
+  ]
 };
 
 const other_settings = {
@@ -163,7 +177,7 @@ const import_tabs = [
     children: [
       {
         name: 'do_raw',
-        title: 'Raw movies/micrographs',
+        title: 'Movies/micrographs',
         widget: 'fieldset',
         children : [
           {
@@ -187,14 +201,20 @@ const import_tabs = [
             help: 'Set this to Yes if you plan to import raw micrographs',
             on_click: (ev) => w_navtab_update({settings: ugraph_settings})
           },
+          {
+            name: 'other_ugraph_star',
+            class: 'jobtype',
+            title:  'Micrographs STAR file (.star)',
+            group: 'node_types',
+            widget: 'radio',
+          },
         ]
       },
       // Others?
       {
         name: 'do_other',
-        title: 'Other node types',
+        title: 'Particles',
         widget: 'fieldset',
-        default:  false, 
         children : [
           {
             name: 'other_pctls_coords',
@@ -211,17 +231,17 @@ const import_tabs = [
             group: 'node_types',
             widget: 'radio',
           },
+        ]
+      },
+      {
+        name: 'do_ref',
+        title: 'References',
+        widget: 'fieldset',
+        children : [
           {
             name: 'other_refs',
             class: 'jobtype',
             title:  'Multiple (2D or 3D) references (.star or .mrcs)',
-            group: 'node_types',
-            widget: 'radio',
-          },
-          {
-            name: 'other_ugraph_star',
-            class: 'jobtype',
-            title:  'Micrographs STAR file (.star)',
             group: 'node_types',
             widget: 'radio',
           },
@@ -232,6 +252,13 @@ const import_tabs = [
             widget: 'radio',
             group: 'node_types',
           },
+        ]
+      },
+      {
+        name: 'do_mask',
+        title: 'Mask',
+        widget: 'fieldset',
+        children : [
           {
             name: 'other_mask',
             class: 'jobtype',
@@ -248,6 +275,25 @@ const import_tabs = [
           },
         ]
       },
+      // Others?
+      {
+        name: 'do_other',
+        title: 'Other files',
+        widget: 'fieldset',
+        children : [
+          {
+            name: 'do_movies',
+            class: 'jobtype',
+            job: 'relion.import.mtf',
+            title: 'MTF, Gain ref., Defect, etc.',
+            widget: 'radio',
+            option: '--do_movies',
+            group: 'node_types',
+            help: 'Set this to Yes if you plan to import MTF file',
+            on_click: (ev) => w_navtab_update({settings: ugraph_settings})
+          },
+        ]
+      }
     ]
   },
   {

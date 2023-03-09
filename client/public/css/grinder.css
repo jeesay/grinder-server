@@ -370,6 +370,52 @@ details[open] summary {
 /* Switch */
 
 .switch {
+  display: flex;
+}
+
+.switch input[type=checkbox] {
+  height: 0;
+  width: 0;
+  visibility: hidden;
+}
+
+.switch label {
+  cursor: pointer;
+  text-indent: -9999px;
+  width: 50px;
+  height: 22px;
+  background: grey;
+  display: block;
+  border-radius: 12px;
+  position: relative;
+}
+
+.switch label:after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 9px;
+  transition: 0.3s;
+}
+
+.switch input:checked + label {
+  background: #bada55;
+}
+
+.switch input:checked + label:after {
+  left: calc(100% - 2px);
+  transform: translateX(-100%);
+}
+
+.switch input + label:active:after {
+  width: 48px;
+}
+/*
+.switch {
   display: inline-block;
   position: relative;
   width: 70px;
@@ -412,6 +458,8 @@ details[open] summary {
 .switch input:checked + span:before {
   left: 34px;
 }
+*/
+
 
 /* Icons */
 
