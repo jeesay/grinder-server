@@ -62,27 +62,6 @@ If you don't know what value to use, display one of the unfiltered half-maps in 
   }
 ];
 
-const mask_helix = [
-  {
-    name: 'do_helix',
-    title: 'Mask a 3D helix?',
-    widge: 'bool',
-    default:  false,
-    help: `Generate a mask for 3D helix which spans across Z axis of the box.`,
-  },
-  {
-    name: 'helical_z_percentage',
-    title: 'Central Z length (%):',
-    widget: 'range',
-    default:  30., 
-    range_min: 5., 
-    range_max: 80., 
-    range_step: 1.,
-    help: `Reconstructed helix suffers from inaccuracies of orientation searches. \
-The central part of the box contains more reliable information compared to the top and bottom parts along Z axis. Set this value (%) to the central part length along Z axis divided by the box size. Values around 30% are commonly used but you may want to try different lengths.`,
-  },
-];
-
 
 // Polishing
 const polish_io = [
@@ -449,15 +428,6 @@ const postprocess_tabs = [
             group: 'postprocess',
             help: '',
             on_click: (ev) => w_navtab_update({io: mask_io_settings, settings: mask_settings})
-          },
-          {
-            name: 'mask',
-            title: 'Mask Creation of 3D helical volume',
-            option: '--do_micrographs',
-            widget: 'radio',
-            group: 'postprocess',
-            help: '',
-            on_click: (ev) => w_navtab_update({io: mask_io_settings, settings: mask_hlx_settings})
           },
         ]
       },

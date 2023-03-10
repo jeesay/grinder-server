@@ -18,10 +18,13 @@ body{
 }
 
 .wrapper {
+/*
   width: 85%;
   height: 100vh;
+*/
+  display: flex;
+
   margin: 0 auto;
-  float: right;
 }
 
 /* Menubar */
@@ -104,16 +107,19 @@ aside {
 }
 
 aside ul{
-  width:15%;
-  height: 100vh;
+/*
+  width:15%; 
   min-width: 100px;
-  box-sizing: border-box;
   position: fixed;
+*/
+  height: 100vh;
+  box-sizing: border-box;
+
 }
 
 aside li{
   list-style-type: none;
-  padding: 4px 0 4px 0px;
+  padding: 4px 10px 4px 0px;
   border-bottom: 1px solid #222;
   transform: translateY(55px);
   /* text-align: center; */
@@ -131,9 +137,13 @@ aside i{
 }
 
 aside li.active{
-  background: #222;
+  background: #ddd;
   opacity: 1;
 }
+aside li.active a{
+  color: #222;
+}
+
 aside li:not(.active):hover {
   background: #2c2c2c;
 }
@@ -163,6 +173,9 @@ aside.jobs a {
   padding: 0px 10px;
 }
 
+main {
+  flex: 1 1 auto;
+}
 /* Tabs */
 
 .tabs {

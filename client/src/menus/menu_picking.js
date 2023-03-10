@@ -630,66 +630,6 @@ This option is ignored in the Laplacian-of-Gaussian picker.`,
   ]
 }
 
-const pick_helices = {
-  children: [
-    {
-      name: 'helical_tube_outer_diameter',
-      title: 'Tube diameter (A): ',
-      widget: 'range',
-      default:200, 
-      range_min: 100, 
-      range_max: 1000, 
-      range_step: 10,
-      help: 'Outer diameter (in Angstroms) of helical tubes. \
-This value should be slightly larger than the actual width of the tubes.',
-    },
-    {
-      name: 'helical_nr_asu',
-      title: 'Number of unique asymmetrical units:',
-      widget: 'range',
-      default: 1, 
-      range_min: 1, 
-      range_max: 100, 
-      range_step: 1,
-      help: 'Number of unique helical asymmetrical units in each segment box. This integer should not be less than 1. The inter-box distance (pixels) = helical rise (Angstroms) * number of asymmetrical units / pixel size (Angstroms). \
-The optimal inter-box distance might also depend on the box size, the helical rise and the flexibility of the structure. In general, an inter-box distance of ~10% * the box size seems appropriate.',
-    },
-    {
-      name: 'helical_rise',
-      title: 'Helical rise (A):',
-      widget: 'range',
-      default:-1, 
-      range_min: 0, 
-      range_max: 100, 
-      range_step: 0.01,
-      help: `Helical rise in Angstroms. (Please click '?' next to the option above for details about how the inter-box distance is calculated.)`,
-    },
-    {
-      name: 'helical_tube_kappa_max',
-      title: 'Maximum curvature (kappa): ',
-      widget: 'range',
-      default:0.1, 
-      range_min: 0.05, 
-      range_max: 0.5, 
-      range_step: 0.01,
-      help: `Maximum curvature allowed for picking helical tubes.
-Kappa = 0.3 means that the curvature of the picked helical tubes should not be larger than 30% the curvature of a circle (diameter = particle mask diameter). \
-Kappa ~ 0.05 is recommended for long and straight tubes (e.g. TMV, VipA/VipB and AChR tubes) while 0.20 ~ 0.40 seems suitable for flexible ones (e.g. ParM and MAVS-CARD filaments).`,
-    },
-    {
-      name: 'helical_tube_length_min',
-      title: 'Minimum length (A): ',
-      widget: 'range',
-      default:-1, 
-      range_min: 100, 
-      range_max: 1000, 
-      range_step: 10,
-      help: 'Minimum length (in Angstroms) of helical tubes for auto-picking. \
-Helical tubes with shorter lengths will not be picked. Note that a long helical tube seen by human eye might be treated as short broken pieces due to low FOM values or high picking threshold.',
-    },
-  ]
-}
-
 
 const picking_tabs = [
   {
@@ -783,31 +723,6 @@ const picking_tabs = [
             group: 'picking',
             help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
             on_click: (ev) => w_navtab_update({settings: autopick_topaz})
-          },
-        ]
-      },
-      {
-        name: 'helix',
-        title: 'Helices',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'do_pick_helical_segments',
-            title: 'Pick 2D helical segments',
-            widget: 'radio',
-            option: '--do_pick_helical_segments',
-            group: 'picking',
-            help: 'Set to Yes if you want to pick 2D helical segments.',
-            on_click: (ev) => w_navtab_update({settings: pick_helices})
-          },
-          {
-            name: 'do_amyloid',
-            title: 'Pick amyloid segments',
-            widget: 'radio',
-            option: '--do_amyloid',
-            group: 'picking',
-            help: 'Set to Yes if you want to use the algorithm that was developed specifically for picking amyloids.',
-            on_click: (ev) => w_navtab_update({settings: pick_helices})
           },
         ]
       },

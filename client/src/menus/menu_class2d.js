@@ -246,63 +246,6 @@ const class2d_particles_tabs = {
       
 
 
-const class2d_helix_tabs = {
-  widget: 'navtab',
-  children: [
-    {
-      name: 'helical_tube_outer_diameter',
-      title: 'Tube diameter (A):',
-      widget: 'range',
-      default:  200, 
-      range_min: 100, 
-      range_max: 1000, 
-      range_step: 10, 
-      help: `Outer diameter (in Angstroms) of helical tubes.
-  This value should be slightly larger than the actual width of the tubes. You may want to copy the value from previous particle extraction job.
-  If negative value is provided, this option is disabled and ordinary circular masks will be applied. Sometimes '--dont_check_norm' option is useful to prevent errors in normalisation of helical segments.`
-    },
-    {
-      name: 'do_bimodal_psi',
-      title: 'Do bimodal angular searches?',
-      widget: 'bool',
-      default:  true, 
-      help: `Do bimodal search for psi angles? \
-  Set to Yes if you want to classify 2D helical segments with priors of psi angles. The priors should be bimodal due to unknown polarities of the segments. \
-  Set to No if the 3D helix looks the same when rotated upside down. If it is set to No, ordinary angular searches will be performed.\n\nThis option will be invalid if you choose not to perform image alignment on 'Sampling' tab.`
-    },
-    {
-      name: 'range_psi',
-      title: 'Angular search range - psi (deg):',
-      widget: 'range',
-      default: 6, 
-      range_min: 3, 
-      range_max: 30, 
-      range_step: 1, 
-      help: `Local angular searches will be performed \
-  within +/- the given amount (in degrees) from the psi priors estimated through helical segment picking. \
-  A range of 15 degrees is the same as sigma = 5 degrees. Note that the ranges of angular searches should be much larger than the sampling.\
-  \n\nThis option will be invalid if you choose not to perform image alignment on 'Sampling' tab.`
-    },
-    {
-      name: 'do_restrict_xoff',
-      title: 'Restrict helical offsets to rise:',
-      widget: 'bool',
-      default:  true, 
-      help: 'Set to Yes if you want to restrict the translational offsets along the helices to the rise of the helix given below. Set to No to allow free (conventional) translational offsets.'
-    },
-    {
-      name: 'helical_rise',
-      title: 'Helical rise (A):',
-      widget: 'range',
-      default:  4.75, 
-      range_min: -1, 
-      range_max: 100, 
-      range_step: 1, 
-      help: 'The helical rise (in Angstroms). Translational offsets along the helical axis will be limited from -rise/2 to +rise/2, with a flat prior.'
-    }
-  ]
-};
-
 
 const compute_tabs = [
   {
@@ -400,22 +343,6 @@ const class2d_tabs = [
           },
         ]
       },
-      {
-        name: 'class2d_hlx',
-        title: 'Helices',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'class2d_helix',
-            title: '2D classification of Helices',
-            widget: 'radio',
-            option: '',
-            group: 'toolkit',
-            help: 'classify 2D helical segments. Note that the helical segments should come with priors of psi angles',
-            on_click: (ev) => w_navtab_update({settings: class2d_helix_tabs})
-          },
-        ]
-      }
     ]
   },
   {

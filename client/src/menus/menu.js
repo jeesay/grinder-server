@@ -321,6 +321,7 @@ const menus = {
   refine3d: refine_tabs,
   postprocess: postprocess_tabs,
   tools: tools_tabs,
+  helix: helix_tabs,
   metrics: metrics_tabs,
   debug: debug_tabs
 };
