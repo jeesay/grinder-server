@@ -80,7 +80,7 @@ const submit_settings = [
   {
     name: 'extra_args',
     title:  'Run',
-    widget: 'fieldset',
+    widget: 'toolbar',
     children: [
       {
         name: 'schedule',

@@ -450,22 +450,7 @@ const autopick_topaz = {
   ]
 }
 
-const autopick_matching = {
-  children: [
-    {
-      name: 'do_refs',
-      title: 'Use reference-based template-matching?',
-      default:false,
-      help: 'If set to Yes, 2D or 3D references, as defined on the References tab will be used for autopicking.',
-    },
-    {
-      name: 'fn_refs_autopick',
-      title: '2D references:',
-      default: 'NODE_2DIMGS_CPIPE',
-      default: '',
-      placeholder: 'Input references (*.{star,mrcs})',
-      help: 'Input STAR file or MRC stack with the 2D references to be used for picking. Note that the absolute greyscale needs to be correct, so only use images created by RELION itself, e.g. by 2D class averaging or projecting a RELION reconstruction.',
-    },
+const autopick_matching_3d = [
     {
       name: 'do_ref3d',
       title: '"OR: provide a 3D reference?',
@@ -498,6 +483,26 @@ The samplings are approximate numbers and vary slightly over the sphere.
 For autopicking, 30 degrees is usually fine enough, but for highly symmetrical objects one may need to go finer to adequately sample the asymmetric part of the sphere.`,
       children: []
     },
+];
+
+const autopick_matching_2d = [
+    {
+      name: 'do_refs',
+      title: 'Use reference-based template-matching?',
+      default:false,
+      help: 'If set to Yes, 2D or 3D references, as defined on the References tab will be used for autopicking.',
+    },
+    {
+      name: 'fn_refs_autopick',
+      title: '2D references:',
+      default: 'NODE_2DIMGS_CPIPE',
+      default: '',
+      placeholder: 'Input references (*.{star,mrcs})',
+      help: 'Input STAR file or MRC stack with the 2D references to be used for picking. Note that the absolute greyscale needs to be correct, so only use images created by RELION itself, e.g. by 2D class averaging or projecting a RELION reconstruction.',
+    },
+];
+
+const autopick_matching = [
     {
       name: 'lowpass',
       title: 'Lowpass filter references (A)',
@@ -558,6 +563,9 @@ For autopicking, 30 degrees is usually fine enough, but for highly symmetrical o
       default:false,
       help: 'Set this to Yes, only if this option was also used to generate the references.',
     },
+];
+
+const autopick_settings = [
     {
       name: 'threshold_autopick',
       title: 'Picking threshold:',
@@ -627,8 +635,7 @@ This option is ignored in the Laplacian-of-Gaussian picker.`,
       help: 'This is useful to speed up the calculations, and to make them less memory-intensive. The micrographs will be downscaled (shrunk) to calculate the cross-correlations, and peak searching will be done in the downscaled FOM maps. When set to 0, the micrographs will de downscaled to the lowpass filter of the references, a value between 0 and 1 will downscale the micrographs by that factor. Note that the results will not be exactly the same when you shrink micrographs!\
 \n\nIn the Laplacian-of-Gaussian picker, this option is ignored and the shrink factor always becomes 0.',
     },
-  ]
-}
+];
 
 
 const picking_tabs = [
@@ -646,7 +653,7 @@ const picking_tabs = [
         children: [
           {
             name: 'pick_lowpass',
-            title: 'Manual Picking with Lowpass filtering',
+            title: 'Manual Picking with Low-pass filtering',
             widget: 'radio',
             option: '--do_movies',
             group: 'motioncor',
@@ -671,7 +678,7 @@ const picking_tabs = [
         widget: 'fieldset',
         children: [
           {
-            name: 'uscf',
+            name: 'do_log',
             title: 'Autopicking with Laplacian-of-Gaussian',
             option: '--do_log',
             widget: 'radio',
@@ -680,7 +687,7 @@ const picking_tabs = [
             on_click: (ev) => w_navtab_update({settings: autopick_log})
           },
           {
-            name: 'uscf',
+            name: 'do_refs',
             title: 'Autopicking by template matching from 2D references',
             option: '--do_micrographs',
             widget: 'radio',
@@ -689,12 +696,12 @@ const picking_tabs = [
             on_click: (ev) => w_navtab_update({settings: ucsf_settings})
           },
           {
-            name: 'uscf',
+            name: 'do_ref3D',
             title: 'Autopicking by template matching from a 3D reference',
             option: '--do_micrographs',
             widget: 'radio',
             group: 'picking',
-            help: 'Set this to Yes if you plan to use the UCSF implementation. The UCSF-implementation needs a GPU but uses only one CPU thread.',
+            help: 'Set this option to Yes if you want to provide a 3D map, which will be projected into multiple directions to generate 2D references.',
             on_click: (ev) => w_navtab_update({settings: ucsf_settings})
           },
           {

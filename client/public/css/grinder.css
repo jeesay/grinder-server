@@ -254,6 +254,17 @@ main {
 }
 
 
+.toolbar {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 0.5em 0;
+    margin: 10px 0px;
+}
+
+.toolbar button {
+  margin: 0 10px;
+}
+
 details {
     border: 1px solid #aaa;
     border-radius: 4px;
@@ -380,6 +391,11 @@ details[open] summary {
   }
 }
 
+/* Various inputs */
+
+input[type=text], input[type=number], input[type=range], select {
+  width: 220px;
+}
 /* Switch */
 
 .switch {
@@ -427,51 +443,6 @@ details[open] summary {
 .switch input + label:active:after {
   width: 48px;
 }
-/*
-.switch {
-  display: inline-block;
-  position: relative;
-  width: 70px;
-  height: 40px;
-  cursor: pointer;
-  overflow: hidden;
-}
-.switch input {
-  position: absolute;
-  top: -30px;
-  top: -30px;
-  width: 0;
-  height: 0;
-}
-.switch input + span {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #99b4df;
-  border-radius: 20px;
-}
-.switch input + span:before {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  top: 50%;
-  left: 4px;
-  width: 32px;
-  height: 32px;
-  background: white;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  transition: all .5s;
-}
-.switch input:checked + span {
-  background: #346abf;
-}
-.switch input:checked + span:before {
-  left: 34px;
-}
-*/
 
 
 /* Icons */
@@ -531,6 +502,19 @@ i {
 input[type=range] {
 }
 
+output {
+  background-color: #eee;
+  border: solid 1px gray;
+  border-radius: 4px;
+  padding: 0px 4px;
+  width: 60px;
+  justify-content: right;
+  display: flex;
+}
+
+.range_text input[type=number] {
+  width: 285px;
+}
 /* Job History Table */
 
 #jhistory {
@@ -550,7 +534,7 @@ input[type=range] {
 /* File Explorer */
 
 #open_dialog {
-  margin: 0 auto;
+  margin: 0px 4px;
 }
 
 dialog {

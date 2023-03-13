@@ -319,17 +319,6 @@ const w_navtab = (parent,desc) => {
   });
 }
 
-const w_navtab_update = (tab_contents) => {
-  
-  Object.keys(tab_contents).forEach(parent_id => {
-    const content = document.querySelector(`article#${parent_id} .tab-content`);
-    const desc = tab_contents[parent_id];
-    // Update corresponding tab
-    content.replaceChildren(...w_group(desc));
-  });
-
-}
-
 const w_select = (desc) => {
   return h('div.row',
   [
@@ -346,6 +335,10 @@ const w_select = (desc) => {
   ]);
 }
 
+const w_toolbar = (desc) => {
+  console.log('toolbar',desc.title);
+  return h('div.toolbar',desc.children.map( wdg => h('button',wdg.title)));
+}
 const w_fieldset = (desc) => {
   console.log('fieldset',desc.title);
   return h('fieldset',[h('legend',desc.title),...w_group(desc)]);
@@ -365,7 +358,6 @@ const w_table = (desc) => {
   if (desc.children?.[1]) {
     components.push(w_table_body(desc.children[1]));
   }
-  
   return h(`table#${desc.name}`,components);
 }
 
@@ -392,12 +384,12 @@ const w_group = (desc) => {
   const types = [
     'label','h3','button','bool','int','float','file','text','range',
     'radio','select','option','switch','fieldset','details',
-    'table','thead','tbody','trow','tcell'];
+    'table','thead','tbody','trow','tcell','toolbar'];
   const creators = [
     w_label,w_h3,w_button,w_bool,w_int,w_float,w_file,w_text,w_range,
     w_radio,w_select,w_option,w_switch,
     w_fieldset,w_details,
-    w_table,w_table_head,w_table_body,w_table_row,w_table_cell
+    w_table,w_table_head,w_table_body,w_table_row,w_table_cell,w_toolbar
   ];
   if ('children' in desc === false) {
     console.log(desc);
@@ -407,6 +399,19 @@ const w_group = (desc) => {
       return creators[types.indexOf(child.widget)](child);
     }
   });
+}
+
+////////////////////: UPDATE :////////////////////
+
+const w_navtab_update = (tab_contents) => {
+  
+  Object.keys(tab_contents).forEach(parent_id => {
+    const content = document.querySelector(`article#${parent_id} .tab-content`);
+    const desc = tab_contents[parent_id];
+    // Update corresponding tab
+    content.replaceChildren(...w_group(desc));
+  });
+
 }
 
 ////////////////////: EVENTS :////////////////////

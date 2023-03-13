@@ -17,7 +17,7 @@ const generic = [
       },
       {
         name: 'use_noDW',
-        title: 'Use micrograph w/o dose-weighting?',
+        title: 'Use ugraph without dose-weighting?',
         widget: 'bool',
         default: false,
         help: `If set to Yes, the CTF estimation will be done using the micrograph without dose-weighting as in rlnMicrographNameNoDW (_noDW.mrc from MotionCor2). If set to No, the normal rlnMicrographName will be used.`,
