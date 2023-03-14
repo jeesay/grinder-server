@@ -1,12 +1,12 @@
-const GRELION = {
+const GRINDER = {
   version: '0.1',
-  websocket: undefined
+  server: undefined,
 };
   
  /**
  * Receive the response of the server and display the result on the HTML page
  * @param  {Websocket} websocket  Server
- */
+
 const receive = (websocket) => {
   websocket.addEventListener("message", (response) => {
     console.log(response);
@@ -17,41 +17,49 @@ const receive = (websocket) => {
     // Dispatch data
     if (event['data'] != null){
       let data = event['data']
-      GRELION.jobs = JSON.parse(msg);
+      GRINDER.jobs = JSON.parse(msg);
     }
   });
 }
 
+ 
+// https://github.com/jcao219/websocket-async/blob/master/src/websocket-client.js
+// 
+const receive = function() {
+  if (GRINDER.receiveDataQueue.length !== 0) {
+    // We have a message ready.
+    return Promise.resolve(GRINDER.receiveDataQueue.shift());
+  }
 
+  // Wait for the next incoming message and receive it.
+  const receivePromise = new Promise((resolve, reject) => {
+    GRINDER.receiveCallbacksQueue.push({ resolve, reject });
+  });
 
+  return receivePromise;
+};
+ */
+ 
+ 
 /*
  * Run the WebSocket Client and try to connect to the python WebSocket server
 */
-const connect_to_ws_server = () => {
+const connect_to_ws_server = async () => {
   const ip_address = document.getElementById('ws_server_ip').value;
   const port = document.getElementById('ws_port').value;
 
   // Open the WebSocket connection and register event handlers.
-  GRELION.websocket = new WebSocket(`ws://${ip_address}:${port}/`);   
+  GRINDER.server = new WSClient();
+  await GRINDER.server.connect(`ws://${ip_address}:${port}/`);
 
-  GRELION.websocket.onopen = function(e) {
-    alert(`[open] Connection established with server ws://${ip_address}:${port}/`);
-    // Step #1 - Get default_pipeline.json of Project
-    let cli = {
-      end:0,
-      action: {
-        tool: 'grelion.py',
-        title:'project',
-        args:'--get default_pipeline.json'
-      }
-    };
-    GRELION.websocket.send(JSON.stringify(cli));
+  if (GRINDER.server.connected) {
+      alert(`[open] Connection established with server ws://${ip_address}:${port}/`);
+  }
 
-  };
+/*
+//  GRINDER.websocket.onmessage = (event) => {};
 
-//  GRELION.websocket.onmessage = (event) => {};
-
-  GRELION.websocket.onclose = function(event) {
+  GRINDER.websocket.onclose = function(event) {
     if (event.wasClean) {
       alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
     } else {
@@ -61,11 +69,23 @@ const connect_to_ws_server = () => {
     }
   };
 
-  GRELION.websocket.onerror = function(error) {
+  GRINDER.websocket.onerror = function(error) {
     alert(`[error]`);
   };
-  
-  receive(GRELION.websocket);
+
+   // Step #1 - Get default_pipeline.json of Project
+    let cli = {
+      end:0,
+      action: {
+        tool: 'grelion.py',
+        title:'project',
+        args:'--get default_pipeline.json'
+      }
+    };
+    GRINDER.websocket.send(JSON.stringify(cli));
+
+  receive(GRINDER.websocket);
+*/
 };
 
   

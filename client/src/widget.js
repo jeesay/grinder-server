@@ -85,13 +85,14 @@ const w_file = (desc) => h('div.row',
   [
     h('label',{attrs: {'for':desc.name}},desc.title),
     h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
-    h('input', 
+    h(`input#${desc.name}.param`, 
       {
         attrs: {
           type:'text',
           value: desc.default,
           name:desc.name
-        }
+        },
+        dataset: ('option' in desc) ? {option: desc.option} : {}
       }
     ),
     h('input#open_dialog', 
@@ -147,6 +148,7 @@ const w_int = (desc) => h('div.row',
         attrs: {
           type:'number',
           value: desc.default,
+          lang:'en',
           name:desc.name
         },
         dataset: ('option' in desc) ? {option: desc.option} : {}
@@ -184,7 +186,7 @@ const w_range = (desc) => h('div.row',
             on: {input: (ev) => {ev.target.nextElementSibling.value = ev.target.value} }
           }
         ),
-        h('output', desc.default.toString()),
+        h('output', {dataset: ('option' in desc) ? {option: desc.option} : {} }, desc.default.toString()),
         h('a',
           {
             props:{href:'#',title:'Type Value'},
@@ -210,6 +212,8 @@ const w_range = (desc) => h('div.row',
             attrs: {
               type:'number',
               value: desc.default,
+              step: desc.range_step,
+              lang:'en',
               name:desc.name
             },
             dataset: ('option' in desc) ? {option: desc.option} : {}
@@ -346,7 +350,7 @@ const w_fieldset = (desc) => {
 
 const w_details = (desc) => {
   console.log('details',desc.title);
-  return h('details',[h('summary',desc.title),...w_group(desc)]);
+  return h(`details#${desc.name}`,[h('summary',desc.title),...w_group(desc)]);
 }
 
 const w_table = (desc) => {

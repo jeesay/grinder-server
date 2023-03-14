@@ -234,7 +234,7 @@ def update_project():
         })
 
   with open('./default_pipeline.json', 'w') as f:  # Use file to refer to the file object
-    sortcoll = sorted(collection, key=lambda d: d['id'])
+    sortcoll = sorted(collection, key=lambda d: d['id'], reverse=True)
     f.write(json.dumps(sortcoll, indent=2))
 
 def check_env():

@@ -52,23 +52,31 @@ async def run(websocket,message,pathProject):
     print(message)
     event = json.loads(message)
     if event['action']['tool'] == 'grelion.py' :
-      # Opening config STAR file
-      f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.json")
+        # Opening config STAR file
+        f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.json")
+          
+        # returns star object as 
+        # a dictionary
+        _config = json.load(f)
+        print(_config)
         
-      # returns star object as 
-      # a dictionary
-      _config = f.read()
-      print(_config)
-      
-      # Closing file
-      f.close()
+        # Closing file
+        f.close()
 
-      task = asyncio.create_task(send(websocket,_config))
-      await task
+        task = asyncio.create_task(send(websocket,_config))
+        await task
+    elif event['action']['tool'] == 'GET':
+        # Opening the config STAR/JSON file
+        filename = event['action']['args']
+        print(filename)
+        with open(filename) as user_file:
+            file_contents = json.load(user_file)
+        task = asyncio.create_task(send(websocket,file_contents))
+        await task
     else:
-      action = event['action']
-      param = ['python3']
-      command = f"{os.environ.get('GRELION_PATH')}/{action['tool']} {action['args']}"
+        action = event['action']
+        param = ['python3']
+        command = f"{os.environ.get('GRELION_PATH')}/{action['tool']} {action['args']}"
 
 async def handler(websocket):
     '''

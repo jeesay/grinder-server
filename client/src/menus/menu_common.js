@@ -100,7 +100,7 @@ const submit_settings = [
     ]
   },
   {
-    name: 'command',
+    name: 'relion_cli',
     title:  'Check command',
     widget: 'details',
     children: []

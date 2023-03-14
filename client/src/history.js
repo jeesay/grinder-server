@@ -2,17 +2,32 @@
 'use strict';
 
 
-const create_history = (ev) => {
+const create_history = async (ev) => {
   console.log('create history table');
-  if (!GRELION.jobs) {
+  if (!GRINDER.server.connected) {
     alert('Please connect to the ws server');
   }
   else {
-    console.log(GRELION.jobs);
+   // Step #1 - Get default_pipeline.json of Project
+    let cli = {
+      end:0,
+      action: {
+        tool: 'grelion.py',
+        title:'project',
+        args:'--get default_pipeline.json'
+      }
+    };
+  
+    GRINDER.server.send(JSON.stringify(cli));
+    const response = await GRINDER.server.receive();
+    console.log(response);
+    GRINDER.jobs = JSON.parse(response);
+    console.log('jobs',GRINDER.jobs);
+    
     let table = document.querySelector('#jhistory_body');
     table.innerHTML = '';
-    // GRELION.config.datablocks[1].global.header.forEach(row => {});
-    GRELION.jobs.forEach(row => {
+    // GRINDER.config.datablocks[1].global.header.forEach(row => {});
+    GRINDER.jobs.forEach(row => {
       const job_id = row.id;
       table.appendChild(
         h('tr.jhistory_row',
@@ -28,14 +43,19 @@ const create_history = (ev) => {
               h('a',
                 {
                   props:{href:'#',title:'View'},
-                  on:{'click': (ev) => view(ev)} 
+                  dataset: {
+                    jid: row.id,
+                    jtype: row.type,
+                    jpath: row.path
+                  },
+                  on:{'click': (ev) => view_job(ev)} ,
                 },
                 [h('i.bi.bi-eye')],
               ),
               h('a',
                 {
                   props:{href:'#',title: 'Copy and create a new job'},
-                  on:{'click': (ev) => copy(ev)} 
+                  on:{'click': (ev) => copy_job(ev)} 
                 },
                 [h('i.bi-clipboard-plus')],
               ),

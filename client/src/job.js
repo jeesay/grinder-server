@@ -1,40 +1,21 @@
 
 'use strict';
 
-const view_job = (job) => {
-  // From `job.json`
-  
-
-  document.querySelectorAll('aside ul li').forEach(ww => ww.classList.remove("active"));
-  const w = document.querySelector(`aside #${job.widget}`);
-  w.classList.add("active");
-  // Create empty menus
-  w_navtab(document.querySelector('section'),job.tabs);
-  // Set the various parameters
-  
-}
-
 const jobtypes = [
   {
     type: "relion.autopick.ref2d",
     widget: 'picking',
-    gui: {
-      main: picking_tabs
-    }
+    main_panel: () => picking_tabs
   },
   {
     type: "relion.autopick.topaz.pick",
     widget: 'picking',
-    gui: {
-      main: picking_tabs
-    }
+    main_panel: () => picking_tabs
   },
   {
     type: "relion.autopick.topaz.train",
     widget: 'picking',
-    gui: {
-      main: picking_tabs
-    }
+    main_panel: () => picking_tabs
   },
   {
     type: "relion.class2d",
@@ -44,148 +25,184 @@ const jobtypes = [
       '--helix': 'helix',
       '--em': 'em'
     },
-    gui: {
-      main: class2d_tabs
-    }
+    main_panel: () => class2d_tabs
   },
   {
     type: "relion.class3d",
     widget: 'class3d',
-    gui: {
-      main: class3d_tabs
-    }
+    main_panel: () => class3d_tabs
   },
   {
     type: "relion.ctffind.ctffind4",
     widget: 'ctf',
-    gui: {
-      main: ctf_tabs
-    }
+    main_panel: () => ctf_tabs
   },
   {
     type: "relion.ctfrefine",
     widget: 'ctf',
-    gui: {
-      main: ctf_tabs
-    }
+    main_panel: () => ctf_tabs
   },
   {
     type: "relion.ctfrefine.anisomag",
     widget: 'ctf',
-    gui: {
-      main: ctf_tabs
-    }
+    main_panel: () => ctf_tabs
   },
   {
     type: "relion.extract",
-    gui: {
-      main: extract_tabs
-    }
+    widget: 'extract',
+    main_panel: () => extract_tabs
   },
   {
     type: "relion.extract.reextract",
-    gui: {
-      main: extract_tabs
-    }
+    widget: 'extract',
+    main_panel: () => extract_tabs
   },
   {
     type: "relion.import.movies",
     widget: 'import',
-    gui: {
-      main: import_tabs,
-      tabs: {settings: ugraph_settings}
-    }
+    main_panel: () => import_tabs,
+//      tabs: {settings: ugraph_settings}
   },
   {
     type: "relion.import.other",
     widget: 'import',
-    gui: {
-      main: import_tabs,
-      tabs: {settings: other_settings}
-    }
+    main_panel: () => import_tabs,
+//      tabs: {settings: other_settings}
   },
   {
     type: "relion.initialmodel",
     widget: 'abinitio',
-    gui: {
-      main: abinitio_tabs
-    }
+    main_panel: () => abinitio_tabs
   },
   {
     type: "relion.joinstar.particles",
     widget: 'tools',
-    gui: {
-      main: tools_tabs
-    }
+    main_panel: () => tools_tabs
   },
   {
     type: "relion.manualpick",
     widget: 'picking',
-    gui: {
-      main: picking_tabs
-    }
+    main_panel: () => picking_tabs
   },
   {
     type: "relion.maskcreate",
-    widget: 'tools',
-    gui: {
-      main: tools_tabs
-    }
+    widget: 'postprocess',
+    main_panel: () => postprocess_tabs,
+    tool: 'mask',
+    update: (args) => w_navtab_update({io: mask_io_tab, settings: mask_settings_tab})
   },
   {
     type: "relion.motioncorr.own",
     widget: 'motioncorr',
-    gui: {
-      main: motioncor_tabs
-    }
+    main_panel: () => motioncor_tabs
   },
   {
     type: "relion.polish",
     widget: 'postprocess',
-    gui: {
-      main: postprocess_tabs
-    }
+    tool: 'polish_anisomag',
+    main_panel: () => postprocess_tabs,
+    update: (args) => w_navtab_update({io: polish_io_tab, settings: polish_ptcls_optim_settings})
   },
   {
     type: "relion.polish.train",
     widget: 'postprocess',
-    gui: {
-      main: postprocess_tabs
-    }
+    tool: 'polish_train',
+    main_panel: () => postprocess_tabs,
+    update: (args) => w_navtab_update({io: polish_io_tab, settings: polish_train_settings})
   },
   {
     type: "relion.postprocess",
     widget: 'postprocess',
-    gui: postprocess_tabs
+    tool: 'sharpen',
+    main_panel: () => postprocess_tabs,
+    update: (args) => {
+      let flag = args.includes('--auto_bfac');
+      w_navtab_update({io: post_io_settings, settings: post_settings(flag)});
+    }
   },
   {
     type: "relion.refine3d",
     widget: 'refine3d',
-    gui: {
-      main: refine_tabs
-    }
+    main_panel: () => refine_tabs
   },
   {
     type: "relion.select.interactive",
     widget: 'tools',
-    gui: {
-      main: tools_tabs
-    }
+    main_panel: () => tools_tabs
   },
   {
     type: "relion.select.onvalue",
     widget: 'tools',
-    gui: {
-      main: tools_tabs
-    }
+    main_panel: () => tools_tabs
   },
   {
     type: "relion.select.split",
     widget: 'tools',
-    gui: {
-      main: tools_tabs
-    }
+    main_panel: () => tools_tabs
   }
-]
+];
 
+console.log(jobtypes);
+
+const set_job_params = (gui,json) => {
+  // Check button in first tab (Tools)
+  document.querySelector(`#${gui.tool}`).checked = true;
+  // Step #1: Get params and create the other tabs
+  json.cli.forEach( cli => {
+    const script = cli.script[0];
+    const args = Object.keys(script.options).reduce( (accu,key) => `${accu} ${key} ${script.options[key]}\n`, '');
+
+    // Update `Check command`
+    document.querySelector('#relion_cli').appendChild(
+      h('pre',`${cli.script[0].command}\n${args}`)
+    );
+    gui.update(args);
+  });
+  // Set the values in various tabs
+  json.cli.forEach( cli => {
+    const script = cli.script[0];
+    Object.keys(cli.script[0].options).forEach(key => {
+      console.log(key);
+      let els = document.querySelectorAll(`[data-option~="${key}"]`);
+      if (els) {
+        console.log('Set...',key,cli.script[0].options[key]);
+        els.forEach(el => el.value = cli.script[0].options[key]);
+      }
+    })
+  });
+}
+
+
+const view_job = async (ev) => {
+  // From `job.json`
+  const jinfo = ev.target.parentNode.dataset;
+  const gui = jobtypes.filter( (j) => j.type === jinfo.jtype)[0];
+  console.log(gui);
+  // Reset
+  document.querySelectorAll('aside ul li').forEach(ww => ww.classList.remove("active"));
+  //
+  const w = document.querySelector(`aside #${gui.widget}`);
+  w.classList.add("active");
+  // Create empty menus
+  w_navtab(document.querySelector('section'),gui.main_panel());
+  // Ask for the various parameters of this job
+  GRINDER.server.send(
+    JSON.stringify(
+      {
+        action: {
+          tool: 'GET',
+          source:'project',
+          args:`${jinfo.jpath}/job.json`
+        }
+      }
+    )
+  );
+  const response = await GRINDER.server.receive();
+  // Set the various parameters
+  set_job_params(gui,JSON.parse(response));
+}
+
+const copy_job = (ev) => {
+  console.log(ev.target.dataset);
+}
 
