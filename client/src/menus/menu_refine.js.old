@@ -62,7 +62,7 @@ To use a second mask, use the additional option --solvent_mask2, which may given
   },
 ];
 
-const autorefine = [
+const autorefine_ref = [
   {
     name: 'ref_correct_greyscale',
     title: 'Ref. map is on absolute greyscale?',
@@ -106,7 +106,9 @@ The command 'relion_refine --sym D2 --print_symmetry_ops' prints a list of all s
 RELION uses XMIPP's libraries for symmetry operations. \
 Therefore, look at the XMIPP Wiki for more details:  http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/WebHome?topic=Symmetry`
   },
+]
 
+const autorefine_ctf = [
   {
     name: 'do_ctf_correction',
     title: 'Do CTF-correction?',
@@ -124,7 +126,9 @@ only be performed from the first peak of each CTF onward. This can be useful if 
 Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
 Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`
   },
+];
 
+const autorefine_optim = [
   {
     name: 'particle_diameter',
     title: 'Mask diameter (A):',
@@ -158,7 +162,9 @@ High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-
 masked half-maps are used and a post-processing-like correction of the FSC curves (with phase-randomisation) is performed every iteration. This only works when a reference mask is provided on the I/O tab. \
 This may yield higher-resolution maps, especially when the mask contains only a relatively small volume inside the box.`
   },
+];
 
+const autorefine_sma = [
   {
     name: 'sampling',
     title: 'Initial angular sampling:',

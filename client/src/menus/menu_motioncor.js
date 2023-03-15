@@ -363,8 +363,15 @@ const motioncor_tabs = [
     title: 'Running',
     widget: 'navtab',
     children: [
-      mpi_settings,
-      thread_settings,
+      {
+        name: 'processes',
+        title: 'Processes',
+        widget: 'fieldset',
+        children: [
+          mpi_settings,
+          thread_settings,
+        ]
+      },
       queue_settings,
       ...submit_settings
     ]

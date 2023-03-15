@@ -176,72 +176,6 @@ const home_tabs = [
       }
     ]
   },
-/*
-  {
-    name: 'action',
-    title: 'Job Actions',
-    icon: 'bi-pencil',
-    widget: 'navtab',
-    children: [
-      {
-        name: 'single',
-        title:  'Single Selection',
-        widget: 'fieldset',
-        help: 'View, Delete, Abort selected job',
-        children: [
-          {
-            name: 'display',
-            title:  'View',
-            icon: 'bi-eye',
-            widget: 'radio',
-            group:'jsaction',
-            help: 'Display Parameters and Results'
-          },
-          {
-            name: 'copy',
-            title:  'Copy',
-            icon: 'bi-clipboard-plus',
-            widget: 'radio',
-            group:'jsaction',
-            help: 'Create a new Job from Selected Job'
-          } ,
-          {
-            name: 'delete',
-            title:  'Delete',
-            icon: 'bi-trash',
-            widget: 'radio',
-            group:'jsaction',
-            help: 'Move Job in Trash'
-          } ,
-          {
-            name: 'abort',
-            title:  'Abort',
-            icon: 'bi-x-square',
-            widget: 'radio',
-            group:'jsaction',
-            help: 'Abort running Job'
-          } 
-        ]
-      },
-      {
-        name: 'multi',
-        title:  'Multiple Selections',
-        widget: 'fieldset',
-        help: 'Delete selected jobs',
-        children: [
-          {
-            name: 'delete',
-            title:  'Delete All jobs selected',
-            icon: 'bi-trash',
-            widget: 'radio',
-            group:'jmaction',
-            help: 'Move Job in Trash'
-          }
-        ]
-      },  
-    ]
-  },
-*/
   {
     name: 'workflow',
     title: 'Workflow',
@@ -316,9 +250,7 @@ const menus = {
   picking: picking_tabs,
   extract: extract_tabs,
   class2d: class2d_tabs,
-  class3d: class3d_tabs,
-  abinitio: abinitio_tabs,
-  refine3d: refine_tabs,
+  rec3d: rec3d_tabs,
   postprocess: postprocess_tabs,
   tools: tools_tabs,
   helix: helix_tabs,
@@ -336,9 +268,7 @@ const actions = {
   select: tools_tabs,
   class2d: class2d_tabs,
   autopick: picking_tabs,
-  initialmodel: abinitio_tabs,
-  class3d: class3d_tabs,
-  refine3d: refine_tabs,
+  rec3d: rec3d_tabs,
   maskcreate: tools_tabs,
   postprocess: postprocess_tabs,
   polish: postprocess_tabs,

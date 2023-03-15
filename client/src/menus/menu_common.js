@@ -110,65 +110,79 @@ const submit_settings = [
 
 const compute_settings = [
   {
-    name: 'do_parallel_discio',
-    title: 'Use parallel disc I/O?',
-    widget: 'bool',
-    default: true, 
-    help: 'If set to Yes, all MPI followers will read images from disc. \
-Otherwise, only the leader will read images and send them through the network to the followers. Parallel file systems like gluster of fhgfs are good at parallel disc I/O. NFS may break with many followers reading in parallel. If your datasets contain particles with different box sizes, you have to say Yes.'
+    name: 'disk',
+    title: 'Disk access',
+    widget: 'fieldset',
+    children: [
+      {
+        name: 'do_parallel_discio',
+        title: 'Use parallel disc I/O?',
+        widget: 'bool',
+        default: true, 
+        help: 'If set to Yes, all MPI followers will read images from disc. \
+    Otherwise, only the leader will read images and send them through the network to the followers. Parallel file systems like gluster of fhgfs are good at parallel disc I/O. NFS may break with many followers reading in parallel. If your datasets contain particles with different box sizes, you have to say Yes.'
+      },
+      {
+        name: 'nr_pool',
+        title: 'Number of pooled particles:',
+        widget: 'range',
+        default: 3, 
+        range_min: 1, 
+        range_max: 16, 
+        range_step: 1, 
+        help: 'Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
+    All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
+    This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.'
+      },
+      {
+        name: 'do_preread_images',
+        title: 'Pre-read all particles into RAM?',
+        widget: 'bool',
+        defaut: false, 
+        help: 'If set to Yes, all particle images will be read into computer memory, which will greatly speed up calculations on systems with slow disk access. However, one should of course be careful with the amount of RAM available. \
+    Because particles are read in float-precision, it will take ( N * box_size * box_size * 4 / (1024 * 1024 * 1024) ) Giga-bytes to read N particles into RAM. For 100 thousand 200x200 images, that becomes 15Gb, or 60 Gb for the same number of 400x400 particles. \
+    Remember that running a single MPI follower on each node that runs as many threads as available cores will have access to all available RAM. \n \n If parallel disc I/O is set to No, then only the leader reads all particles into RAM and sends those particles through the network to the MPI followers during the refinement iterations.'
+      },
+      {
+        name: 'scratch_dir',
+        title: 'Copy particles to scratch directory:',
+        widget: 'file',
+        default: 'default_scratch', 
+        help: 'If a directory is provided here, then the job will create a sub-directory in it called relion_volatile. If that relion_volatile directory already exists, it will be wiped. Then, the program will copy all input particles into a large stack inside the relion_volatile subdirectory. \
+    Provided this directory is on a fast local drive (e.g. an SSD drive), processing in all the iterations will be faster. If the job finishes correctly, the relion_volatile directory will be wiped. If the job crashes, you may want to remove it yourself.'
+      },
+      {
+        name: 'do_combine_thru_disc',
+        title: 'Combine iterations through disc?',
+        widget: 'bool',
+        default: false, 
+        help: 'If set to Yes, at the end of every iteration all MPI followers will write out a large file with their accumulated results. The MPI leader will read in all these files, combine them all, and write out a new file with the combined results. \
+    All MPI salves will then read in the combined results. This reduces heavy load on the network, but increases load on the disc I/O. \
+    This will affect the time it takes between the progress-bar in the expectation step reaching its end (the mouse gets to the cheese) and the start of the ensuing maximisation step. It will depend on your system setup which is most efficient.'
+      },
+    ]
   },
   {
-    name: 'nr_pool',
-    title: 'Number of pooled particles:',
-    widget: 'range',
-    default: 3, 
-    range_min: 1, 
-    range_max: 16, 
-    range_step: 1, 
-    help: 'Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
-All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
-This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.'
-  },
-  {
-    name: 'do_preread_images',
-    title: 'Pre-read all particles into RAM?',
-    widget: 'bool',
-    defaut: false, 
-    help: 'If set to Yes, all particle images will be read into computer memory, which will greatly speed up calculations on systems with slow disk access. However, one should of course be careful with the amount of RAM available. \
-Because particles are read in float-precision, it will take ( N * box_size * box_size * 4 / (1024 * 1024 * 1024) ) Giga-bytes to read N particles into RAM. For 100 thousand 200x200 images, that becomes 15Gb, or 60 Gb for the same number of 400x400 particles. \
-Remember that running a single MPI follower on each node that runs as many threads as available cores will have access to all available RAM. \n \n If parallel disc I/O is set to No, then only the leader reads all particles into RAM and sends those particles through the network to the MPI followers during the refinement iterations.'
-  },
-  {
-    name: 'scratch_dir',
-    title: 'Copy particles to scratch directory:',
-    widget: 'file',
-    default: 'default_scratch', 
-    help: 'If a directory is provided here, then the job will create a sub-directory in it called relion_volatile. If that relion_volatile directory already exists, it will be wiped. Then, the program will copy all input particles into a large stack inside the relion_volatile subdirectory. \
-Provided this directory is on a fast local drive (e.g. an SSD drive), processing in all the iterations will be faster. If the job finishes correctly, the relion_volatile directory will be wiped. If the job crashes, you may want to remove it yourself.'
-  },
-  {
-    name: 'do_combine_thru_disc',
-    title: 'Combine iterations through disc?',
-    widget: 'bool',
-    default: false, 
-    help: 'If set to Yes, at the end of every iteration all MPI followers will write out a large file with their accumulated results. The MPI leader will read in all these files, combine them all, and write out a new file with the combined results. \
-All MPI salves will then read in the combined results. This reduces heavy load on the network, but increases load on the disc I/O. \
-This will affect the time it takes between the progress-bar in the expectation step reaching its end (the mouse gets to the cheese) and the start of the ensuing maximisation step. It will depend on your system setup which is most efficient.'
-  },
-  {
-    name: 'use_gpu',
-    title: 'Use GPU acceleration?',
-    option: '--gpu',
-    widget: 'bool',
-    default: false, 
-    help: 'If set to Yes, the job will try to use GPU acceleration.'
-  },
-  {
-    name: 'gpu_ids',
-    title: 'Which GPUs to use:',
-    widget: 'text',
-    default: '', 
-    help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`
-  },
+    name: 'do_gpu',
+    title: 'GPU acceleration',
+    widget: 'fieldset',
+    children: [
+      {
+        name: 'use_gpu',
+        title: 'Use GPU acceleration?',
+        option: '--gpu',
+        widget: 'switch',
+        default: false, 
+        help: 'If set to Yes, the job will try to use GPU acceleration.'
+      },
+      {
+        name: 'gpu_ids',
+        title: 'Which GPUs to use:',
+        widget: 'text',
+        default: '', 
+        help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`
+      },
+    ]
+  }
 ];
 
