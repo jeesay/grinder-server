@@ -345,7 +345,11 @@ const w_toolbar = (desc) => {
 }
 const w_fieldset = (desc) => {
   console.log('fieldset',desc.title);
-  return h('fieldset',[h('legend',desc.title),...w_group(desc)]);
+  return h('fieldset',
+    [
+      h('legend',(desc.icon) ? [h(`i.bi.${desc.icon}`),desc.title] : desc.title),...w_group(desc)
+    ]
+  );
 }
 
 const w_details = (desc) => {

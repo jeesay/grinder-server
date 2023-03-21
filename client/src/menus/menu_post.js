@@ -494,6 +494,7 @@ const postprocess_tabs = [
       {
         name: 'polish',
         title: 'Mask creation',
+        icon: 'bi-1-circle-fill',
         widget: 'fieldset',
         children: [
           {
@@ -510,6 +511,7 @@ const postprocess_tabs = [
       {
         name: 'polish',
         title: 'Post-processing',
+        icon: 'bi-2-circle-fill',
         widget: 'fieldset',
         children: [
           {
@@ -537,6 +539,7 @@ This option is useful if your map does not extend beyond the 10A needed for the 
       {
         name: 'polish',
         title: 'Bayesian polishing',
+        icon: 'bi-3-circle-fill',
         widget: 'fieldset',
         children: [
           {

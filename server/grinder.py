@@ -47,19 +47,19 @@ async def run(websocket,message,pathProject):
         Parameters:
           websocket (Websocket) : Websocket server
           message (json) : Message send by HTML
-          pathProject (String) : Path to .GRELION
+          pathProject (String) : Path to .GRINDER
     '''
     print(message)
     event = json.loads(message)
-    if event['action']['tool'] == 'grelion.py' :
+    if event['action']['tool'] == 'GRINDER.py' :
         # Opening config STAR file
-        f = open(f"{os.environ.get('GRELION_PROJECT')}/default_pipeline.json")
+        f = open(f"{os.environ.get('GRINDER_PROJECT')}/default_pipeline.json")
           
         # returns star object as 
         # a dictionary
         _config = json.load(f)
         print(_config)
-        
+
         # Closing file
         f.close()
 
@@ -73,10 +73,22 @@ async def run(websocket,message,pathProject):
             file_contents = json.load(user_file)
         task = asyncio.create_task(send(websocket,file_contents))
         await task
+    elif event['action']['tool'] == 'BROWSE':
+        # Get path
+        path = event['action']['args']
+        print(filename)
+        for root,dirs,files in os.walk('.'):
+            files = [ f for f in files if f.endswith( ('.star','.mrc','.mrcs','.tif') ) ]
+            for name in files:
+              print(os.path.join(root, name))
+            for name in dirs:
+              print(os.path.join(root, name))
+        task = asyncio.create_task(send(websocket,file_contents))
+        await task
     else:
         action = event['action']
         param = ['python3']
-        command = f"{os.environ.get('GRELION_PATH')}/{action['tool']} {action['args']}"
+        command = f"{os.environ.get('GRINDER_PATH')}/{action['tool']} {action['args']}"
 
 async def handler(websocket):
     '''
@@ -85,7 +97,7 @@ async def handler(websocket):
         Parameters:
           websocket (Websocket) : Websocket server
     '''
-    pathProject = os.getcwd() + "/.GRELION"
+    pathProject = os.getcwd() + "/.GRINDER"
     while True :
       asyncio.create_task(run(websocket,await websocket.recv(),pathProject))
 
@@ -105,20 +117,27 @@ async def main():
 
 cwd = os.getcwd()
 
-os.environ["GRELION_PROJECT"] = os.getcwd()
+os.environ["GRINDER_PROJECT"] = os.getcwd()
 
 '''
-.grelion/
+.GRINDER/
   L config.json
-.grelion_lock
+.GRINDER_lock
 '''
+# Get RELION version
+# relion_import --version | egrep -o '[0-9].*'
+# TODO exec("relion_import --version | egrep -o \'[0-9].*\'")
 
-# Check if `.GRELION_lock` is present, stop 
-if not os.path.exists("./.grelion_lock") :
-  os.mkdir("./.grelion_lock")
+cmd = ["""/usr/bin/grep -o '[0-9][^ ]*' ../relion_version.txt"""]
+proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+print(subprocess.check_output(cmd,shell=True))
 
-  # Check if current directory already contain a GRELION Project aka `.GRELION` is present
-  if os.path.exists('./.grelion') and os.path.exists('./.grelion/config.json'):
+# Check if `.GRINDER_lock` is present, stop 
+if not os.path.exists("./.GRINDER_lock") :
+  os.mkdir("./.GRINDER_lock")
+
+  # Check if current directory already contain a GRINDER Project aka `.GRINDER` is present
+  if os.path.exists('./.GRINDER') and os.path.exists('./.GRINDER/config.json'):
     pass
   elif os.path.exists('default_pipeline.star') :
     # Create/ Update JSON configuration files
@@ -129,12 +148,12 @@ if not os.path.exists("./.grelion_lock") :
     if answer == "Y" or answer == "Yes" or answer == "yes" or answer == "y":
       print("Create Project at", cwd)
       try:
-        os.mkdir("./.grelion")
+        os.mkdir("./.GRINDER")
       except OSError as error:
         pass
       print("Run configuration...")
-      f = open('./.grelion/config.json','w')
-      for root,dirs,files in os.walk(os.environ.get('GRELION_PROJECT')):
+      f = open('./.GRINDER/config.json','w')
+      for root,dirs,files in os.walk(os.environ.get('GRINDER_PROJECT')):
         for name in files:
           print(os.path.join(root, name))
         for name in dirs:
@@ -142,7 +161,7 @@ if not os.path.exists("./.grelion_lock") :
 
       json_data = {
         "jobs_counter" : 0,
-        "filetree" : list_files(os.environ.get('GRELION_PROJECT')),
+        "filetree" : list_files(os.environ.get('GRINDER_PROJECT')),
         "jobs" : []
       }
       f.write(json.dumps(json_data))
@@ -156,7 +175,7 @@ if not os.path.exists("./.grelion_lock") :
   print("Please, open your web browser at the IP address `ws://localhost:8001`")
 
 else :
-  msg = 'An instance of GRELION already running'
+  msg = 'An instance of GRINDER already running'
   sys.exit(msg)
 
 

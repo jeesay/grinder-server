@@ -369,6 +369,18 @@ const helix_tabs = [
         ]
       },
       {
+        name: 'h_extract',
+        title: 'Helix extraction',
+        widget: 'fieldset',
+        children: [
+          {
+            name:'io',
+            title: 'Extract helices',
+            widget: 'radio',
+          },
+        ]
+      },
+      {
         name: 'helix',
         title: 'Classification',
         widget: 'fieldset',

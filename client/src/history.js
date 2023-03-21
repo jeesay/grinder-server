@@ -12,7 +12,7 @@ const create_history = async (ev) => {
     let cli = {
       end:0,
       action: {
-        tool: 'grelion.py',
+        tool: 'GRINDER.py',
         title:'project',
         args:'--get default_pipeline.json'
       }

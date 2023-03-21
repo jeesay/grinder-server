@@ -203,43 +203,50 @@ const extract_settings = [
   },
   {
     name:'do_norm',
-    title: 'Normalize particles?',
-    widget: 'bool',
-    default:true,
-    help: 'If set to Yes, particles will be normalized in the way RELION prefers it.',
-  },
-  {
-    name:'bg_diameter',
-    title: 'Diameter background circle (pix): ',
-    widget: 'range',
-    default:-1, 
-    range_min: -1, 
-    range_max: 600, 
-    range_step: 10,
-    help: 'Particles will be normalized to a mean value of zero and a standard-deviation of one for all pixels in the background area.\
-The background area is defined as all pixels outside a circle with this given diameter in pixels (before rescaling). When specifying a negative value, a default value of 75% of the Particle box size will be used.',
-  },
-  {
-    name:'white_dust',
-    title: 'Stddev for white dust removal: ',
-    widget: 'range',
-    default:-1, 
-    range_min: -1, 
-    range_max: 10, 
-    range_step: 0.1,
-    help: 'Remove very white pixels from the extracted particles. \
-Pixels values higher than this many times the image stddev will be replaced with values from a Gaussian distribution. \n \n Use negative value to switch off dust removal.',
-  },
-  {
-    name:'black_dust',
-    title: 'Stddev for black dust removal: ',
-    widget: 'range',
-    default:-1, 
-    range_min: -1, 
-    range_max: 10, 
-    range_step: 0.1,
-    help: 'Remove very black pixels from the extracted particles. \
-Pixels values higher than this many times the image stddev will be replaced with values from a Gaussian distribution. \n \n Use negative value to switch off dust removal.',
+    title: 'Particles normalization',
+    widget: 'fieldset',  
+    children: [
+      {
+        name:'do_norm',
+        title: 'Normalize particles?',
+        widget: 'switch',
+        default:true,
+        help: 'If set to Yes, particles will be normalized in the way RELION prefers it.',
+      },
+      {
+        name:'bg_diameter',
+        title: 'Diameter background circle (pix): ',
+        widget: 'range',
+        default:-1, 
+        range_min: -1, 
+        range_max: 600, 
+        range_step: 10,
+        help: 'Particles will be normalized to a mean value of zero and a standard-deviation of one for all pixels in the background area.\
+    The background area is defined as all pixels outside a circle with this given diameter in pixels (before rescaling). When specifying a negative value, a default value of 75% of the Particle box size will be used.',
+      },
+      {
+        name:'white_dust',
+        title: 'Stddev for white dust removal: ',
+        widget: 'range',
+        default:-1, 
+        range_min: -1, 
+        range_max: 10, 
+        range_step: 0.1,
+        help: 'Remove very white pixels from the extracted particles. \
+    Pixels values higher than this many times the image stddev will be replaced with values from a Gaussian distribution. \n \n Use negative value to switch off dust removal.',
+      },
+      {
+        name:'black_dust',
+        title: 'Stddev for black dust removal: ',
+        widget: 'range',
+        default:-1, 
+        range_min: -1, 
+        range_max: 10, 
+        range_step: 0.1,
+        help: 'Remove very black pixels from the extracted particles. \
+    Pixels values higher than this many times the image stddev will be replaced with values from a Gaussian distribution. \n \n Use negative value to switch off dust removal.',
+      },
+    ]
   },
   {
     name:'rescale_panel',
@@ -327,18 +334,6 @@ const extract_tabs = [
           },
         ]
       },
-      {
-        name: 'h_extract',
-        title: 'Helix extraction',
-        widget: 'fieldset',
-        children: [
-          {
-            name:'io',
-            title: 'Extract helices',
-            widget: 'radio',
-          },
-        ]
-      }
     ]
   },
   {

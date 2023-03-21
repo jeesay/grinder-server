@@ -132,8 +132,8 @@ High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-
   },
 ];
 
-/*
-const compute = [
+
+const compute_autorefine = [
   {
     name: 'do_parallel_discio',
     title:'Use parallel disc I/O?',
@@ -153,6 +153,14 @@ Otherwise, only the leader will read images and send them through the network to
     help: `Particles are processed in individual batches by MPI followers. During each batch, a stack of particle images is only opened and closed once to improve disk access times. \
 All particle images of a single batch are read into memory together. The size of these batches is at least one particle per thread used. The nr_pooled_particles parameter controls how many particles are read together for each thread. If it is set to 3 and one uses 8 threads, batches of 3x8=24 particles will be read together. \
 This may improve performance on systems where disk access, and particularly metadata handling of disk access, is a problem. It has a modest cost of increased RAM usage.`,
+  },
+  {
+    name: 'do_pad1',
+    title:'Skip padding?',
+    widget: 'bool',
+    option: (flag) => flag ? '--pad 1' : '--pad 2',
+    default:  false,  
+    help: `If set to Yes, the calculations will not use padding in Fourier space for better interpolation in the references. Otherwise, references are padded 2x before Fourier transforms are calculated. Skipping padding (i.e. use --pad 1) gives nearly as good results as using --pad 2, but some artifacts may appear in the corners from signal that is folded back.`
   },
   {
     name: 'do_preread_images',
@@ -180,11 +188,11 @@ Provided this directory is on a fast local drive (e.g. an SSD drive), processing
 All MPI salves will then read in the combined results. This reduces heavy load on the network, but increases load on the disc I/O. \
 This will affect the time it takes between the progress-bar in the expectation step reaching its end (the mouse gets to the cheese) and the start of the ensuing maximisation step. It will depend on your system setup which is most efficient.`,
   },
-
   {
     name: 'use_gpu',
     title:'Use GPU acceleration?',
     widget: 'bool',
+    option: (flag) => flag ? `--gpu "${document.querySelector('#gpu_ids').value}"` : '',
     default: false, 
     help: `If set to Yes, the job will try to use GPU acceleration.`,
   },
@@ -196,7 +204,7 @@ This will affect the time it takes between the progress-bar in the expectation s
     help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`,
   },
 ];
-*/
+
 
 const class3d_io = [
   {
@@ -666,6 +674,7 @@ lower-symmetric particles a value of 1.8 degrees will be sufficient. Perhaps ico
     name: 'auto_faster',
     title: 'Use finer angular sampling faster?',
     widget: 'bool',
+    option: '--auto_ignore_angles --auto_resol_angles',
     default: false,
     help: `If set to Yes, then let auto-refinement proceed faster with finer angular samplings. Two additional command-line options will be passed to the refine program: \n \n \
 --auto_ignore_angles lets angular sampling go down despite changes still happening in the angles \n \n \

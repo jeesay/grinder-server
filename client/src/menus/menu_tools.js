@@ -726,6 +726,7 @@ const tools_tabs = [
       {
         name: 'do_split',
         title: 'Split data',
+        icon: 'bi-layout-split',
         widget: 'fieldset',
         children: [
           {
