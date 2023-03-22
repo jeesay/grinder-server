@@ -640,9 +640,9 @@ This option is ignored in the Laplacian-of-Gaussian picker.`,
 
 const picking_tabs = [
   {
-    name: 'methods',
+    name: 'tools',
     icon: 'bi-wrench-adjustable',
-    title: 'Methods',
+    title: 'Tools',
     widget: 'navtab',
     default:  true, 
     children: [
@@ -704,9 +704,17 @@ const picking_tabs = [
             help: 'Set this option to Yes if you want to provide a 3D map, which will be projected into multiple directions to generate 2D references.',
             on_click: (ev) => w_navtab_update({settings: ucsf_settings})
           },
+        ]
+      },
+      {
+        name: 'auto_topaz',
+        title: 'Auto Picking by Topaz',
+        widget: 'fieldset',
+        children: [
+
           {
             name: 'do_topaz_train',
-            title: 'Autopicking with Topaz - Step #1: Training from input coordinates (default)',
+            title: 'Step #1: Training from input coordinates (default)',
             option: '--topaz_train',
             widget: 'radio',
             group: 'picking',
@@ -715,7 +723,7 @@ const picking_tabs = [
           },
           {
             name: 'do_topaz_train_parts',
-            title: 'Autopicking with Topaz - Step #1: Training  from set of particles ',
+            title: 'Step #1: Training from set of particles ',
             option: '--topaz_train_parts',
             widget: 'radio',
             group: 'picking',
@@ -724,7 +732,7 @@ const picking_tabs = [
           },
           {
             name: 'do_topaz_pick',
-            title: 'Autopicking with Topaz - Step #2 - Picking',
+            title: 'Step #2 - Picking',
             option: '--do_topaz_pick',
             widget: 'radio',
             group: 'picking',

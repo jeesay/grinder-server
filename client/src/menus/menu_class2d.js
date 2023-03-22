@@ -1,11 +1,4 @@
-const EM_algo = [
-  {
-    name: 'do_em',
-    title: 'Use EM algorithm?',
-    widget: 'bool',
-    default: false, 
-    help: 'If set to Yes, the slower expectation-maximization algorithm will be used. This was the default option in releases prior to 4.0-beta. If set to No, then one needs to use the (faster) VDAM (variable metric gradient descent with adaptive moments) algorithm below. will be used.'
-  },
+const em_algo = [
   {
     name: 'nr_iter_em',
     title: 'Number of EM iterations:',
@@ -23,7 +16,8 @@ an additional 5 iterations (for example with a finer angular sampling), then the
   },
 ];
 
-const VDAM_algo = [
+const vdam_algo = [
+/*
   {
     name: 'do_grad',
     title: 'Use VDAM algorithm?',
@@ -31,6 +25,7 @@ const VDAM_algo = [
     default: true, 
     help: 'If set to Yes, the faster VDAM algorithm will be used. This algorithm was introduced with relion-4.0. If set to No, then the slower EM algorithm needs to be used.'
   },
+*/
   {
     name: 'nr_iter_grad',
       title: 'Number of VDAM mini-batches:',
@@ -43,7 +38,7 @@ const VDAM_algo = [
   },
 ];
 
-const class2d_inputs = [
+const class2d_io = [
   {
     name: 'fn_img',
     title: 'Input images STAR file:',
@@ -78,7 +73,7 @@ const class2d_ctf = {
     {
       name: 'do_ctf_correction',
       title: 'Do CTF-correction?',
-      widget: 'bool',
+      widget: 'switch',
       default: true, 
       help:`If set to Yes, CTFs will be corrected inside the MAP refinement.
     The resulting algorithm intrinsically implements the optimal linear, or Wiener filter.
@@ -161,93 +156,122 @@ const class2d_sampling = {
   ]
 };
 
-const class2d_particles_tabs = {
+const class2d_optim_k = [
+  {
+    name: 'nr_classes',
+    title: 'Number of classes:',
+    widget: 'range',
+    default: 1, 
+    range_min: 1, 
+    range_max: 50, 
+    range_step: 1, 
+    help: `The number of classes (K) for a multi-reference refinement. \
+These classes will be made in an unsupervised manner from a single reference by division of the data into random subsets during the first iteration.`
+  },
+  {
+    name: 'tau_fudge',
+    title: 'Regularisation parameter T:',
+    widget: 'range',
+    default: 2 , 
+    range_min: 0.1, 
+    range_min: 10, 
+    range_min: 0.1, 
+    help: `Bayes law strictly determines the relative weight between \
+the contribution of the experimental data and the prior. However, in practice one may need to adjust this weight to put slightly more weight on \
+the experimental data to allow optimal results. Values greater than 1 for this regularisation parameter (T in the JMB2011 paper) put more \
+weight on the experimental data. Values around 2-4 have been observed to be useful for 3D refinements, values of 1-2 for 2D refinements. \
+Too small values yield too-low resolution structures; too high values result in over-estimated resolutions, mostly notable by the apparition of high-frequency noise in the references.`
+  }
+];
+
+const class2d_optim_ptcls = [
+  {
+    name: 'particle_diameter',
+    title: 'Mask diameter (A):',
+    widget: 'range',
+    default: 200, 
+    range_min: 0, 
+    range_max: 1000, 
+    range_step: 10, 
+    help: 'The experimental images will be masked with a soft \
+circular mask with this diameter. Make sure this radius is not set too small because that may mask away part of the signal! \
+If set to a value larger than the image size no masking will be performed.\n\n\
+The same diameter will also be used for a spherical mask of the reference structures if no user-provided mask is specified.'
+  },
+  {
+    name: 'do_zero_mask',
+    title: 'Mask individual particles with zeros?',
+    widget: 'bool',
+    default: true, 
+    help: 'If set to Yes, then in the individual particles, \
+the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
+This will remove noise and therefore increase sensitivity in the alignment and classification. However, it will also introduce correlations \
+between the Fourier components that are not modelled. When set to No, then the solvent area is filled with random noise, which prevents introducing correlations.\
+High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-refine) tend to work better when filling the solvent area with random noise (i.e. setting this option to No), refinements of smaller complexes and most classifications go better when using zeros (i.e. setting this option to Yes).'
+  },
+  {
+    name: 'highres_limit',
+    title: 'Limit resolution E-step to (A):',
+    widget: 'range',
+    default:  -1, 
+    range_min: -1, 
+    range_max: 20, 
+    range_step: 1, 
+    help: 'If set to a positive number, then the expectation step (i.e. the alignment) will be done only including the Fourier components up to this resolution (in Angstroms). \
+This is useful to prevent overfitting, as the classification runs in RELION are not to be guaranteed to be 100% overfitting-free (unlike the 3D auto-refine with its gold-standard FSC). In particular for very difficult data sets, e.g. of very small or featureless particles, this has been shown to give much better class averages. \
+In such cases, values in the range of 7-12 Angstroms have proven useful.'
+  },
+  {
+    name: 'do_center',
+    title: 'Center class averages?',
+    widget: 'bool',
+    default: true, 
+    help: 'If set to Yes, every iteration the class average images will be centered on their center-of-mass. This will only work for positive signals, so the particles should be white.'
+  }
+];
+
+const class2d_optim_em = {
+  name: 'optimizer',
+  title: 'Optimisation',
+  widget: 'fieldset',
+  children: [
+    ...class2d_optim_k,
+    ...em_algo,
+    ...class2d_optim_ptcls
+  ]
+};
+
+const class2d_optim_vdam = {
+  name: 'optimizer',
+  title: 'Optimisation',
+  widget: 'fieldset',
+  children: [
+    ...class2d_optim_k,
+    ...vdam_algo,
+    ...class2d_optim_ptcls
+  ]
+};
+
+const class2d_ptcls_em_tab = {
   widget: 'navtab',
   children: [
     class2d_ctf,
-    {
-      name: 'optimizer',
-      title: 'Optimisation',
-      widget: 'fieldset',
-      children: [
-        {
-          name: 'nr_classes',
-          title: 'Number of classes:',
-          widget: 'range',
-          default: 1, 
-          range_min: 1, 
-          range_max: 50, 
-          range_step: 1, 
-          help: `The number of classes (K) for a multi-reference refinement. \
-      These classes will be made in an unsupervised manner from a single reference by division of the data into random subsets during the first iteration.`
-        },
-        {
-          name: 'tau_fudge',
-          title: 'Regularisation parameter T:',
-          widget: 'range',
-          default: 2 , 
-          range_min: 0.1, 
-          range_min: 10, 
-          range_min: 0.1, 
-          help: `Bayes law strictly determines the relative weight between \
-      the contribution of the experimental data and the prior. However, in practice one may need to adjust this weight to put slightly more weight on \
-      the experimental data to allow optimal results. Values greater than 1 for this regularisation parameter (T in the JMB2011 paper) put more \
-      weight on the experimental data. Values around 2-4 have been observed to be useful for 3D refinements, values of 1-2 for 2D refinements. \
-      Too small values yield too-low resolution structures; too high values result in over-estimated resolutions, mostly notable by the apparition of high-frequency noise in the references.`
-        },
-        {
-          name: 'particle_diameter',
-          title: 'Mask diameter (A):',
-          widget: 'range',
-          default: 200, 
-          range_min: 0, 
-          range_max: 1000, 
-          range_step: 10, 
-          help: 'The experimental images will be masked with a soft \
-      circular mask with this diameter. Make sure this radius is not set too small because that may mask away part of the signal! \
-      If set to a value larger than the image size no masking will be performed.\n\n\
-      The same diameter will also be used for a spherical mask of the reference structures if no user-provided mask is specified.'
-        },
-        {
-          name: 'do_zero_mask',
-          title: 'Mask individual particles with zeros?',
-          widget: 'bool',
-          default: true, 
-          help: 'If set to Yes, then in the individual particles, \
-      the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
-      This will remove noise and therefore increase sensitivity in the alignment and classification. However, it will also introduce correlations \
-      between the Fourier components that are not modelled. When set to No, then the solvent area is filled with random noise, which prevents introducing correlations.\
-      High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-refine) tend to work better when filling the solvent area with random noise (i.e. setting this option to No), refinements of smaller complexes and most classifications go better when using zeros (i.e. setting this option to Yes).'
-        },
-        {
-          name: 'highres_limit',
-          title: 'Limit resolution E-step to (A):',
-          widget: 'range',
-          default:  -1, 
-          range_min: -1, 
-          range_max: 20, 
-          range_step: 1, 
-          help: 'If set to a positive number, then the expectation step (i.e. the alignment) will be done only including the Fourier components up to this resolution (in Angstroms). \
-      This is useful to prevent overfitting, as the classification runs in RELION are not to be guaranteed to be 100% overfitting-free (unlike the 3D auto-refine with its gold-standard FSC). In particular for very difficult data sets, e.g. of very small or featureless particles, this has been shown to give much better class averages. \
-      In such cases, values in the range of 7-12 Angstroms have proven useful.'
-        },
-        {
-          name: 'do_center',
-          title: 'Center class averages?',
-          widget: 'bool',
-          default: true, 
-          help: 'If set to Yes, every iteration the class average images will be centered on their center-of-mass. This will only work for positive signals, so the particles should be white.'
-        }
-      ]
-    },
+    class2d_optim_em,
     class2d_sampling,
   ]
 }
-      
+
+const class2d_ptcls_vdam_tab = {
+  widget: 'navtab',
+  children: [
+    class2d_ctf,
+    class2d_optim_vdam,
+    class2d_sampling,
+  ]
+}
 
 
-
-const compute_tabs = [
+const compute_tab = [
   {
     name: 'do_parallel_discio',
     title: 'Use parallel disc I/O?',
@@ -297,7 +321,7 @@ This will affect the time it takes between the progress-bar in the expectation s
   {
     name: 'use_gpu',
     title: 'Use GPU acceleration?',
-    widget: 'bool',
+    widget: 'switch',
     default: false, 
     help: 'If set to Yes, the job will try to use GPU acceleration.'
   },
@@ -310,6 +334,11 @@ This will affect the time it takes between the progress-bar in the expectation s
   },
 ];
 
+
+const class2d_io_tab = {
+  widget: 'navtab',
+  children: class2d_io
+}
 
 const class2d_tabs = [
   {
@@ -324,26 +353,33 @@ const class2d_tabs = [
         widget: 'fieldset',
         children: [
           {
-            name: 'class2d_em',
+            name: 'do_em',
             title: '2D classification of Particles with EM algorithm',
             widget: 'radio',
             option: '--fn_model',
             group: 'toolkit',
-            help: ``,
-            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+            help: `If set to Yes, the slower expectation-maximization algorithm will be used. This was the default option in releases prior to 4.0-beta. If set to No, then one needs to use the (faster) VDAM (variable metric gradient descent with adaptive moments) algorithm below. will be used.`,
+            on_click: (ev) => w_navtab_update({io: class2d_io_tab, settings: class2d_ptcls_em_tab})
           },
           {
-            name: 'class2d_vdam',
+            name: 'do_grad',
             title: '2D classification of Particles with VDAM algorithm',
             widget: 'radio',
             option: '--fn_model',
             group: 'toolkit',
-            help: ``,
-            on_click: (ev) => w_navtab_update({settings: class2d_particles_tabs})
+            help: `If set to Yes, the faster VDAM algorithm will be used. This algorithm was introduced with relion-4.0. If set to No, then the slower EM algorithm needs to be used.`,
+            on_click: (ev) => w_navtab_update({io: class2d_io_tab, settings: class2d_ptcls_vdam_tab})
           },
         ]
       },
     ]
+  },
+  {
+    name: 'io',
+    icon: 'bi-arrow-down-up',
+    title: 'I/O',
+    widget: 'navtab',
+    children: []
   },
   {
     name: 'settings',
@@ -357,7 +393,7 @@ const class2d_tabs = [
     icon: 'bi-cpu',
     title: 'Compute',
     widget: 'navtab',
-    children: compute_tabs
+    children: compute_tab
   },
   {
     name: 'running',

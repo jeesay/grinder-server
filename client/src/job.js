@@ -144,11 +144,15 @@ const jobtypes = [
       let flag = args.includes('--size_split');
       if (flag) {
         document.querySelector(`#split_e`).checked = true;
-        w_navtab_update({io: select_io_settings, settings: split_size_ptcls_tab})
+        w_navtab_update({io: select_io_settings, settings: split_size_ptcls_tab});
+        let target = document.querySelector('#select_io_filetype');
+        select_add({target});
       }
       else {
         document.querySelector(`#split_n`).checked = true;
-        w_navtab_update({io: select_io_settings, settings: split_n_ptcls_tab})
+        w_navtab_update({io: select_io_settings, settings: split_n_ptcls_tab});
+        let target = document.querySelector('#select_io_filetype');
+        select_add({target});
       }
 
     }

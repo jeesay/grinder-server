@@ -82,6 +82,9 @@ const w_switch = (desc) => {
 }
 
 const w_file = (desc) => h('div.row',
+  {
+    style: (desc.status === 'hidden') ? {display: 'none'} : {display:'flex'},
+  },
   [
     h('label',{attrs: {'for':desc.name}},desc.title),
     h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
@@ -105,7 +108,7 @@ const w_file = (desc) => h('div.row',
     )
   ]
   );
-7
+
 const w_text = (desc) => h('div.row',
   [
     h('label',{attrs: {'for':desc.name}},desc.title),
@@ -121,7 +124,16 @@ const w_text = (desc) => h('div.row',
       }
     )
   ]
-  );
+);
+
+
+const w_paragraph = (desc) => h('div.row',
+  [
+    h('label',{attrs: {'for':desc.name}},desc.title),
+    h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
+    h(`span#${desc.name}`, desc.content)
+  ]
+);
 
 
 
@@ -329,7 +341,7 @@ const w_select = (desc) => {
     h('label',{attrs: {'for': desc.name}},desc.title + ' '),
     h('i.bi.bi-question-circle',{attrs: {title: desc.help}}),
     h('div.select-dropdown',[
-      h('select',
+      h(`select#${desc.name}`,
         {
           on: ('on_change' in desc) ? {click: desc.on_change} : {}
         },
@@ -392,12 +404,12 @@ const w_group = (desc) => {
   const types = [
     'label','h3','button','bool','int','float','file','text','range',
     'radio','select','option','switch','fieldset','details',
-    'table','thead','tbody','trow','tcell','toolbar'];
+    'table','thead','tbody','trow','tcell','toolbar','paragraph'];
   const creators = [
     w_label,w_h3,w_button,w_bool,w_int,w_float,w_file,w_text,w_range,
     w_radio,w_select,w_option,w_switch,
     w_fieldset,w_details,
-    w_table,w_table_head,w_table_body,w_table_row,w_table_cell,w_toolbar
+    w_table,w_table_head,w_table_body,w_table_row,w_table_cell,w_toolbar,w_paragraph
   ];
   if ('children' in desc === false) {
     console.log(desc);

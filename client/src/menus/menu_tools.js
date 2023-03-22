@@ -3,10 +3,10 @@
 const select_io_none = [
   {
     name: 'fn_none',
-    title: 'Choose file type above',
-    widget: 'fieldset',
-    help: ``,
-    children:[]
+    title: 'Select from:',
+    widget: 'paragraph',
+    content: 'Choose file type above',
+    help: `Choose file type above`,
   }
 ];
 const select_io_class = [
@@ -15,6 +15,7 @@ const select_io_class = [
     title: 'Select classes from job:',
     widget: 'file',
     option: '--i',
+    status: 'hidden',
     filetype: 'NODE_OPTIMISER_CPIPE',
     placeholder: 'STAR files (*_optimiser.star)',
     help: `A _optimiser.star (or for backwards compatibility also a _model.star) file from a previous 2D or 3D classification run to select classes from.`,
@@ -27,7 +28,8 @@ const select_io_ugraph = [
     title: 'Select from micrographs.star:',
     widget: 'file',
     option: '--i',
-    filetype:  'NODE_MICS_CPIPE',
+    status: 'hidden',
+    filetype: 'NODE_MICS_CPIPE',
     placeholder: 'STAR files (*.star)',
     help: `A micrographs.star file to select micrographs from.`,
   },
@@ -39,6 +41,7 @@ const select_io_ptcls = [
     title: 'Select from particles.star:',
     widget: 'file',
     option: '--i',
+    status: 'hidden',
     filetype: 'NODE_PARTS_CPIPE',
     help: 'STAR files (*.star)',
     help: `A particles.star file to select individual particles from.`,
@@ -46,7 +49,7 @@ const select_io_ptcls = [
 ]
 
 const select_add = (ev) => {
-  console.log('change',ev.target, ev.target.value);
+  console.log('change',ev.target);
   const el = ev.target;
   const parent = el.closest('.tab-content');
   const children = [...parent.children];
@@ -707,6 +710,7 @@ const tools_tabs = [
       {
         name: 'select_auto',
         title: 'Subset selection',
+        icon: 'bi-list-check',
         widget: 'fieldset',
         children: [
           {
@@ -732,6 +736,7 @@ const tools_tabs = [
       {
         name: 'select_auto',
         title: 'Automatic class selection',
+        icon: 'bi-robot',
         widget: 'fieldset',
         children: [
           {
@@ -757,7 +762,7 @@ const tools_tabs = [
       {
         name: 'do_split',
         title: 'Split data',
-        icon: 'bi-layout-split',
+        icon: 'bi-arrows-angle-expand',
         widget: 'fieldset',
         children: [
           {
@@ -783,6 +788,7 @@ const tools_tabs = [
       {
         name: 'join_star',
         title: 'Join STAR files',
+        icon: 'bi-arrows-angle-contract',
         widget: 'fieldset',
         children: [
           {
