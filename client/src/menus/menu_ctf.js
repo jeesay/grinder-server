@@ -225,7 +225,9 @@ const gctf_settings = {
   children : [...generic,...gctf]
 }
 
-const ctfrefine = {
+// Ctf refinement tabs
+
+const ctfrefine_io = {
   widget: 'navtab',
   children: [
     // I/O
@@ -247,27 +249,28 @@ const ctfrefine = {
   The mask used for this postprocessing will be applied to the unfiltered half-maps and should encompass the entire complex. The resulting FSC curve will be used for weighting the different frequencies. \n \n Note that for helices it is common practice to use a mask only encompassing the central 30% or so of the box. \
   This gives higher resolution estimates, as it disregards ill-defined regions near the box edges. However, for ctf_refine it is better to use a mask encompassing (almost) the entire box, as otherwise there may not be enough signal.`,
     },
-    {
-      name: 'minres',
-      title: 'Minimum resolution for fits (A):',
-      widget: 'range',
-      default: 30, 
-      range_min: 8, 
-      range_max: 40, 
-      range_step: 1, 
-      help: `The minimum spatial frequency (in Angstrom) used in the beamtilt fit.`,
-    },
+  ]
+}
 
-  // Defocus fit
-  /*
+const ctfrefine_aniso =     {
+  name: 'aniso_field',
+  title: 'Anisotropic magnification',
+  widget: 'fieldset',
+  children: [
     {
-      name: 'do_ctf',
-      title: 'Perform CTF parameter fitting?',
+      name: 'do_aniso_mag',
+      title: 'Estimate (anisotropic) magnification?',
       widget: 'bool',
-      default: true, 
-      help: `If set to Yes, then relion_ctf_refine will be used to estimate the selected parameters below.`,
-    },
-  */
+      default: false, 
+      help: `If set to Yes, then relion_ctf_refine will also estimate the (anisotropic) magnification per optics group. \
+    This option cannot be done simultaneously with higher-order aberration estimation. It's probably best to estimate the one that is most off first, and the other one second. It might be worth repeating the estimation if both are off.`,
+    }
+  ]
+};
+
+    
+const ctfrefine_defocus = [
+  // Defocus fit
     {
       name: 'do_defocus',
       title: 'Fit defocus', 
@@ -300,14 +303,6 @@ const ctfrefine = {
       ]
     },
     {
-      name: 'do_defocus',
-      title: 'Fit defocus', 
-      widget: 'select',
-      group: 'job_ctffit_options', 
-      help: `If set to per-particle or per-micrograph, then relion_ctf_refine will estimate defocus values.`,
-      children: []
-    },
-    {
       name: 'do_astig',
       title: 'Fit astigmatism',
       widget: 'select', 
@@ -332,15 +327,14 @@ const ctfrefine = {
       children: []
       
     },
+  ];
+
+const ctfrefine_aberrations = {
+  name: 'do_aberrations',
+  title: 'Fit aberrations',
+  widget: 'fieldset',
+  children:  [
     // aberrations
-    {
-      name: 'do_aniso_mag',
-      title: 'Estimate (anisotropic) magnification?',
-      widget: 'bool',
-      default: false, 
-      help: `If set to Yes, then relion_ctf_refine will also estimate the (anisotropic) magnification per optics group. \
-  This option cannot be done simultaneously with higher-order aberration estimation. It's probably best to estimate the one that is most off first, and the other one second. It might be worth repeating the estimation if both are off.`,
-    },
     {
       name: 'do_tilt',
       title: 'Estimate beamtilt?',
@@ -362,6 +356,24 @@ const ctfrefine = {
       default: false, 
       help: `If set to Yes, then relion_ctf_refine will also estimate the Cs and the tetrafoil (4-fold astigmatism) per optics group. This option is only recommended for data sets that extend beyond 3 Angstrom resolution.`,
     },
+  ]
+};
+
+const ctfrefine_minres = {
+  name: 'minres_field',
+  title: 'Minimum resolution',
+  widget: 'fieldset',
+  children: [
+    {
+      name: 'minres',
+      title: 'Minimum resolution for fits (A):',
+      widget: 'range',
+      default: 30, 
+      range_min: 8, 
+      range_max: 40, 
+      range_step: 1, 
+      help: `The minimum spatial frequency (in Angstrom) used in the beamtilt fit.`,
+    }
   ]
 };
 
@@ -399,23 +411,6 @@ const ctf_tabs = [
           },
         ]
       },
-      {
-        name: 'ctfrefine',
-        title: 'CTF Refinement',
-        widget: 'fieldset',
-        children: [
-         {
-            name: 'use_gctf',
-            title: 'CTF refinement',
-            job: 'relion.ctfrefine',
-            widget: 'radio',
-            option: '--use_gctf',
-            group: 'toolkit',
-            help: `If set to Yes, Kai Zhang's Gctf program (which runs on NVIDIA GPUs) will be used instead of Niko Grigorieff's CTFFIND4.`,
-            on_click: (ev) => w_navtab_update({settings: ctfrefine})
-          },
-        ]
-      }
     ]
   },
   {

@@ -5,6 +5,7 @@ const mask_io = [
     name: 'fn_in',
     title: 'Input 3D map:',
     widget: 'file',
+    option: '--i',
     filetype: 'NODE_MAP_CPIPE',
     default: '',
     placeholder: 'MRC map files (*.mrc)',
@@ -17,6 +18,7 @@ const mask_settings = [
     name: 'lowpass_filter',
     title: 'Lowpass filter map (A)',
     widget: 'range',
+    option: '--lowpass',
     default:  15, 
     range_min: 10, 
     range_max: 100, 
@@ -27,6 +29,7 @@ const mask_settings = [
     name: 'angpix',
     title: 'Pixel size (A)',
     widget: 'range',
+    option: '--angpix',
     default:  -1, 
     range_min: 0.3, 
     range_max: 5, 
@@ -37,6 +40,7 @@ const mask_settings = [
     name: 'inimask_threshold',
     title: 'Initial binarisation threshold:',
     widget: 'range',
+    option: '--ini_threshold',
     default:  0.02, 
     range_min: 0., 
     range_max: 0.5, 
@@ -48,6 +52,7 @@ If you don't know what value to use, display one of the unfiltered half-maps in 
     name: 'extend_inimask',
     title: 'Extend binary map this many pixels:',
     widget: 'range',
+    option: '--extend_inimask',
     default:  3, 
     range_min: 0, 
     range_max: 20, 
@@ -58,6 +63,7 @@ If you don't know what value to use, display one of the unfiltered half-maps in 
     name: 'width_mask_edge',
     title: 'Add a soft-edge of this many pixels:',
     widget: 'range',
+    option: '--width_soft_edge',
     default:  3, 
     range_min: 0, 
     range_max: 20, 
@@ -303,67 +309,81 @@ HACK: TOMO
 
 const sharpen_auto = [
   {
-    name: 'angpix',
-    title: 'Calibrated pixel size (A)',
-    option: '--angpix',
-    widget: 'range',
-    default: -1, 
-    range_min: 0.3, 
-    range_max: 5, 
-    range_step: 0.01,
-    help: `Provide the final, calibrated pixel size in Angstroms. This value may be different from the pixel-size used thus far, e.g. when you have recalibrated the pixel size using the fit to a PDB model. The X-axis of the output FSC plot will use this calibrated value.`
-  },
-  {
-    name: 'autob_lowres',
-    title: 'Lowest resolution for auto-B fit (A):',
-    option: '--autob_lowres',
-    widget: 'range',
-    default: 10, 
-    range_min: 8, 
-    range_max: 15, 
-    range_step: 0.5,
-    help: `This is the lowest frequency (in Angstroms) that will be included in the linear fit of the Guinier plot as described in Rosenthal and Henderson (2003, JMB). Dont use values much lower or higher than 10 Angstroms. If your map does not extend beyond 10 Angstroms, then instead of the automated procedure use your own B-factor.`
-  },
-  {
-    name: 'fn_mtf',
-    title: 'MTF of the detector (STAR file)',
-    option: '--mtf',
-    widget: 'file',
-    placeholder:'STAR Files (*.star)',
-    help:`If you know the MTF of your detector, provide it here. Curves for some well-known detectors may be downloaded from the RELION Wiki. Also see there for the exact format \
-\n If you do not know the MTF of your detector and do not want to measure it, then by leaving this entry empty, you include the MTF of your detector in your overall estimated B-factor upon sharpening the map.\
-Although that is probably slightly less accurate, the overall quality of your map will probably not suffer very much.`
-  },
-  {
-    name: 'mtf_angpix',
-    title: 'Original detector pixel size:',
-    option: '--mtf_angpix',
-    widget: 'range',
-    default: 1.0, 
-    range_min: 0.3, 
-    range_max: 2.0, 
-    range_step: 0.01,
-    help: `This is the original pixel size (in Angstroms) in the raw (non-super-resolution!) micrographs.`
-  },
-  {
-    name: 'do_skip_fsc_weighting',
-    title: 'Skip FSC-weighting',
-    widget: 'switch',
-    default: false,
-    help: `If set to No (the default), then the output map will be low-pass filtered according to the mask-corrected, gold-standard FSC-curve. \
-Sometimes, it is also useful to provide an ad-hoc low-pass filter (option below), as due to local resolution variations some parts of the map may be better and other parts may be worse than the overall resolution as measured by the FSC. \
-In such cases, set this option to Yes and provide an ad-hoc filter as described below.`
-  },
-  {
-    name: 'low_pass',
-    title: 'Ad-hoc low-pass filter (A):',
-    widget: 'range',
-    default: 5,
-    range_min: 1,
-    range_max: 40,
-    range_step: 1,
-    help: `This option allows one to low-pass filter the map at a user-provided frequency (in Angstroms). When using a resolution that is higher than the gold-standard FSC-reported resolution, take care not to interpret noise in the map for signal...`
-  },
+    name: 'sh_auto',
+    title: 'Sharpening - Automatic B-factor estimation',
+    widget: 'fieldset',
+    children: [
+      {
+        name: 'angpix',
+        title: 'Calibrated pixel size (A)',
+        option: '--angpix',
+        widget: 'range',
+        default: -1, 
+        range_min: 0.3, 
+        range_max: 5, 
+        range_step: 0.01,
+        help: `Provide the final, calibrated pixel size in Angstroms. This value may be different from the pixel-size used thus far, e.g. when you have recalibrated the pixel size using the fit to a PDB model. The X-axis of the output FSC plot will use this calibrated value.`
+      },
+      {
+        name: 'autob_lowres',
+        title: 'Lowest resolution for auto-B fit (A):',
+        option: '--autob_lowres',
+        widget: 'range',
+        default: 10, 
+        range_min: 8, 
+        range_max: 15, 
+        range_step: 0.5,
+        help: `This is the lowest frequency (in Angstroms) that will be included in the linear fit of the Guinier plot as described in Rosenthal and Henderson (2003, JMB). Dont use values much lower or higher than 10 Angstroms. If your map does not extend beyond 10 Angstroms, then instead of the automated procedure use your own B-factor.`
+      },
+      {
+        name: 'fn_mtf',
+        title: 'MTF of the detector (STAR file)',
+        option: '--mtf',
+        widget: 'file',
+        placeholder:'STAR Files (*.star)',
+        help:`If you know the MTF of your detector, provide it here. Curves for some well-known detectors may be downloaded from the RELION Wiki. Also see there for the exact format \
+    \n If you do not know the MTF of your detector and do not want to measure it, then by leaving this entry empty, you include the MTF of your detector in your overall estimated B-factor upon sharpening the map.\
+    Although that is probably slightly less accurate, the overall quality of your map will probably not suffer very much.`
+      },
+      {
+        name: 'mtf_angpix',
+        title: 'Original detector pixel size:',
+        option: '--mtf_angpix',
+        widget: 'range',
+        default: 1.0, 
+        range_min: 0.3, 
+        range_max: 2.0, 
+        range_step: 0.01,
+        help: `This is the original pixel size (in Angstroms) in the raw (non-super-resolution!) micrographs.`
+      },
+      {
+        name: 'fsc_weighting',
+        title: 'Skip FSC-weighting',
+        widget: 'fieldset',
+        children: [
+          {
+            name: 'do_skip_fsc_weighting',
+            title: 'Skip FSC-weighting',
+            widget: 'switch',
+            default: false,
+            help: `If set to No (the default), then the output map will be low-pass filtered according to the mask-corrected, gold-standard FSC-curve. \
+        Sometimes, it is also useful to provide an ad-hoc low-pass filter (option below), as due to local resolution variations some parts of the map may be better and other parts may be worse than the overall resolution as measured by the FSC. \
+        In such cases, set this option to Yes and provide an ad-hoc filter as described below.`
+          },
+          {
+            name: 'low_pass',
+            title: 'Ad-hoc low-pass filter (A):',
+            widget: 'range',
+            default: 5,
+            range_min: 1,
+            range_max: 40,
+            range_step: 1,
+            help: `This option allows one to low-pass filter the map at a user-provided frequency (in Angstroms). When using a resolution that is higher than the gold-standard FSC-reported resolution, take care not to interpret noise in the map for signal...`
+          },
+        ]
+      },
+    ]
+  }
 ]
 
 const sharpen_manual = [
@@ -454,6 +474,48 @@ const post_settings = (flag) => ({
 })
 
 
+// CTF refinement 
+
+const ctfrefine_aniso_tab = {
+  widget: 'navtab',
+  children: [ctfrefine_aniso, ctfrefine_minres]
+}
+
+const ctfrefine_aberrations_tab = {
+  widget: 'navtab',
+  children: [ctfrefine_aberrations, ctfrefine_minres]
+}
+
+const ctfrefine_defocus_tab = {
+  widget: 'navtab',
+  children: [...ctfrefine_defocus, ctfrefine_minres]
+}
+
+const ctfrefine_fit_tab = {
+  widget: 'navtab',
+  children: [
+    ctfrefine_aniso,
+    {
+      name: 'ctffit_field',
+      title: 'CTF Parameter fitting',
+      widget: 'fieldset',
+      children: [
+        {
+          name: 'do_ctf',
+          title: 'Perform CTF parameter fitting?',
+          widget: 'switch',
+          default: false, 
+          help: `If set to Yes, then relion_ctf_refine will be used to estimate the selected parameters below.`,
+        },
+        ...ctfrefine_defocus,
+      ]
+    }, 
+    ctfrefine_aberrations,
+    ctfrefine_minres
+  ]
+}
+
+
 // Polishing 
 
 const polish_io_tab = {
@@ -476,12 +538,6 @@ const polish_ptcls_settings = {
   children: polish_ptcls
 }
 
-
-
-const localres_settings = {
-  widget: 'navtab',
-  children: []
-}
 
 // Tabs
 const postprocess_tabs = [
@@ -537,9 +593,57 @@ This option is useful if your map does not extend beyond the 10A needed for the 
         ]
       },
       {
+        name: 'ctfrefine',
+        title: 'CTF Refinement',
+        icon: 'bi-3-circle-fill',
+        widget: 'fieldset',
+        children: [
+         {
+            name: 'ctfrefine_ab',
+            title: 'Estimate higher-order aberrations',
+            job: 'relion.ctfrefine',
+            widget: 'radio',
+            option: '--use_gctf',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({io: ctfrefine_io,settings: ctfrefine_aberrations_tab})
+          },
+         {
+            name: 'ctfrefine_an',
+            title: 'Estimate anisotropic magnification',
+            job: 'relion.ctfrefine',
+            widget: 'radio',
+            option: '--use_gctf',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({io: ctfrefine_io, settings: ctfrefine_aniso_tab})
+          },
+         {
+            name: 'ctfrefine_df',
+            title: 'Estimate per-particle defocus values',
+            job: 'relion.ctfrefine',
+            widget: 'radio',
+            option: '--use_gctf',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({io: ctfrefine_io,settings: ctfrefine_defocus_tab})
+          },
+         {
+            name: 'ctfrefine_ad',
+            title: 'Advanced CTF refinement (relion menu)',
+            job: 'relion.ctfrefine',
+            widget: 'radio',
+            option: '--use_gctf',
+            group: 'toolkit',
+            help: ``,
+            on_click: (ev) => w_navtab_update({io: ctfrefine_io,settings: ctfrefine_fit_tab})
+          },
+        ]
+      },
+      {
         name: 'polish',
         title: 'Bayesian polishing',
-        icon: 'bi-3-circle-fill',
+        icon: 'bi-4-circle-fill',
         widget: 'fieldset',
         children: [
           {

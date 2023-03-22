@@ -14,6 +14,7 @@ const select_io_class = [
     name: 'fn_model',
     title: 'Select classes from job:',
     widget: 'file',
+    option: '--i',
     filetype: 'NODE_OPTIMISER_CPIPE',
     placeholder: 'STAR files (*_optimiser.star)',
     help: `A _optimiser.star (or for backwards compatibility also a _model.star) file from a previous 2D or 3D classification run to select classes from.`,
@@ -25,6 +26,7 @@ const select_io_ugraph = [
     name: 'fn_mic',
     title: 'Select from micrographs.star:',
     widget: 'file',
+    option: '--i',
     filetype:  'NODE_MICS_CPIPE',
     placeholder: 'STAR files (*.star)',
     help: `A micrographs.star file to select micrographs from.`,
@@ -36,6 +38,7 @@ const select_io_ptcls = [
     name: 'fn_data',
     title: 'Select from particles.star:',
     widget: 'file',
+    option: '--i',
     filetype: 'NODE_PARTS_CPIPE',
     help: 'STAR files (*.star)',
     help: `A particles.star file to select individual particles from.`,
@@ -46,20 +49,13 @@ const select_add = (ev) => {
   console.log('change',ev.target, ev.target.value);
   const el = ev.target;
   const parent = el.closest('.tab-content');
-  if (parent.children.length > 1) {
-    parent.removeChild(parent.lastElementChild);
-  }
-  // Add 
-  desc = []
-  switch (el.value) {
-  case '0': select_io_none; break;
-  case '1': desc = select_io_class; break;
-  case '2': desc = select_io_ugraph; break;
-  case '3': desc = select_io_ptcls; break;
-  default:
-    desc = select_io_none;
-  }
-  w_group({children: desc}).forEach( w => parent.appendChild(w) );
+  const children = [...parent.children];
+  // reset
+  children.forEach( child => child.style.display = 'none');
+  children[0].style.display = 'flex';
+  console.log(el.value);
+  children[+el.value+1].style.display = 'flex';
+//  w_group({children: desc}).forEach( w => parent.appendChild(w) );
 }
 
 const select_io_settings = {
@@ -69,6 +65,7 @@ const select_io_settings = {
       name: 'select_io_filetype',
       title: 'Select subsets from:',
       widget: 'select', 
+      option: '--select_filetype',
       default: 0,
       help: '',
       children: [
@@ -100,6 +97,10 @@ const select_io_settings = {
       ],
       on_change: select_add
     },
+    ...select_io_none,
+    ...select_io_class,
+    ...select_io_ugraph,
+    ...select_io_ptcls
   ]
 }
 
@@ -236,8 +237,9 @@ const select_stats = [
 const split_size = [
   {
     name: 'do_random',
-    title: 'Randomise order before making subsets?:',
+    title: 'Randomise before making subsets?',
     widget: 'bool',
+    option: '--random_order',
     default: false, 
     help: `If set to Yes, the input STAR file order will be randomised. If set to No, the original order in the input STAR file will be maintained.`,
   },
@@ -245,12 +247,14 @@ const split_size = [
     name: 'split_size',
     title: 'Subset size:',
     widget: 'range',
+    option: '--size_split',
     default:  100, 
     range_min: 100, 
     range_max: 10000, 
     range_step: 100, 
     help: `The number of lines in each of the output subsets. When this is -1, items are divided into a number of subsets specified in the next option.`,
   },
+  /*
   {
     name: 'nr_split',
     title: 'OR: number of subsets: ',
@@ -261,9 +265,11 @@ const split_size = [
     range_step: 1, 
     help: `Give a positive integer to specify into how many equal-sized subsets the data will be divided. When the subset size is also specified, only this number of subsets, each with the specified size, will be written, possibly missing some items. When this is -1, all items are used, generating as many subsets as necessary.`,
   },
+  */
 ];
 
 const split_n_groups = [
+/*
   {
     name: 'do_split',
     title: 'OR: split into subsets?',
@@ -271,10 +277,12 @@ const split_n_groups = [
     default:  false, 
     help: `If set to Yes, the job will be non-interactive and the star file will be split into subsets as defined below.`,
   },
+*/
   {
     name: 'do_random',
-    title: 'Randomise order before making subsets?:',
+    title: 'Randomise before making subsets?',
     widget: 'bool',
+    option: '--random_order',
     default: false, 
     help: `If set to Yes, the input STAR file order will be randomised. If set to No, the original order in the input STAR file will be maintained.`,
   },
@@ -282,11 +290,23 @@ const split_n_groups = [
     name: 'nr_split',
     title: 'Number of subsets:',
     widget: 'range',
+    option: '--nr_split',
     default:  -1, 
     range_min: 1, 
     range_max: 50, 
     range_step: 1, 
     help: `Give a positive integer to specify into how many equal-sized subsets the data will be divided. When the subset size is also specified, only this number of subsets, each with the specified size, will be written, possibly missing some items. When this is -1, all items are used, generating as many subsets as necessary.`,
+  },
+  {
+    name: 'split_size',
+    title: 'Subset size:',
+    widget: 'range',
+    option: '--size_split',
+    default:  -1, 
+    range_min: 100, 
+    range_max: 10000, 
+    range_step: 100, 
+    help: `The number of lines in each of the output subsets. When this is -1, items are divided into a number of subsets specified in the previous option.`,
   },
 ];
 
@@ -665,6 +685,17 @@ const select_meta_settings = {
   children: select_meta
 }
 
+const split_n_ptcls_tab = {
+  widget: 'navtab',
+  children: split_n_groups
+}
+
+const split_size_ptcls_tab = {
+  widget: 'navtab',
+  children: split_size
+}
+
+
 const tools_tabs = [
   {
     name: 'tools',
@@ -730,22 +761,22 @@ const tools_tabs = [
         widget: 'fieldset',
         children: [
           {
-            name: 'fn_data',
+            name: 'split_e',
             title: 'Split in subsets of E elements',
             widget: 'radio',
-            option: '--fn_data',
+            option: '--split',
             group: 'toolkit',
             help: `A particles.star file to select individual particles from.`,
-            on_click: (ev) => w_navtab_update({settings: split_size_ptcls})
+            on_click: (ev) => w_navtab_update({io: select_io_settings, settings: split_size_ptcls_tab})
           },
           {
-            name: 'fn_data',
+            name: 'split_n',
             title: 'Split in N subsets',
             widget: 'radio',
             option: '--fn_data',
             group: 'toolkit',
             help: `If set to Yes, the job will be non-interactive and the star file will be split into subsets as defined below.`,
-            on_click: (ev) => w_navtab_update({settings: split_n_ptcls})
+            on_click: (ev) => w_navtab_update({io: select_io_settings, settings: split_n_ptcls_tab})
           },
         ]
       },

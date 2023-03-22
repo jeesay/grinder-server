@@ -138,7 +138,21 @@ const jobtypes = [
   {
     type: "relion.select.split",
     widget: 'tools',
-    main_panel: () => tools_tabs
+    tool: 'split_xxx',
+    main_panel: () => tools_tabs,
+    update: (args) => {
+      let flag = args.includes('--size_split');
+      if (flag) {
+        document.querySelector(`#split_e`).checked = true;
+        w_navtab_update({io: select_io_settings, settings: split_size_ptcls_tab})
+      }
+      else {
+        document.querySelector(`#split_n`).checked = true;
+        w_navtab_update({io: select_io_settings, settings: split_n_ptcls_tab})
+      }
+
+    }
+ 
   }
 ];
 
@@ -146,7 +160,9 @@ console.log(jobtypes);
 
 const set_job_params = (gui,json) => {
   // Check button in first tab (Tools)
-  document.querySelector(`#${gui.tool}`).checked = true;
+  if (document.querySelector(`#${gui.tool}`)) {
+      document.querySelector(`#${gui.tool}`).checked = true;
+  }
   // Step #1: Get params and create the other tabs
   json.cli.forEach( cli => {
     const script = cli.script[0];
@@ -166,7 +182,14 @@ const set_job_params = (gui,json) => {
       let els = document.querySelectorAll(`[data-option~="${key}"]`);
       if (els) {
         console.log('Set...',key,cli.script[0].options[key]);
-        els.forEach(el => el.value = cli.script[0].options[key]);
+        els.forEach(el => {
+          if (el.type === 'checkbox') {
+            el.checked = cli.script[0].options[key];
+          }
+          else {
+            el.value = cli.script[0].options[key];
+          }
+        });
       }
     })
   });
