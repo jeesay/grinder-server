@@ -4,20 +4,28 @@ const abinitio_io = [
     name: 'fn_img',
     title:'Input images STAR file:',
     widget: 'file',
+    option: '--denovo_3dref --i',
+    default: '',
     filetype: 'NODE_PARTS_CPIPE',
-    placeholder:'STAR files (*.star) Image stacks (not recommended, read help!) (*.{spi,mrcs})',
-    help:`A STAR file with all images (and their metadata). \
+    placeholder:'STAR files (*.star)',
+    help:` Image stacks (not recommended, read help!) (*.{spi,mrcs})
+    
+A STAR file with all images (and their metadata). \
 In Gradient optimisation, it is very important that there are particles from enough different orientations. One only needs a few thousand to 10k particles. When selecting good 2D classes in the Subset Selection jobtype, use the option to select a maximum number of particles from each class to generate more even angular distributions for SGD.\
-\n \n Alternatively, you may give a Spider/MRC stack of 2D images, but in that case NO metadata can be included and thus NO CTF correction can be performed, \
+
+
+Alternatively, you may give a Spider/MRC stack of 2D images, but in that case NO metadata can be included and thus NO CTF correction can be performed, \
 nor will it be possible to perform noise spectra estimation or intensity scale corrections in image groups. Therefore, running RELION with an input stack will in general provide sub-optimal results and is therefore not recommended!! Use the Preprocessing procedure to get the input STAR file in a semi-automated manner. Read the RELION wiki for more information.`,
   },
   {
     name: 'fn_cont',
     title:'Continue from here: ',
     widget: 'file',
+    option: '--continue',
     default: '', 
     placeholder: 'STAR Files (*_optimiser.star)',
     filetype:'CURRENT_ODIR',
+    assert: (v) => gr_assert(v.includes('_it') || v.includes('optimiser'),`Warning: invalid optimiser.star filename provided for continuation run: ${v}`) ,
     help:`Select the *_optimiser.star file for the iteration \
 from which you want to continue a previous run. \
 Note that the Output rootname of the continued run and the rootname of the previous run cannot be the same. \
@@ -31,6 +39,7 @@ const ctf_rec3d = [
     name: 'do_ctf_correction',
     title:'Do CTF-correction?',
     widget: 'switch',
+    option: '--ctf',
     default: true, 
     help: `If set to Yes, CTFs will be corrected inside the MAP refinement. \
 The resulting algorithm intrinsically implements the optimal linear, or Wiener filter. \
@@ -42,6 +51,7 @@ See the RELION Wiki for more details.\n\n Also make sure that the correct pixel 
     name: 'ctf_intact_first_peak',
     title:'Ignore CTFs until first peak?',
     widget: 'bool',
+    option: '--ctf_intact_first_peak',
     default: false, 
     help: `If set to Yes, then CTF-amplitude correction will \
 only be performed from the first peak of each CTF onward. This can be useful if the CTF model is inadequate at the lowest resolution. \
@@ -211,6 +221,7 @@ const class3d_io = [
     name: 'fn_img',
     title: 'Input images STAR file:',
     widget: 'file',
+    option: '--i',
     filetype: 'NODE_PARTS_CPIPE',
     placeholder: 'STAR files (*.star). Image stacks (not recommended, read help!) (*.{spi,mrcs})',
     help:`A STAR file with all images (and their metadata).
@@ -222,6 +233,7 @@ nor will it be possible to perform noise spectra estimation or intensity scale c
     name: 'fn_cont',
     title: 'Continue from here:',
     widget: 'file',
+    option: '--continue',
     filetype: 'CURRENT_ODIR',
     default: '', 
     placeholder: 'STAR Files (*_optimiser.star)',
@@ -235,6 +247,7 @@ with X being the iteration from which one continues the previous run.`
     name: 'fn_ref',
     title: 'Reference map:',
     widget: 'file',
+    option: '--ref',
     filetype: 'NODE_MAP_CPIPE',
     placeholder: 'Image Files (*.{spi,vol,mrc})',
     help: `A 3D map in MRC/Spider format. 
@@ -244,6 +257,7 @@ Make sure this map has the same dimensions and the same pixel size as your input
     name: 'fn_mask',
     title: 'Reference mask (optional):',
     widget: 'file',
+    option: '--solvent_mask',
     filetype: 'NODE_MASK_CPIPE',
     placeholder: 'Image Files (*.{spi,vol,msk,mrc})',
     help: `If no mask is provided, a soft spherical mask based on the particle diameter will be used.
@@ -266,6 +280,7 @@ const reference_class3d = [
     name: 'ref_correct_greyscale',
     title: 'Ref. map is on absolute greyscale?',
     widget: 'bool',
+    option: (flag) => flag ? '' : '--firstiter_cc',
     default: false,
     help: ` Probabilities are calculated based on a Gaussian noise model, 
 which contains a squared difference term between the reference and the experimental image. This has a consequence that the 
@@ -282,6 +297,7 @@ Therefore, if in doubt it is recommended to set this option to No.`
     name: 'ini_high',
     title: 'Initial low-pass filter (A):',
     widget: 'range',
+    option: '--ini_high',
     default: 60, 
     range_min: 0, 
     range_max: 200, 
@@ -294,6 +310,7 @@ If set to 0, no low-pass filter will be applied to the initial reference(s).`
     name: 'sym_name',
     title: 'Symmetry:',
     widget: 'text',
+    option: '--sym',
     default: "C1",
     help: ` If the molecule is asymmetric, 
 set Symmetry group to C1. Note their are multiple possibilities for icosahedral symmetry:
@@ -308,12 +325,12 @@ Therefore, look at the XMIPP Wiki for more details:  http://xmipp.cnb.csic.es/tw
 ];
 
 
-
 const optimisation_class3d = [
   {
     name: 'nr_classes',
     title: 'Number of classes:',
     widget: 'range',
+    option: '--flatten_solvent --K',
     default: 1, 
     range_min: 1, 
     range_max: 50, 
@@ -325,6 +342,7 @@ These classes will be made in an unsupervised manner from a single reference by 
     name: 'tau_fudge',
     title: 'Regularisation parameter T:',
     widget: 'range',
+    option: '--tau2_fudge',
     default: 4 , 
     range_min: 0.1, 
     range_max: 10, 
@@ -339,6 +357,7 @@ Too small values yield too-low resolution structures; too high values result in 
     name: 'nr_iter',
     title: 'Number of iterations:',
     widget: 'range',
+    option: '--iter',
     default: 25, 
     range_min: 1, 
     range_max: 50, 
@@ -354,6 +373,7 @@ an additional 5 iterations (for example with a finer angular sampling), then the
     name: 'do_fast_subsets',
     title: 'Use fast subsets (for large data sets)?',
     widget: 'bool',
+    option: '--fast_subsets',
     default: false,
     help: ` If set to Yes, the first 5 iterations will be done with random subsets of only K*1500 particles (K being the number of classes); the next 5 with K*4500 particles, the next 5 with 30% of the data set; and the final ones with all data. This was inspired by a cisTEM implementation by Niko Grigorieff et al.`
   },
@@ -361,6 +381,7 @@ an additional 5 iterations (for example with a finer angular sampling), then the
     name: 'particle_diameter',
     title: 'Mask diameter (A):',
     widget: 'range',
+    option: '--particle_diameter',
     default: 200, 
     range_min: 0, 
     range_max: 1000, 
@@ -374,6 +395,7 @@ The same diameter will also be used for a spherical mask of the reference struct
     name: 'do_zero_mask',
     title: 'Mask individual particles with zeros?',
     widget: 'bool',
+    option: '--zero_mask',
     default: true,
     help: ` If set to Yes, then in the individual particles, \
 the area outside a circle with the radius of the particle will be set to zeros prior to taking the Fourier transform. \
@@ -385,6 +407,7 @@ High-resolution refinements (e.g. ribosomes or other large complexes in 3D auto-
     name: 'highres_limit',
     title: 'Limit resolution E-step to (A): ',
     widget: 'range',
+    option: '--strict_highres_exp',
     default: -1, 
     range_min: -1, 
     range_max: 20, 
@@ -399,7 +422,8 @@ const sampling_class3d = [
   {
     name: 'dont_skip_align',
     title: 'Perform image alignment?',
-    widget: 'bool',
+    widget: 'switch',
+    option: (flag) => flag ? '' : '--skip_align',
     default: true,
     help: ` If set to No, then rather than \
 performing both alignment and classification, only classification will be performed. This allows the use of very focused masks.\
@@ -445,7 +469,7 @@ If auto-sampling is used, this will be the value for the first iteration(s) only
   {
     name: 'do_local_ang_searches',
     title: 'Perform local angular searches?',
-    widget: 'bool',
+    widget: 'switch',
     default: false,
     help: ` If set to Yes, then rather than \
 performing exhaustive angular searches, local searches within the range given below will be performed. \
@@ -481,6 +505,7 @@ in the previous iteration will get higher weights than those further away.`
   },
 ];
 
+/* Same as class3d */
 const autorefine_io = [
   {
     name: 'fn_img',
@@ -488,7 +513,9 @@ const autorefine_io = [
     widget: 'file',
     filetype: 'NODE_PARTS_CPIPE',
     placeholder: 'STAR files (*.star) \t Image stacks (not recommended, read help!) (*.{spi,mrcs})"',
-    help: `A STAR file with all images (and their metadata). \n \n Alternatively, you may give a Spider/MRC stack of 2D images, but in that case NO metadata can be included and thus NO CTF correction can be performed, \
+    help: `A STAR file with all images (and their metadata).
+    
+    Alternatively, you may give a Spider/MRC stack of 2D images, but in that case NO metadata can be included and thus NO CTF correction can be performed, \
 nor will it be possible to perform noise spectra estimation or intensity scale corrections in image groups. Therefore, running RELION with an input stack will in general provide sub-optimal results and is therefore not recommended!! Use the Preprocessing procedure to get the input STAR file in a semi-automated manner. Read the RELION wiki for more information.`
   },
   {
@@ -517,6 +544,7 @@ Make sure this map has the same dimensions and the same pixel size as your input
     name: 'fn_mask',
     title: 'Reference mask (optional):',
     widget: 'file',
+    option: '--solvent_mask',
     filetype: 'NODE_MASK_CPIPE',
     placeholder: 'Image Files (*.{spi,vol,msk,mrc})"',
     help: `If no mask is provided, a soft spherical mask based on the particle diameter will be used.\n\
@@ -733,6 +761,23 @@ const class3d_tab = {
   ]
 };
 
+const class3d_no_align_tab = {
+  widget: 'navtab',
+  children: [
+    {
+      widget: 'fieldset',
+      title: 'Reference',
+      children: reference_class3d,
+    },
+    {
+      name: 'do_ctf_correction',
+      widget: 'fieldset',
+      title: 'CTF correction',
+      children: ctf_rec3d,
+    },
+  ]
+};
+
 const class3d_optim_tab = {
   widget: 'navtab',
   children: optimisation_class3d
@@ -802,12 +847,21 @@ const rec3d_tabs = [
         children: [
           {
             name: 'class3d_particles',
-            title: '3D classification of Particles with VDAM algorithm',
+            title: '3D classification of Particles',
             widget: 'radio',
             option: '',
             group: 'rec3d',
             help: ``,
             on_click: (ev) => w_navtab_update({io: class3d_io_tab, settings: class3d_tab, optim: class3d_optim_tab})
+          },
+          {
+            name: 'class3d_particles_no_align',
+            title: '3D classification of Particles without alignment',
+            widget: 'radio',
+            option: '--skip_align',
+            group: 'rec3d',
+            help: ``,
+            on_click: (ev) => w_navtab_update({io: class3d_io_tab, settings: class3d_no_align_tab, optim: class3d_optim_tab})
           }
         ]
       },

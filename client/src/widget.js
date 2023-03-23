@@ -93,6 +93,7 @@ const w_file = (desc) => h('div.row',
         attrs: {
           type:'text',
           value: desc.default,
+          placeholder: desc.placeholder || '',
           name:desc.name
         },
         dataset: ('option' in desc) ? {option: desc.option} : {}

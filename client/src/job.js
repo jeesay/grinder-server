@@ -29,8 +29,13 @@ const jobtypes = [
   },
   {
     type: "relion.class3d",
-    widget: 'class3d',
-    main_panel: () => class3d_tabs
+    widget: 'rec3d',
+    tool: 'rec3d_xxx',
+    main_panel: () => rec3d_tabs,
+    update: (args) => {
+      document.querySelector(`#class3d_particles`).checked = true;
+      w_navtab_update({io: class3d_io_tab, settings: class3d_tab, optim: class3d_optim_tab});
+    }
   },
   {
     type: "relion.ctffind.ctffind4",
