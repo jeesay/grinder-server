@@ -197,8 +197,15 @@ const set_job_params = (gui,json) => {
           }
           else {
             el.value = cli.script[0].options[key];
+            const len = el.value.length;
+              
+            // Mostly for Web Browsers
+            if (el.setSelectionRange) {
+                el.focus();
+                el.setSelectionRange(len, len);
+            }
           }
-        });
+        );
       }
     })
   });

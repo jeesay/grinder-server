@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Grinder</title>
+  <link rel="stylesheet" href="css/grinder.css" type="text/css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap+Condensed&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+  
+</head>
+<body>
+  <header>
+  <nav>
+        <ul>
+          <li class="top_menu"><a href="#">File</a>
+            <ul>
+              <li><a  id="new_project"href="#">Re-read pipeline</a></li>
+              <li><a  id="new_project"href="#">Edit project note</a></li>
+              <li><a  id="new_project"href="#">Print all notes</a></li>
+              <li><a  id="new_project"href="#">Remake .Nodes/</a></li>
+              <li><a  id="new_project"href="#">Display</a></li>
+              <li><a  id="new_project"href="#">Show initial screen</a></li>
+              <li><a id="empty_trash" href="#">Empty Trash</a></li>
+              <li><a id="quit" href="#">Quit</a></li>
+            </ul>
+          </li>
+          <li class="top_menu"><a href="#">Jobs</a>
+            <ul>
+              <li><a  id="new_project"href="#">Save job.star</a></li>
+              <li><a  id="new_project"href="#">Load job.star</a></li>
+              <li><a  id="new_project"href="#">Order alphabetically</a></li>
+              <li><a  id="new_project"href="#">Order chronologically</a></li>
+              <li><a  id="new_project"href="#">Undelete job(s)</a></li>
+              <li><a  id="new_project"href="#">Toggle overwrite button</a></li>
+              <li><a id="empty_trash" href="#">Run scheduled jobs</a></li>
+              <li><a id="empty_trash" href="#">Stop running scheduled jobs</a></li>
+              <li><a id="empty_trash" href="#">Gently clean all jobs</a></li>
+              <li><a id="empty_trash" href="#">Harshly clean all jobs</a></li>
+            </ul>
+          </li>
+          <li class="top_menu"><a href="#">Help</a>
+          <ul>
+              <li><a  id="help"href="#"> Help</a></li>
+              <li><a id="about" href="#">About...</a></li>
+            </ul>
+          </li>
+        </ul>
+  </nav>
+  </header>
+  <div class="wrapper">
+  <aside class="tools">
+    <ul>
+      <li id="home"><a href="#"><i class="bi bi-house-door"></i> Home</a></li>
+      <li id="import"><a href="#"><i class="bi bi-download"></i> Import</a></li>
+      <li id="motioncorr"><a href="#"><i class="bi bi-graph-up"></i> Motion correction</a></li>
+      <li id="ctf"><a href="#"><i class="bi bi-bullseye"></i> CTF computation</a></li>
+      <li id="picking"><a href="#"><i class="bi bi-fullscreen"></i> Picking</a></li>
+      <li id="extract"><a href="#"><i class="bi bi-crop"></i> Particle extraction</a></li>
+      <li id="class2d"><a href="#"><i class="bi bi-sort-numeric-down"></i> 2D classification</a></li>
+      <li id="rec3d"><a href="#"><i class="bi bi-badge-3d"></i> 3D</a></li>
+      <li id="postprocess"><a href="#"><i class="bi bi-stars"></i> Post-processing</a></li>
+      <li id="metrics"><a href="#"><i class="bi bi-trophy"></i>Metrics</a></li>
+      <li id="enhance"><a href="#"><i class="bi bi-badge-hd"></i> Enhancement</a></li>
+      <li id="helix"><a href="#"><i class="bi bi-h-square"></i> Helices</a></li>
+      <li id="tomo"><a href="#"><i class="bi bi-layers"></i> Tomography</a></li>
+      <li id="tools"><a href="#"><i class="bi bi-wrench-adjustable"></i> Misc. Tools</a></li>
+     <!-- li id="debug"><a href="#"><i class="bi bi-bug"></i>Debug</a></li -->
+      <!-- li id="import"><a href="#"><i class="bi bi-folder2-open"></i> Explore</a></li -->
+    </ul>
+  </aside>
+  
+  <!-- aside class="jobs">
+    <ul>
+      <li><label><i class="bi "></i> Jobs</label></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Import/job001</a></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Baseline/job002</a></li>
+      <li><a href="#"><i class="bi bi-eye"></i><i class="bi bi-trash"></i><i class="bi bi-x-square"></i>Despiking/job003</a></li>
+    </ul>
+  </aside -->
+
+  <main>
+
+    <section class="tabs">
+        <button onclick="openDialog(event)">Browse...</button>
+    </section>
+  </main>
+  </div>
+  <footer>
+  </footer>
+  <!-- File Explorer -->
+  <dialog aria-labelledby="dialog_title" aria-describedby="dialog_description">
+    <div class="header">
+      <nav>
+        <ul>
+        <li>File Explorer <span class="toolset"><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></span></li>
+        </ul>
+    </div>
+    <div class="filetree">
+        <details>
+          <summary><i class="bi bi-folder2-open"></i><span>Import</span></summary>
+        </details>
+        <details>
+          <summary><i class="bi bi-folder2-open"></i><span>Micrographs</span></summary>
+        </details>
+        <details>
+          <summary><i class="bi bi-folder2-open"></i><span>CTF</span></summary>
+          <ul>
+          <li>
+            <details>
+              <summary><i class="bi bi-folder2-open"></i><span>job012</span></summary>
+
+              <ul>
+              <li><details>
+                <summary><i class="bi bi-folder2-open"></i><span>Micrographs</span></summary>
+                <ul>
+                <li><details>
+                <summary><i class="bi bi-folder2-open"></i><span>[1..100]</span></summary>
+                </details></li>
+                <li><details>
+                <summary><i class="bi bi-folder2-open"></i><span>[101..200]</span></summary>
+                </details></li>
+                </ul>
+              </details>
+              </li>
+              <li><span class="file"><i class="bi bi-file-earmark"></i>my_spectra_file.wip</span></li>
+              <li><span class="file"><i class="bi bi-file-earmark-bar-graph"></i>README.md.wip</span></li>
+              <li><span class="file"><i class="bi bi-file-pdf"></i>CTF_summary.pdf</span></li>
+              <li><span class="file"><i class="bi bi-file-earmark-play"></i>particles.mrcs</span></li>
+              <li><span class="file"><i class="bi bi-files"></i>particles.mrcs</span></li>
+              <li><span class="file"><i class="bi bi-file-earmark-image"></i>another_spectra.tif</span></li>
+              <li><span class="file"><i class="bi bi-file-earmark-medical"></i>some_metadata.star</span></li>
+              <li><span class="file"><i class="bi bi-journal"></i>run.out</span></li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary><i class="bi bi-folder2-open"></i><span>job017</span></a></summary>
+            </details>
+          <li>
+            <details>
+              <summary><i class="bi bi-folder2-open"></i><span>job019</span></a></summary>
+            </details>
+          </ul>
+        </details>
+        </li>
+        <details>
+          <summary><i class="bi bi-folder2-open"></i><span>Refine/</span></summary>
+        </details>
+        <details>
+          <summary><i class="bi bi-folder2-open"></i><span>RawData/</span></summary>
+        </details>
+      </ul>
+    </div>
+    <div class="flex flex-space-between">
+      <button id="open_dialog" class="cta">Open</button>
+      <button class="close_dialog">Cancel</button>
+
+    </div>
+  </dialog>
+  <script>
+   
+    // Go to Home, first
+    document.querySelector('aside #home').click();
+    
+  </script>
+ 
+  <script>
+    const dialog = document.querySelector("dialog");
+    const openDialogBtn = document.getElementById("open_dialog");
+    const closeDialogBtn = document.getElementById("close_dialog");
+
+    const elements = dialog.querySelectorAll(
+      'a, button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = elements[0];
+    const lastElement = elements[elements.length - 1];
+
+    const trapFocus = (e) => {
+      if (e.key === "Tab") {
+        const tabForwards = !e.shiftKey && document.activeElement === lastElement;
+        const tabBackwards = e.shiftKey && document.activeElement === firstElement;
+        if (tabForwards) {
+          // only TAB is pressed, not SHIFT simultaneously
+          // Prevent default behavior of keydown on TAB (i.e. focus next element)
+          e.preventDefault();
+          firstElement.focus();
+        } else if (tabBackwards) {
+          // TAB and SHIFT are pressed simultaneously
+          e.preventDefault();
+          lastElement.focus();
+        }
+      }
+    };
+
+    const openDialog = (e) => {
+      dialog.showModal();
+      dialog.addEventListener("keydown", trapFocus);
+    };
+
+    const closeDialog = (e) => {
+      e.preventDefault();
+      dialog.close();
+      dialog.removeEventListener("keydown", trapFocus);
+      openDialogBtn.focus();
+    };
+
+    openDialogBtn.addEventListener("click", openDialog);
+    closeDialogBtn.addEventListener("click", closeDialog);
+</script>
+</body>
+</html>

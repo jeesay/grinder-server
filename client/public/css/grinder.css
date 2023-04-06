@@ -401,6 +401,7 @@ input[type=text] {
   text-overflow: clip;
   overflow: hidden;
   direction: rtl;
+  text-align: left;
 }
 
 /* Switch */
@@ -540,19 +541,25 @@ output {
 
 /* File Explorer */
 
-#open_dialog {
-  margin: 0px 4px;
-}
-
 dialog {
+  display: none;
+  height: 60%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 60%;
   border: 1px solid black;
   border-radius: 4px 4px 4px 4px;
   /* border-radius: calc(5px * var(--ratio)); */
   box-shadow: 0 0 #0000, 0 0 #0000, 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   padding: 0;
   line-height: unset;
-  font-size: 1em;
-  resize: both;
+  font-size: 1.2em;
+}
+
+dialog[open] {
+    display: grid;
+    grid-template-rows: 40px auto 40px;
 }
 
 dialog .header {
@@ -571,6 +578,7 @@ dialog .header nav {
 dialog .footer {
   background-color: #444;
 }
+
 /* reset */
 dialog ul {
   position: unset;
@@ -578,51 +586,75 @@ dialog ul {
   height: unset;
 }
 
-dialog .main {
-  padding: 0px 10px;
-}
-dialog .main:after {
-  content: "";
-  display: table;
-  clear: both;
+dialog a {
+  text-decoration: none;
+  margin: 0;
 }
 
-#folders {
-  width: 30%;
-  float: left;
+dialog .filetree {
+  overflow-y: auto;
+}
+
+.filetree {
+  width: 100%;
+  height: 100%;
   font-size: 1em;
   border: solid 1px black;
   background-color: #eee;
   color: #444;
   padding: 0px 10px;
+  overflow: hidden;
 }
 
-#folders ul {
+/* https://codepen.io/bcmdr/pen/VxGKwJ */
+
+.filetree details  {
+  padding: 0;
+  border: unset;
+  margin: 0;
+}
+
+.filetree details[open]  {
+  padding-left: 0;
+}
+
+.filetree details > ul {
+  padding-left: 1.5rem;
+}
+
+.filetree summary {
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+.filetree details[open] summary {
+  border: unset;
+  padding: 0;
+  margin: 0;
+}
+
+.filetree ul {
   list-style: none;
+  margin: 0;
 }
 
-#folders li {
+.filetree li {
   margin-right: 10px;
   padding: 0;
 }
 
-#folders a {
+.filetree a {
   margin: 0px 10px;
   padding: 0;
 }
 
-#files {
-  width: 70%;
-  float: left;
-  margin: 0 auto;
+.filetree .file {
+  padding-left: 1rem;
 }
 
-#files ul {
-  width: 65%;
-  list-style: none;
-  padding: 0 10px;
+/** Next **/
 
-}
 .h1 {
   margin: 2rem 0 1rem;
   font-weight: 900;
