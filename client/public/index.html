@@ -14,6 +14,7 @@
   <script type="text/javascript" src="../src/dom.js"></script>
    <script type="text/javascript" src="../src/job.js"></script>
    <script type="text/javascript" src="../src/history.js"></script>
+ <script type="text/javascript" src="../src/browse.js"></script>
   <script type="text/javascript" src="../src/widget.js"></script>
   <script type="text/javascript" src="../src/menus/menu_common.js"></script>
   <script type="text/javascript" src="../src/menus/menu_import.js"></script>
@@ -30,6 +31,7 @@
   <script type="text/javascript" src="../src/menus/menu_helix.js"></script>
   <script type="text/javascript" src="../src/menus/menu.js"></script>
   <script type="text/javascript" src="../src/main.js"></script>
+
 </head>
 <body>
   <header>
@@ -109,38 +111,27 @@
   <footer>
   </footer>
   <!-- File Explorer -->
-  <dialog aria-labelledby="dialog_title" aria-describedby="dialog_description">
+  <dialog class="browse" aria-labelledby="dialog_title" aria-describedby="dialog_description">
     <div class="header">
       <nav>
         <ul>
-        <li>File Explorer <span class="toolset"><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></span></li>
+        <li id="dialog_title"></li>
+        <li><span class="space"></span></li>
+        <li><a href="#" title="Sort By"><i class="bi bi-sort-down-alt"></i></a></li>
+        <li><a href="#" title="Refresh"><i class="bi bi-arrow-clockwise"></i></a></li>
+        <li><a href="#" title="Select All"><i class="bi bi-check-all"></i></a></li>
+        <li><a href="#" title="Information"><i class="bi bi-info-circle"></i></a></li>
+        <li><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></li>
         </ul>
+      </nav>
     </div>
-    <div class="main">
-      <div id="folders">
-      <ul>
-        <li><a href="#">Baseline/</a></li>
-        <li><a href="#">Despiking/</a></li>
-        <li><a href="#">Import/</a></li>
-        <li><a href="#">Normalize/</a></li>
-        <li><a href="#">RawData/</a></li>
-      </ul>
-      </div>
-      <div id="files">
-      <ul>
-        <li>../</li>
-        <li>my_spectra_file.wip</li>
-        <li>README.md.wip</li>
-        <li>another_spectra.spc</li>
-        <li>some_data.csv</li>
-      </ul>
-      </div>
+    <div class="path"></div>
+    <div class="filetree"><ul></ul>
     </div>
-    <div class="flex flex-space-between">
-      <button id="confirm_dialog" class="cta">Open</button>
-      <button class="close_dialog">Cancel</button>
-
-    </div>
+    <footer>
+      <button id="open_dialog" class="cta">Open</button>
+      <button id="close_dialog">Cancel</button>
+    </footer>
   </dialog>
   <script>
     document.querySelectorAll('aside ul li')
@@ -155,49 +146,5 @@
     document.querySelector('aside #home').click();
     
   </script>
- 
-  <script>
-    const dialog = document.querySelector("dialog");
-    const openDialogBtn = document.getElementById("open_dialog");
-    const closeDialogBtn = document.getElementById("close_dialog");
-
-    const elements = dialog.querySelectorAll(
-      'a, button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = elements[0];
-    const lastElement = elements[elements.length - 1];
-
-    const trapFocus = (e) => {
-      if (e.key === "Tab") {
-        const tabForwards = !e.shiftKey && document.activeElement === lastElement;
-        const tabBackwards = e.shiftKey && document.activeElement === firstElement;
-        if (tabForwards) {
-          // only TAB is pressed, not SHIFT simultaneously
-          // Prevent default behavior of keydown on TAB (i.e. focus next element)
-          e.preventDefault();
-          firstElement.focus();
-        } else if (tabBackwards) {
-          // TAB and SHIFT are pressed simultaneously
-          e.preventDefault();
-          lastElement.focus();
-        }
-      }
-    };
-
-    const openDialog = () => {
-      dialog.showModal();
-      dialog.addEventListener("keydown", trapFocus);
-    };
-
-    const closeDialog = (e) => {
-      e.preventDefault();
-      dialog.close();
-      dialog.removeEventListener("keydown", trapFocus);
-      openDialogBtn.focus();
-    };
-
-    openDialogBtn.addEventListener("click", openDialog);
-    closeDialogBtn.addEventListener("click", closeDialog);
-</script>
 </body>
 </html>

@@ -104,6 +104,10 @@ const w_file = (desc) => h('div.row',
         attrs: {
           type:'button',
           value: 'Browse...',
+        },
+        dataset: ('dialog_title' in desc) ? {title: desc.dialog_title} : {},
+        on: {
+          click: openDialog
         }
       }
     )

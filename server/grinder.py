@@ -75,14 +75,20 @@ async def run(websocket,message,pathProject):
         await task
     elif event['action']['tool'] == 'BROWSE':
         # Get path
-        path = event['action']['args']
-        print(filename)
-        for root,dirs,files in os.walk('.'):
-            files = [ f for f in files if f.endswith( ('.star','.mrc','.mrcs','.tif') ) ]
-            for name in files:
-              print(os.path.join(root, name))
-            for name in dirs:
-              print(os.path.join(root, name))
+        args = event['action']['args'].split(' ')
+        path = args[args.index('--i')  + 1]
+        file_hidden = args.index('--hidden') if '--hidden' in args else -1
+        dirs=[]; files=[]
+        for item in os.listdir(path):
+          print(item)
+          if file_hidden and item[0] ==  '.':
+            continue
+          if os.path.isfile(os.path.join(path, item)):
+            files.append(item)
+          else:
+            dirs.append(item)
+        file_contents = {'dirs':dirs,'files': files}
+        print(file_contents)
         task = asyncio.create_task(send(websocket,file_contents))
         await task
     else:
@@ -129,8 +135,8 @@ os.environ["GRINDER_PROJECT"] = os.getcwd()
 # TODO exec("relion_import --version | egrep -o \'[0-9].*\'")
 
 cmd = ["""/usr/bin/grep -o '[0-9][^ ]*' ../relion_version.txt"""]
-proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-print(subprocess.check_output(cmd,shell=True))
+# HACK proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+# HACK print(subprocess.check_output(cmd,shell=True))
 
 # Check if `.GRINDER_lock` is present, stop 
 if not os.path.exists("./.GRINDER_lock") :

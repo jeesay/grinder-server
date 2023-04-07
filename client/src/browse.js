@@ -23,592 +23,190 @@
  * @param {HTMLElement} el Dialog box
  * @param {String} action Type of action to apply
  */
- function answerYes(el,action){
-  el.close();
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Project',
-    'name':"Project",
-    'param':[],
-    'algo':action,
-    'script':'gk_project'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
  
-/** Close the dialog
- *
- * @param {HTMLElement} el Dialog box
- */
- function answerNo(el){
-  el.close();
- }
- 
-/** Send a request to apply an action
- *
- * @param {String} action Type of action to apply
- */
- function checkProject(action){
-   const event = {
-    'end':0,
-    'action': {
-     'title':'Project',
-     'name':"Project",
-     'param':[],
-     'algo':action,
-     'script':'gk_project'
-    }
-   };
-   GIMMICK.websocket.send(JSON.stringify(event));
- }
- 
-/** Send request to empty the Trash folder
- *
- */
- function emptyTrash(){
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Job',
-    'name':'Job',
-    'param':[],
-    'algo':'Empty',
-    'script':'gk_workflow'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
- 
-/** Send request to search the available projects
- *
- */
- function displayProjects(){
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Project',
-    'name':'Project',
-    'param':[],
-    'algo':'ls',
-    'script':'gk_project'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
- 
-/** Send a request to open a past project
- *
- * @param {Event} ev Event saved
- */
- function openProject(ev){
-  let el = document.querySelectorAll('dialog#open');
-  for (let element of el){
-   element.close();
-  }
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Project',
-    'name':ev.target.textContent,
-    'param':[],
-    'algo':'Open',
-    'script':'gk_project'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
-
-/** Send request to search raw data
- *
- */
- function searchRawData(){
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Search',
-    'name':'RawData',
-    'param':[],
-    'algo':'RawData',
-    'script':'gk_search'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
-
-/** Send request to search available directories
- *
- */
- function searchDir(){
-  let el = document.querySelector("aside > ul > li.active");
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Search',
-    'name':el.textContent.replace(/ /g,""),
-    'param':[],
-    'algo':'Dir',
-    'script':'gk_search'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
-
-/** Send request to search available data
- *
- * @param {Event} ev Event saved
- */
- function searchJsonFiles(ev){
-  JOB.id = ev.target.textContent;
-  const event = {
-   'end':0,
-   'action': {
-    'title':'Search',
-    'name':ev.target.textContent,
-    'param':[],
-    'algo':'Data',
-    'script':'gk_search'
-   }
-  };
-  GIMMICK.websocket.send(JSON.stringify(event));
- }
-
-/** Send request to search job directories
- *
- * @param {Event} ev Event saved
- */
-function searchToolDir(ev){
- const event = {
-  'end':0,
-  'action':{
-   'title':'Search',
-   'name':ev.target.textContent,
-   'param':[],
-   'algo':'DirAlgo',
-   'script':'gk_search'
-  }
- };
- GIMMICK.websocket.send(JSON.stringify(event));
-}
-
-/** Open dialog box with two buttons
- *
- * @param {String} text Text to display in the dialog
- * @param {String} action Type of action to apply
- */
-const open_dialog = (filetree,action) => {
-  let el = h('dialog#newProject',[
-   h('header'),
-   h('div#label',[
-    h('label#text',filetree),
-   ]),
-   h('div#buttons',[
-     h('div#but1.button',[
-       h('button#yes',{on:{'click': (ev) => answerYes(el,action)}},"YES")
-     ]),
-     h('div#but2.button',[
-       h('button#no',{on:{'click': (ev) => answerNo(el)}},"NO")
-     ])
-   ])
-  ]);
-  document.body.appendChild(el);
-  el.showModal();
-}
-
-/** Open a dialog box with all project saved
- *
- * @param {Array} array Array containing title of the projects
- */
- function searchDialog(array){
-  let el = h('dialog#open',{
-    attrs:{'aria-labelledby':"dialog_title", 'aria-descibedby':'dialog_description'}
-  },
-  [
-    h('div.header',[
-      h('nav',[
-         h('ul',[
-           h('li',[
-             h('span.title',"File explorer"),
-             h('span.toolset',[
-               h('a#close_dialog',{
-                 attrs:{
-                   href:"#"
-                 },
-                 on:{'click': (ev) => closeDialog(ev)}
-               },
-               [
-                 h('i#cross.bi bi-x-square-fill')
-               ])
-             ])
-           ])
-         ])
-       ])
-     ]),
-
-     h('div.main',[
-      h('div#folders',[
-        h('ul#displayFolders')
-      ])
-    ]),
-   ]);
-
-  document.body.appendChild(el);
-  let ul = document.querySelectorAll("ul#displayFolders");
-  let lastChild = ul[ul.length-1];
-  for (let fold of array){
-   let folder = h('li',[
-    h('a',{
-     attrs :{
-      href:"#",
-      onclick: 'openProject(event)'
-     }
-    },
-    fold
-    )
-   ]);
-   lastChild.appendChild(folder);
-  }
-  el.showModal();
- }
- 
-/** Close all dialog boxes
- *
- * @param {Event} ev Event saved
- */
- function closeDialog(ev){
-  const dialogs = document.querySelectorAll('dialog');
-  const dialog = dialogs[dialogs.length-1];
-  dialog.close();
- }
-
-/** Open a dialog box with all raw data
- *
- * @param {Array} array Array containing title of the files
- */
- function openRawDialog(array){
-  let el = h('dialog#open',{
-   attrs:{'aria-labelledby':"dialog_title", 'aria-descibedby':'dialog_description'}
-   },
-   [
-    h('div.header',[
- 
-     h('nav',[
-       h('ul',[
-         h('li',[
-           h('span.title',"File explorer"),
-           h('span.toolset',[
-             h('a#close_dialog',{
-               attrs:{
-                 href:"#"
-               },
-               on:{'click': (ev) => closeDialog(ev)}
-             },
-             [
-               h('i#cross.bi bi-x-square-fill')
-             ])
-           ])
-         ])
-       ])
-     ])
-   ]),
- 
-   h('div.main',[
- 
-    h('div#folders',[
-     h('ul',[
-      h('li',[
-       h('a',{
-        attrs:{
-         href:"#"
-        }
-       },
-       "Raw_data"
-       )
-      ])
-     ])
-    ]),
- 
-    h('div#files',[
-     h('ul#displayFiles')
-    ])
- 
-   ])
-  ]);
- 
-  document.body.appendChild(el);
- 
-  let ul = document.querySelectorAll("ul#displayFiles");
-  let lastChild = ul[ul.length-1];
-  for (let file of array){
-   let f = h('li',[
-    h('i#fileicon.bi bi-file-earmark-binary'),
-    h('a',{
-     attrs :{
-      href:"#",
-     },
-     on:{'click': (ev) => setValueImport(ev)}
-    },
-    file
-    )
-   ]);
-   lastChild.appendChild(f);
-  }
-  el.showModal();
- }
-
-/** Update value of the import button
- *
- * @param {Event} ev Event saved
- */
- function setValueImport(ev){
-  closeDialog(ev);
-  let button = document.querySelector("button#Import");
-  button.setAttribute("value",ev.target.textContent);
-  let lab = document.querySelector("label#value");
-  lab.textContent = ev.target.textContent;
- }
- 
-/** Open a dialog box with all available directories and data
- *
- * @param {Array} array Array containing title of the directories
- */
- function openDirDialog(array){
-  let el = h('dialog#open',{
-   attrs:{'aria-labelledby':"dialog_title", 'aria-descibedby':'dialog_description'}
-   },
-   [
-     h('div.header',[
- 
-       h('nav',[
-         h('ul',[
-           h('li',[
-             h('span.title',"File explorer"),
-             h('span.toolset',[
-               h('a#close_dialog',{
-                 attrs:{
-                   href:"#"
-                 },
-                 on:{'click': (ev) => closeDialog(ev)}
-               },
-               [
-                 h('i#cross.bi bi-x-square-fill')
-               ])
-             ])
-           ])
-         ])
-       ])
-     ]),
- 
-     h('div.main',[
-      h('div#folders',[
-        h('ul#displayFolders')
-      ]),
-      h('div#folders',[
-       h('ul#displayFoldersJobs',[
-        h('li',[
-         h('a')
-        ])
-       ])
-      ]),
-      h('div#files',[
-       h('ul#displayFiles')
-      ])
-    ]),
-   ]);
- 
-  document.body.appendChild(el);
-  let ul = document.querySelectorAll("ul#displayFolders");
-  let lastChild = ul[ul.length-1];
-  for (let fold of array){
-   let folder = h('li',[
-    h('i#fileicon.bi bi-folder'),
-    h('a',{
-     attrs :{
-      href:"#",
-      onclick: 'searchToolDir(event)'
-     }
-    },
-    fold
-    )
-   ]);
-   lastChild.appendChild(folder);
-  }
-
-  if (Object.keys(WORKFLOW).length != 2){
-   let folder = h('li',[
-    h('i#fileicon.bi bi-folder'),
-    h('a',{
-     attrs :{
-      href:"#",
-      onclick: 'updateDialogWorkflow()'
-     }
-    },
-    "Workflow"
-    )
-   ]);
-   lastChild.appendChild(folder);
-  }
-
-  el.showModal();
- }
-
-/** Update dialog when non real folder Workflow is opened
- * 
- */
-function updateDialogWorkflow(){
- let ul = document.querySelectorAll("ul#displayFoldersJobs");
- let lastChild = ul[ul.length-1];
- clear(lastChild);
-
- for (let wjob of Object.keys(WORKFLOW)){
-  if (wjob.includes("job_")){
-   let id = wjob.split("_")[1];
-   let path = WORKFLOW[wjob]["action"]["title"] + "/job_" + id;
-   let folder = h('li',[
-    h('i#fileicon.bi bi-folder-symlink'),
-    h('a',{
-     attrs :{
-      href:'#',
-      onclick: 'updateDialogWorkflowFile(event)'
-     }
-    },
-    path
-    )
-   ]);
-   lastChild.appendChild(folder);
-  }
- }
-}
-
-/** Update the dialog with the non real json file
- * 
- * @param {Event} ev Event of the click
- */
-function updateDialogWorkflowFile(ev){
- let ul = document.querySelectorAll("ul#displayFiles");
- let lastChild = ul[ul.length-1];
- clear(lastChild);
- let name = "File.json";
-
- let f = h('li',[
-  h('i#fileicon.bi bi-file-earmark'),
-  h('a',{
-   attrs :{
-    href:"#",
-    id: ev.target.textContent,
-    onclick: "setValueFileWorkflow(event)"
-   }
-  },
-  name
-  )
- ]);
- lastChild.appendChild(f);
-}
-
-/** Update the dialog box with files from the selected directories
- *
- * @param {Array} array Array containing title of the files
- */
- function updateDialog(array){
-  let ul = document.querySelectorAll("ul#displayFiles");
-  let lastChild = ul[ul.length-1];
-  clear(lastChild);
-  if (array.length == 1 && array[0] == ""){
-   lastChild.textContent = "No file found";
+ const browse_dir = async (path,hidden=true) => {
+   if (!GRINDER.server.connected) {
+    alert('Please connect to the ws server');
   }
   else {
-   for (let file of array){
-    let f = h('li',[
-     h('i#fileicon.bi bi-file-earmark-binary'),
-     h('a',{
-      attrs :{
-       href:"#",
-      },
-      on:{'click': (ev) => setValueFile(ev)}
-     },
-     file
-     )
-    ]);
-    lastChild.appendChild(f);
-   }
-  }
- }
+   // Step #1 - Get default_pipeline.json of Project
+    let cli = {
+      action: {
+        tool: 'BROWSE',
+        args: `--i ${path} ${(hidden) ? '--hidden true' : ''}`
+      }
+    };
   
- 
-/** Update value of load button
- *
- * @param {Event} ev Event saved
- */
- function setValueFile(ev){
-  closeDialog(ev);
-  let button = document.querySelector("button#load");
-  button.setAttribute("value",ev.target.textContent);
-  let lab = document.querySelector("label#value");
-  lab.textContent = ev.target.textContent;
+    GRINDER.server.send(JSON.stringify(cli));
+    const response = await GRINDER.server.receive();
+    return response;
  }
+}
 
-/** Update value of load button when workflow is used
- * 
- * @param {Event} ev Event of the click
- */
-function setValueFileWorkflow(ev){
- closeDialog(ev);
- let button = document.querySelector("button#load");
- let hiddenjob = (ev.target.id).split("/")[1];
- let path = hiddenjob.split("_")[0];
- let hiddenid = hiddenjob.split("_")[1];
- let id = `${GIMMICK.config.jobs_counter + parseInt(hiddenid) + 1}`;
- let file = (WORKFLOW[hiddenjob]['action']['param'][0]['data']).split("/")[1];
- path = path + "_" + id + "/" + file;
+const select_file = (target,fullfilename) => {
+  const parent = target.closest('li');
+  if (parent.classList.contains('selected')) {
+    parent.classList.remove('selected');
+    parent.removeChild(parent.lastChild);
+  }
+  else {
+    parent.classList.add('selected');
+    parent.appendChild(h('i.bi.bi-check2-square.check',{style:{color: '#eee'}}));
+  }
 
- button.setAttribute("value",path);
- let lab = document.querySelector("label#value");
- lab.textContent = file;
+  console.log('select',fullfilename);
+}
+
+const update_path = async (path) => {
+  // Split
+  const dirs = path.split('/');
+  // Init
+  let parent = document.querySelector('dialog .path');
+  
+  const folder_path = [
+    h('a',
+      {
+        props: {href: '#'},
+        dataset: {path:dirs[0]},
+        on: {
+          click: (ev) => update_path(ev.target.closest('a').dataset.path)
+       } 
+      },
+      [
+        h('i.bi.bi-house-door')
+      ]
+    )
+  ];
+  
+  // Build
+  let fullpath = '.';
+  let children = dirs.slice(1).reduce( (accu,dir) => {
+    fullpath += '/' + dir;
+    accu.push(h('i.bi.bi-chevron-right'));
+    accu.push(h('a',
+      {
+        props: {href: '#'},
+        dataset: {path:fullpath},
+        on: {
+          click: (ev) => update_path(ev.target.dataset.path)
+        }
+      },
+      dir
+      )
+    );
+    return accu;
+  },folder_path);
+  parent.replaceChildren(...children);
+  
+  // Step #2 - Fill panel `filetree with folders first and then files
+  content = await browse_dir(path);
+  content = JSON.parse(content);
+  console.log(content);
+  parent = document.querySelector('dialog .filetree ul');
+  folders = content.dirs.sort().map( dir => {
+    const child = h('li',[
+      h('a',
+        {
+          props: {href: '#'},
+          dataset: {path:dir},
+          on: {
+            click: (ev) => update_path(`${path}/${dir}`)
+          }
+        },
+        [
+          h('i.bi.bi-folder-fill'),
+          h('span',dir)
+        ]
+      )
+    ]);
+    return child;
+  });
+  
+  const extensions={
+    jpeg: 'bi-file-earmark-image',
+    jpg: 'bi-file-earmark-image',
+    json: 'bi-filetype-json',
+    mrc: 'bi-file-earmark-image',
+    mrcs: 'bi-files',
+    pdf: 'bi-file-pdf',
+    png: 'bi-file-earmark-image',
+    star: 'bi-file-earmark-medical',
+    tif: 'bi-file-earmark-image',
+    tiff: 'bi-file-earmark-image',
+  };
+  files = content.files.sort().map( file => {
+    const extension = file.split('.').pop();
+    const icon_extension = extensions[extension] || 'bi-file';
+    const child = h('li',[
+      h('a',
+        {
+          props: {href: '#'},
+          dataset: {path:file},
+          on: {
+            click: (ev) => select_file(ev.target,`${path}/${file}`)
+          }
+        },
+        [
+          h(`i.bi.${icon_extension}`),
+          h('span',file)
+        ]
+      )
+    ]);
+    return child;
+  });
+
+  parent.replaceChildren(...folders,...files);
 }
 
 
-/** Update the dialog box with job folders
- * 
- * @param {Array} array Array containing title of the files
- */
- function updateDirTools(array){
-  let files = document.querySelectorAll("ul#displayFiles");
-  let child = files[files.length-1];
-  clear(child);
-  let ul = document.querySelectorAll("ul#displayFoldersJobs");
-  let lastChild = ul[ul.length-1];
-  clear(lastChild);
-  for (let fold of array){
-   let folder = h('li',[
-    h('i#fileicon.bi bi-folder'),
-    h('a',{
-     attrs :{
-      href:"#",
-      onclick: 'searchJsonFiles(event)'
-     }
-    },
-    fold
-    )
-   ]);
-   lastChild.appendChild(folder);
-  }
- }
-Footer
-© 2023 GitHub, Inc.
-Footer navigation
+/************* E VE N T S *******************/
 
-  Terms
-  Privacy
-  Security
-  Status
-  Docs
-  Contact GitHub
-  Pricing
-  API
-  Training
-  Blog
-  About
+const openDialog = (ev) => {
 
-gimmick/dialog.js at testing · jeesay/gimmick
+  const trapFocus = (e) => {
+    if (e.key === "Tab") {
+      const tabForwards = !e.shiftKey && document.activeElement === lastElement;
+      const tabBackwards = e.shiftKey && document.activeElement === firstElement;
+      if (tabForwards) {
+        // only TAB is pressed, not SHIFT simultaneously
+        // Prevent default behavior of keydown on TAB (i.e. focus next element)
+        e.preventDefault();
+        firstElement.focus();
+      } else if (tabBackwards) {
+        // TAB and SHIFT are pressed simultaneously
+        e.preventDefault();
+        lastElement.focus();
+      }
+    }
+  };
+    
+  let dialog = document.querySelector("dialog");
+  dialog.querySelector('#dialog_title').innerText = ev.target.dataset.title;
+  
+  const elements = dialog.querySelectorAll(
+    'a, button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
+  );
+  const firstElement = elements[0];
+  const lastElement = elements[elements.length - 1];
 
+  const openDialogBtn = document.getElementById("open_dialog");
+  const closeDialogBtn = document.getElementById("close_dialog");
+  dialog.showModal();
+  dialog.addEventListener("keydown", trapFocus);
+  update_path('.');
+};
+
+const closeDialog = (e) => {
+  e.preventDefault();
+  dialog.close();
+  dialog.removeEventListener("keydown", trapFocus);
+  openDialogBtn.focus();
+};
+
+
+/************* M A I N *******************/
+
+
+openDialogBtn.addEventListener("click", openDialog);
+closeDialogBtn.addEventListener("click", closeDialog);
+    

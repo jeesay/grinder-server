@@ -547,7 +547,7 @@ dialog {
   left: 0;
   position: fixed;
   top: 0;
-  width: 60%;
+  width: 40%;
   border: 1px solid black;
   border-radius: 4px 4px 4px 4px;
   /* border-radius: calc(5px * var(--ratio)); */
@@ -559,16 +559,44 @@ dialog {
 
 dialog[open] {
     display: grid;
-    grid-template-rows: 40px auto 40px;
+    grid-template-rows: 40px 40px auto 40px;
+}
+
+/* reset */
+dialog ul {
+  position: unset;
+  width: unset;
+  height: unset;
+  list-style: none;
+}
+
+dialog a {
+  all: unset;
+  cursor: pointer;
+  margin: 0;
+  color: #444;
 }
 
 dialog .header {
   padding: 10px;
-  background-color: #3288bd;
+  background-color: #ddd; /*#3288bd; */
 }
 
 dialog .header nav {
   position: unset;
+}
+
+dialog .header nav ul {
+  display: flex;
+}
+
+dialog .header .space {
+  display: inline-block;
+  width: 40px;
+}
+
+dialog .header nav li:nth-child(2) {
+  margin-left: auto;
 }
 
 .toolset {
@@ -579,20 +607,9 @@ dialog .footer {
   background-color: #444;
 }
 
-/* reset */
-dialog ul {
-  position: unset;
-  width: unset;
-  height: unset;
-}
 
-dialog a {
-  text-decoration: none;
-  margin: 0;
-}
-
-dialog .filetree {
-  overflow-y: auto;
+.directory {
+  font-weight: bold;
 }
 
 .filetree {
@@ -602,8 +619,9 @@ dialog .filetree {
   border: solid 1px black;
   background-color: #eee;
   color: #444;
-  padding: 0px 10px;
+  /*padding: 0px 10px;*/
   overflow: hidden;
+  overflow-y: auto;
 }
 
 /* https://codepen.io/bcmdr/pen/VxGKwJ */
@@ -640,8 +658,21 @@ dialog .filetree {
 }
 
 .filetree li {
-  margin-right: 10px;
+  margin:0 ;
   padding: 0;
+}
+
+.filetree .selected {
+  display: flex;
+  background-color: #444;
+}
+
+.filetree .check {
+  margin-left: auto;
+}
+
+.filetree .selected a {
+  color: #eee;
 }
 
 .filetree a {

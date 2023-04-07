@@ -205,7 +205,7 @@ const set_job_params = (gui,json) => {
                 el.setSelectionRange(len, len);
             }
           }
-        );
+        });
       }
     })
   });

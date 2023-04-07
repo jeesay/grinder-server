@@ -1,6 +1,6 @@
 const GRINDER = {
   version: '0.1',
-  server: undefined,
+  server: new WSClient()
 };
   
  /**
@@ -49,7 +49,6 @@ const connect_to_ws_server = async () => {
   const port = document.getElementById('ws_port').value;
 
   // Open the WebSocket connection and register event handlers.
-  GRINDER.server = new WSClient();
   await GRINDER.server.connect(`ws://${ip_address}:${port}/`);
 
   if (GRINDER.server.connected) {
