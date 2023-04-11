@@ -52,7 +52,12 @@ const connect_to_ws_server = async () => {
   await GRINDER.server.connect(`ws://${ip_address}:${port}/`);
 
   if (GRINDER.server.connected) {
-      alert(`[open] Connection established with server ws://${ip_address}:${port}/`);
+      alert(`[Open] Connection established with server ws://${ip_address}:${port}/`);
+      document.getElementById('connect').innerHTML = '<i class="bi bi-wifi"></i>Connected';
+      document.getElementById('connect').style.color = 'lightgreen';
+  }
+  else {
+      alert(`[Fail] Unable to connect to the server ws://${ip_address}:${port}/`);
   }
 
 /*

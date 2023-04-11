@@ -75,22 +75,23 @@
   <div class="wrapper">
   <aside class="tools">
     <ul>
-      <li id="home"><a href="#"><i class="bi bi-house-door"></i> Home</a></li>
-      <li id="import"><a href="#"><i class="bi bi-download"></i> Import</a></li>
-      <li id="motioncorr"><a href="#"><i class="bi bi-graph-up"></i> Motion correction</a></li>
-      <li id="ctf"><a href="#"><i class="bi bi-bullseye"></i> CTF computation</a></li>
-      <li id="picking"><a href="#"><i class="bi bi-fullscreen"></i> Picking</a></li>
-      <li id="extract"><a href="#"><i class="bi bi-crop"></i> Particle extraction</a></li>
-      <li id="class2d"><a href="#"><i class="bi bi-sort-numeric-down"></i> 2D classification</a></li>
-      <li id="rec3d"><a href="#"><i class="bi bi-badge-3d"></i> 3D</a></li>
-      <li id="postprocess"><a href="#"><i class="bi bi-stars"></i> Post-processing</a></li>
-      <li id="metrics"><a href="#"><i class="bi bi-trophy"></i>Metrics</a></li>
-      <li id="enhance"><a href="#"><i class="bi bi-badge-hd"></i> Enhancement</a></li>
-      <li id="helix"><a href="#"><i class="bi bi-h-square"></i> Helices</a></li>
-      <li id="tomo"><a href="#"><i class="bi bi-layers"></i> Tomography</a></li>
-      <li id="tools"><a href="#"><i class="bi bi-wrench-adjustable"></i> Misc. Tools</a></li>
-     <!-- li id="debug"><a href="#"><i class="bi bi-bug"></i>Debug</a></li -->
-      <!-- li id="import"><a href="#"><i class="bi bi-folder2-open"></i> Explore</a></li -->
+      <li id="connect"><i class="bi bi-wifi-off"></i>Unconnected</li>
+      <li id="home"><i class="bi bi-house-door"></i> Home</li>
+      <li id="import"><i class="bi bi-download"></i> Import</li>
+      <li id="motioncorr"><i class="bi bi-graph-up"></i> Motion correction</li>
+      <li id="ctf"><i class="bi bi-bullseye"></i> CTF computation</li>
+      <li id="picking"><i class="bi bi-fullscreen"></i> Picking</li>
+      <li id="extract"><i class="bi bi-crop"></i> Particle extraction</li>
+      <li id="class2d"><i class="bi bi-sort-numeric-down"></i> 2D classification</li>
+      <li id="rec3d"><i class="bi bi-badge-3d"></i> 3D</li>
+      <li id="postprocess"><i class="bi bi-stars"></i> Post-processing</li>
+      <li id="metrics"><i class="bi bi-trophy"></i>Metrics</li>
+      <li id="enhance"><i class="bi bi-badge-hd"></i> Enhancement</li>
+      <li id="helix"><i class="bi bi-h-square"></i> Helices</li>
+      <li id="tomo"><i class="bi bi-layers"></i> Tomography</li>
+      <li id="tools"><i class="bi bi-wrench-adjustable"></i> Misc. Tools</li>
+     <!-- li id="debug"><i class="bi bi-bug"></i>Debug</a></li -->
+      <!-- li id="import"><i class="bi bi-folder2-open"></i> Explore</a></li -->
     </ul>
   </aside>
   
@@ -111,7 +112,7 @@
   <footer>
   </footer>
   <!-- File Explorer -->
-  <dialog class="browse" aria-labelledby="dialog_title" aria-describedby="dialog_description">
+  <dialog class="filechooser" aria-labelledby="dialog_title" aria-describedby="dialog_description">
     <div class="header">
       <nav>
         <ul>
@@ -119,7 +120,10 @@
         <li><span class="space"></span></li>
         <li><a href="#" title="Sort By"><i class="bi bi-sort-down-alt"></i></a></li>
         <li><a href="#" title="Refresh"><i class="bi bi-arrow-clockwise"></i></a></li>
-        <li><a href="#" title="Select All"><i class="bi bi-check-all"></i></a></li>
+<!-- Only for multi-selection
+        <li><input type="text" placeholder="&#xf52a; Select files with pattern" style="font-family: 'Asap Condensed', bootstrap-icons !important;"/></li>
+        <li><a href="#" title="Select All Files Matching Pattern"><i class="bi bi-check-all"></i></a></li>
+-->
         <li><a href="#" title="Information"><i class="bi bi-info-circle"></i></a></li>
         <li><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></li>
         </ul>
@@ -129,17 +133,21 @@
     <div class="filetree"><ul></ul>
     </div>
     <footer>
-      <button id="open_dialog" class="cta">Open</button>
-      <button id="close_dialog">Cancel</button>
+      <a id="open_file" href="#">Open</button>
+      <a id="cancel" href="#">Cancel</button>
     </footer>
   </dialog>
   <script>
     document.querySelectorAll('aside ul li')
-      .forEach(w => w.addEventListener('click', (ev) => {
-        document.querySelectorAll('aside ul li').forEach(ww => ww.classList.remove("active"));
-        w.classList.add("active");
-        w_navtab(document.querySelector('section'),menus[w.id]);
-      })
+      .forEach( (w,i) => {
+        if (i !== 0) {
+          w.addEventListener('click', (ev) => {
+            document.querySelectorAll('aside ul li').forEach(ww => ww.classList.remove("active"));
+            w.classList.add("active");
+            w_navtab(document.querySelector('section'),menus[w.id]);
+          });
+        }
+      }
     );
     
     // Go to Home, first

@@ -127,11 +127,21 @@ aside li{
   /* float: left; */
   margin-left: 10px;
 }
+
+aside #connect {
+  font-weight: bold;
+  font-size: 24px;
+  color: red;
+}
+
+/*
 aside a{
   color: #aaa;
   text-decoration: none;
   padding: 10px 10px;
 }
+*/
+
 aside i{
   margin-right: 10px;
 }
@@ -139,8 +149,6 @@ aside i{
 aside li.active{
   background: #ddd;
   opacity: 1;
-}
-aside li.active a{
   color: #222;
 }
 
@@ -182,7 +190,7 @@ main {
   height: 100vh;
   position: relative;
   margin: 3rem 0;
-  background: #1abc9c;
+  background: #acacac;; /* #1abc9c; */
 }
 .tabs::before,
 .tabs::after {
@@ -204,8 +212,8 @@ main {
   line-height: 2.75em;
   height: 3em;
   padding: 0 1.618em;
-  background: #1abc9c;
-  border-right: 0.125rem solid #16a085;
+  background: #acacac;; /* #1abc9c; */
+  border-right: 0.125rem solid #888;
   color: #fff;
   cursor: pointer;
   top: 0;
@@ -400,8 +408,11 @@ input[type=text], input[type=number], input[type=range], select {
 input[type=text] {
   text-overflow: clip;
   overflow: hidden;
-  direction: rtl;
-  text-align: left;
+/*  text-align: left; */
+}
+
+.browse {
+  margin-left: 4px;
 }
 
 /* Switch */
@@ -549,7 +560,7 @@ dialog {
   top: 0;
   width: 40%;
   border: 1px solid black;
-  border-radius: 4px 4px 4px 4px;
+  /* border-radius: 4px 4px 4px 4px; */
   /* border-radius: calc(5px * var(--ratio)); */
   box-shadow: 0 0 #0000, 0 0 #0000, 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   padding: 0;
@@ -559,7 +570,8 @@ dialog {
 
 dialog[open] {
     display: grid;
-    grid-template-rows: 40px 40px auto 40px;
+    grid-template-rows: 40px 40px 1fr 40px;
+    overflow: unset;
 }
 
 /* reset */
@@ -578,8 +590,9 @@ dialog a {
 }
 
 dialog .header {
-  padding: 10px;
+  padding: 0 10px;
   background-color: #ddd; /*#3288bd; */
+  line-height: 40px;
 }
 
 dialog .header nav {
@@ -599,14 +612,36 @@ dialog .header nav li:nth-child(2) {
   margin-left: auto;
 }
 
+dialog .path {
+  line-height: 40px;
+  border-bottom: solid 1px #ccc;
+  background-color: #f7f7f7;
+}
+
+
 .toolset {
   float: right;
 }
 
-dialog .footer {
-  background-color: #444;
+dialog footer {
+  height: unset;
+  padding: 0;
+  line-height: 40px;
+  border-top: solid 1px #ccc;
+  background-color: #eee;
+  text-align: right;
 }
 
+dialog footer a {
+  padding: 4px 10px;
+  margin: 0 10px;
+  background-color: #ddd; 
+  border-radius: 4px; 
+}
+
+dialog footer a:hover {
+  background-color: #ccc; 
+}
 
 .directory {
   font-weight: bold;
@@ -616,15 +651,18 @@ dialog .footer {
   width: 100%;
   height: 100%;
   font-size: 1em;
-  border: solid 1px black;
-  background-color: #eee;
+  /* border: solid 1px black; */
+  background-color: #f7f7f7;
   color: #444;
   /*padding: 0px 10px;*/
   overflow: hidden;
   overflow-y: auto;
 }
 
-/* https://codepen.io/bcmdr/pen/VxGKwJ */
+
+/* 
+
+https://codepen.io/bcmdr/pen/VxGKwJ 
 
 .filetree details  {
   padding: 0;
@@ -651,6 +689,7 @@ dialog .footer {
   padding: 0;
   margin: 0;
 }
+*/
 
 .filetree ul {
   list-style: none;
@@ -667,6 +706,13 @@ dialog .footer {
   background-color: #444;
 }
 
+.filetree .selected::after {
+  content: "\F271";
+  color: #fff;
+  font-family: bootstrap-icons !important;
+  margin-right: 15px;
+}
+
 .filetree .check {
   margin-left: auto;
 }
@@ -676,6 +722,8 @@ dialog .footer {
 }
 
 .filetree a {
+  display: inline-block;
+  width: 100%;
   margin: 0px 10px;
   padding: 0;
 }

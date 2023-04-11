@@ -13,6 +13,7 @@ const home_tabs = [
         title: 'Server Connection',
         widget: 'fieldset',
         children: [
+/*
           {
             name: 'ws_ssh',
             title:  'Encrypted',
@@ -20,6 +21,7 @@ const home_tabs = [
             default: 'false',
             help: 'wss protocol'
           },
+*/
           {
             name: 'ws_server_ip',
             title:  'Server IP Address',

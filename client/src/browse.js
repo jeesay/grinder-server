@@ -24,6 +24,155 @@
  * @param {String} action Type of action to apply
  */
  
+class FileChooser {
+  /**
+   * mode: single, multi, series
+   */
+  constructor(mode='single',parent='body') {
+    this.parent = parent;
+    this.mode = mode;
+    this.files = [];
+    document.appendChild(_createHTML());
+  }
+  
+  open(root,directories,files) {
+    // Step #1
+    // Step #2
+  }
+  
+  update(root,directories,files) {
+  
+  }
+  
+  _create() {
+  
+    const multi = [];
+    
+    return h('dialog.browse',
+      {
+        props: {
+          'aria-labelledby' : 'dialog_title',
+          'aria-describedby': "dialog_description"
+        }
+      },
+      [
+        h('div.header',
+          [
+            h('nav',
+            [
+              h('ul',
+                [
+                  h('li#dialog_title'),
+                  h('li',
+                    [h('span.space')]
+                  ),
+                  h('li',
+                    [
+                      h('a',
+                        {
+                          props: {href:'#',title:'Sort By'}
+                        },
+                        [
+                          h('i.bi.bi-sort-down-alt')
+                        ]
+                      )
+                    ]
+                  ),
+                  h('li',
+                    [
+                      h('a',
+                        {
+                          props: {href:'#',title:'Refresh'}
+                        },
+                        [
+                          h('i.bi.bi-arrow-clockwise')
+                        ]
+                      )
+                    ]
+                  ),
+                  h('li',
+                    [
+                      h('a',
+                        {
+                          props: {href:'#',title:'Select All'}
+                        },
+                        [
+                          h('i.bi.bi-check-all')
+                        ]
+                      )
+                    ]
+                  ),
+                  h('li',
+                    [
+                      h('a',
+                        {
+                          props: {href:'#',title:'Information'}
+                        },
+                        [
+                          h('i.bi.bi-info-circle')
+                        ]
+                      )
+                    ]
+                  ),
+                  h('li',
+                    [
+                      h('a#close_dialog',
+                        {
+                          props: {href:'#',title:'Close Dialog'}
+                        },
+                        [
+                          h('i.bi.bi-x-circle')
+                        ]
+                      )
+                    ]
+                  ),
+                ]
+              )
+              ]
+            )
+          ]
+        ),
+        h('div.path'),
+        h('div.filetree',[h('ul')]),
+        h('footer',
+          [
+            h('a#open_file',
+              {
+                props: {href:'#',title:'Open file.s'}
+              },
+              'Open'
+            ),
+            h('a#cancel',
+              {
+                props: {href:'#',title:'Cancel'}
+              },
+              'Cancel'
+            )
+          ]
+        )
+      ]
+    );
+    
+  }
+} // End of class FileBrowser
+
+const extensions_and_icons = {
+  csv: 'bi-file-earmark-spreadsheet',
+  gif: 'bi-file-earmark-image',
+  jpeg: 'bi-file-earmark-image',
+  jpg: 'bi-file-earmark-image',
+  json: 'bi-filetype-json',
+  mrc: 'bi-file-earmark-image',
+  mrcs: 'bi-files',
+  pdf: 'bi-file-pdf',
+  png: 'bi-file-earmark-image',
+  star: 'bi-file-earmark-medical',
+  tif: 'bi-file-earmark-image',
+  tiff: 'bi-file-earmark-image',
+  tsv: 'bi-file-earmark-spreadsheet',
+  txt: 'bi-file-earmark-text'
+};
+  
  const browse_dir = async (path,hidden=true) => {
    if (!GRINDER.server.connected) {
     alert('Please connect to the ws server');
@@ -43,26 +192,46 @@
  }
 }
 
-const select_file = (target,fullfilename) => {
+const select_file = (target,fullfilename,mode='single') => {
   const parent = target.closest('li');
+  if (mode === 'single') {
+    if (!parent.classList.contains('selected') ) {
+      // Remove all the other selections
+      const ulist = target.closest('ul');
+      for (const item of ulist.children) {
+        item.classList.remove('selected');
+      }
+    }
+  }
+
   if (parent.classList.contains('selected')) {
     parent.classList.remove('selected');
     parent.removeChild(parent.lastChild);
   }
   else {
     parent.classList.add('selected');
-    parent.appendChild(h('i.bi.bi-check2-square.check',{style:{color: '#eee'}}));
+    /*parent.appendChild(h('i.bi.bi-check2-square.check',{style:{color: '#eee'}}));*/
   }
 
   console.log('select',fullfilename);
 }
 
-const update_path = async (path) => {
-  // Split
+const detect_prefix = (files) => {
+  // Step #1 - Create all words
+  words = [];
+  for (let i of Array.from({length: files[0].length},(_,i) => i+1)) {
+    words.push(files[0]);
+  } 
+}
+
+const update_path = async (path,filter_files) => {
+  // Step #1 - Split
   const dirs = path.split('/');
-  // Init
-  let parent = document.querySelector('dialog .path');
   
+  // Step #2 - Init
+  let parent = document.querySelector('dialog .path');
+
+  // Step #3 - Build path buttons for navigating thru directories  
   const folder_path = [
     h('a',
       {
@@ -78,7 +247,6 @@ const update_path = async (path) => {
     )
   ];
   
-  // Build
   let fullpath = '.';
   let children = dirs.slice(1).reduce( (accu,dir) => {
     fullpath += '/' + dir;
@@ -98,7 +266,7 @@ const update_path = async (path) => {
   },folder_path);
   parent.replaceChildren(...children);
   
-  // Step #2 - Fill panel `filetree with folders first and then files
+  // Step #4 - Fill panel `filetree with folders first and then files
   content = await browse_dir(path);
   content = JSON.parse(content);
   console.log(content);
@@ -108,7 +276,7 @@ const update_path = async (path) => {
       h('a',
         {
           props: {href: '#'},
-          dataset: {path:dir},
+          dataset: {path:`${path}/${dir}`},
           on: {
             click: (ev) => update_path(`${path}/${dir}`)
           }
@@ -122,26 +290,18 @@ const update_path = async (path) => {
     return child;
   });
   
-  const extensions={
-    jpeg: 'bi-file-earmark-image',
-    jpg: 'bi-file-earmark-image',
-    json: 'bi-filetype-json',
-    mrc: 'bi-file-earmark-image',
-    mrcs: 'bi-files',
-    pdf: 'bi-file-pdf',
-    png: 'bi-file-earmark-image',
-    star: 'bi-file-earmark-medical',
-    tif: 'bi-file-earmark-image',
-    tiff: 'bi-file-earmark-image',
-  };
   files = content.files.sort().map( file => {
     const extension = file.split('.').pop();
-    const icon_extension = extensions[extension] || 'bi-file';
-    const child = h('li',[
+    const icon_extension = extensions_and_icons[extension] || 'bi-file-earmark';
+    const child = h('li',
+      {
+        dataset: {path: fullpath,file:file},
+      },
+    [
       h('a',
         {
           props: {href: '#'},
-          dataset: {path:file},
+          dataset: {path: fullpath,file:file},
           on: {
             click: (ev) => select_file(ev.target,`${path}/${file}`)
           }
@@ -180,6 +340,16 @@ const openDialog = (ev) => {
     }
   };
     
+  const closeDialog = (e) => {
+    e.preventDefault();
+    dialog.close();
+    dialog.removeEventListener("keydown", trapFocus);
+  };
+
+  /************* M A I N *******************/
+  let filter_files = ev.target.dataset.filter;
+  let inputfile = ev.target.dataset.inputfile;
+  
   let dialog = document.querySelector("dialog");
   dialog.querySelector('#dialog_title').innerText = ev.target.dataset.title;
   
@@ -189,24 +359,29 @@ const openDialog = (ev) => {
   const firstElement = elements[0];
   const lastElement = elements[elements.length - 1];
 
-  const openDialogBtn = document.getElementById("open_dialog");
+  // Open button...
+  const openFileBtn = document.getElementById("open_file");
   const closeDialogBtn = document.getElementById("close_dialog");
+
+  openFileBtn.addEventListener("click", (ev) => {
+    const items = document.querySelectorAll('.filetree ul li');
+    const files = [...items]
+      .filter((el) => el.classList.contains('selected'))
+      .map((el) => `${el.dataset.path}/${el.dataset.file}`);
+    console.log(files,ev.target.dataset);
+    const inputfileHTML = document.getElementById(inputfile);
+    inputfileHTML.value = files[0];
+    inputfileHTML.focus();
+    inputfileHTML.scrollLeft = inputfileHTML.scrollWidth;   
+    closeDialog(ev);
+  });
+  
+  document.getElementById('cancel').addEventListener("click", closeDialog);
+  closeDialogBtn.addEventListener("click", closeDialog);
+  
   dialog.showModal();
   dialog.addEventListener("keydown", trapFocus);
-  update_path('.');
-};
-
-const closeDialog = (e) => {
-  e.preventDefault();
-  dialog.close();
-  dialog.removeEventListener("keydown", trapFocus);
-  openDialogBtn.focus();
+  update_path('.', filter_files);
 };
 
 
-/************* M A I N *******************/
-
-
-openDialogBtn.addEventListener("click", openDialog);
-closeDialogBtn.addEventListener("click", closeDialog);
-    

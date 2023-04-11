@@ -81,38 +81,48 @@ const w_switch = (desc) => {
   );
 }
 
-const w_file = (desc) => h('div.row',
-  {
-    style: (desc.status === 'hidden') ? {display: 'none'} : {display:'flex'},
-  },
-  [
-    h('label',{attrs: {'for':desc.name}},desc.title),
-    h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
-    h(`input#${desc.name}.param`, 
-      {
-        attrs: {
-          type:'text',
-          value: desc.default,
-          placeholder: desc.placeholder || '',
-          name:desc.name
-        },
-        dataset: ('option' in desc) ? {option: desc.option} : {}
-      }
-    ),
-    h('input#open_dialog', 
-      {
-        attrs: {
-          type:'button',
-          value: 'Browse...',
-        },
-        dataset: ('dialog_title' in desc) ? {title: desc.dialog_title} : {},
-        on: {
-          click: openDialog
+const w_file = (desc) => {
+  let ds = {inputfile: desc.name};
+  if ('dialog_title' in desc) {
+    ds.title =  desc.dialog_title;
+  }
+  if ('filter' in desc) {
+    ds.filter = desc.filter;
+  }
+  
+  return h('div.row',
+    {
+      style: (desc.status === 'hidden') ? {display: 'none'} : {display:'flex'}
+    },
+    [
+      h('label',{attrs: {'for':desc.name}},desc.title),
+      h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
+      h(`input#${desc.name}.param`, 
+        {
+          attrs: {
+            type:'text',
+            value: desc.default,
+            placeholder: desc.placeholder || '',
+            name:desc.name
+          },
+          dataset: ('option' in desc) ? {option: desc.option} : {}
         }
-      }
-    )
-  ]
+      ),
+      h('input#open_dialog.browse', 
+        {
+          attrs: {
+            type:'button',
+            value: 'Browse...',
+          },
+          dataset: ds,
+          on: {
+            click: openDialog
+          }
+        }
+      )
+    ]
   );
+}
 
 const w_text = (desc) => h('div.row',
   [
