@@ -83,11 +83,17 @@ const w_switch = (desc) => {
 
 const w_file = (desc) => {
   let ds = {inputfile: desc.name};
-  if ('dialog_title' in desc) {
-    ds.title =  desc.dialog_title;
+  if ('filetype' in desc) {
+    ds.title = GRINDER.filetypes[desc.filetype].dialog_title;
+    ds.filter = GRINDER.filetypes[desc.filetype].filter;
   }
-  if ('filter' in desc) {
-    ds.filter = desc.filter;
+  else {
+    if ('dialog_title' in desc) {
+      ds.title =  desc.dialog_title;
+    }
+    if ('filter' in desc) {
+      ds.filter = desc.filter;
+    }
   }
   
   return h('div.row',

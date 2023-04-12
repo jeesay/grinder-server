@@ -265,4 +265,4 @@ def check_env():
 
 ########### MAIN ###########
 
-update_project()
+# update_project()

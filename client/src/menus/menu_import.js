@@ -15,7 +15,7 @@ const ugraph_settings = {
           widget: 'file',
           placeholder:  'Micrographs/*.tif',
           dialog_title:  'Open Movie or Image',
-          filter: ['mrc','mrcs','tif','tiff'] ,
+          filter: '.mrc,.mrcs,.tif,.tiff' ,
           option: '--i',
           default:  '',
           help:  `Provide a Linux wildcard that selects all raw movies or micrographs to be imported. The path must be a relative path from the project directory. To import files outside the project directory, first make a symbolic link by an absolute path and then specify the link by a relative path. See the FAQ page on RELION wiki (https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#What_is_the_right_way_to_import_files_outside_the_project_directory.3F) for details.")`
@@ -44,7 +44,7 @@ const ugraph_settings = {
           option: '--optics_group_mtf',
           widget: 'file',
           dialog_title:  'Open MTF File',
-          filter: ['star'] ,
+          filter: '.star' ,
           default:  '',
           placeholder:  'filename.star',
           filter:  '.',
@@ -129,6 +129,36 @@ const ugraph_settings = {
         },
       ]
     }
+  ]
+};
+
+const coords_settings = {
+  name: 'coords_settings',
+  title: 'Other Files',
+  widget: 'navtab',
+  help: 'Import Coordinates Files',
+  children: [
+    {
+      name: 'fn_in_other',
+      title: 'Input Coordinates files:',
+      widget: 'file',
+      dialog_title:  'Open Coordinates files',
+      placeholder: '*._autopick.star, *.box',
+      default:  '',
+      help: `Select any coordinates file(s) to import.
+      
+  Note that for importing coordinate files, one has to give a Linux wildcard, where the *-symbol is before the coordinate-file suffix, e.g. if the micrographs are called mic1.mrc and the coordinate files mic1.box or mic1_autopick.star, one HAS to give '*.box' or '*_autopick.star', respectively.
+
+  Also note that micrographs, movies and coordinate files all need to be in the same directory (with the same rootnames, e.g.mic1 in the example above) in order to be imported correctly.`
+    },
+    {
+      name: 'optics_group_particles',
+      title: 'Rename optics group for particles:',
+      widget: 'text',
+      default:  'opticsGroupNew1',
+      help:  'Only for the import of a particles STAR file with a single, or no, optics groups defined: rename the optics group for the imported particles to this string.'
+    },
+
   ]
 };
 
@@ -225,7 +255,7 @@ const import_tabs = [
             title:  'Particles coordinates (.box, *_pick.star)',
             group: 'node_types',
             widget: 'radio',
-            on_click: (ev) => w_navtab_update({settings: other_settings})
+            on_click: (ev) => w_navtab_update({settings: coords_settings})
           },
           {
             name: 'other_pctls_star',

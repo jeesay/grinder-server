@@ -1,3 +1,8 @@
+
+
+/*  "Multiple (2D or 3D) references (.star or .mrcs)", */
+
+  
 const mpi_settings = {
   name: 'nr_mpi',
   title: 'Number of MPI procs:',

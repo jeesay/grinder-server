@@ -130,7 +130,7 @@ aside li{
 
 aside #connect {
   font-weight: bold;
-  font-size: 24px;
+  font-size: 20px;
   color: red;
 }
 
@@ -147,7 +147,7 @@ aside i{
 }
 
 aside li.active{
-  background: #ddd;
+  background: #fff; /*#ddd; */
   opacity: 1;
   color: #222;
 }

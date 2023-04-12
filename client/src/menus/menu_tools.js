@@ -823,6 +823,7 @@ const tools_tabs = [
       {
         name: 'extras',
         title: 'Extras',
+        icon: 'bi-bag-plus',
         widget: 'fieldset',
         children : [
           {
