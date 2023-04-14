@@ -29,6 +29,7 @@
   <script type="text/javascript" src="../src/menus/menu_tools.js"></script>
   <script type="text/javascript" src="../src/menus/menu_metrics.js"></script>
   <script type="text/javascript" src="../src/menus/menu_helix.js"></script>
+  <script type="text/javascript" src="../src/menus/menu_tomo.js"></script>
   <script type="text/javascript" src="../src/menus/menu.js"></script>
   <script type="text/javascript" src="../src/main.js"></script>
 
@@ -102,7 +103,7 @@
   </div>
   <footer>
   </footer>
-  <!-- File Explorer -->
+  <!-- File Chooser -->
   <dialog class="filechooser" aria-labelledby="dialog_title" aria-describedby="dialog_description">
     <div class="header">
       <nav>
@@ -115,19 +116,30 @@
         <li><input type="text" placeholder="&#xf52a; Select files with pattern" style="font-family: 'Asap Condensed', bootstrap-icons !important;"/></li>
         <li><a href="#" title="Select All Files Matching Pattern"><i class="bi bi-check-all"></i></a></li>
 -->
-        <li><a href="#" title="Information"><i class="bi bi-info-circle"></i></a></li>
+        <li><a href="#" title="Information" onclick="window.popup.showModal();"><i class="bi bi-info-circle"></i></a></li>
         <li><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></li>
         </ul>
       </nav>
     </div>
     <div class="path"></div>
-    <div class="filetree"><ul></ul>
-    </div>
+    <div class="filetree"><ul></ul></div>
     <footer>
-      <a id="open_file" href="#">Open</button>
-      <a id="cancel" href="#">Cancel</button>
+      <a id="open_file" href="#">Open</a>
+      <a id="cancel" href="#">Cancel</a>
     </footer>
   </dialog>
+  <!--Popup -->
+  <dialog id= "popup" class="popup">
+      <div class="header">
+      <nav>
+        <ul>
+        <li id="dialog_title">Info</li>
+        <li><span class="space"></span></li>
+        <li><a id="close_dialog" href="#"><i class="bi bi-x-circle"></i></a></li>
+        </ul>
+      </nav>
+    </div>
+</dialog>
   <script>
     document.querySelectorAll('aside ul li')
       .forEach( (w,i) => {

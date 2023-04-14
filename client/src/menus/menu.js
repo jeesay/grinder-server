@@ -256,6 +256,7 @@ const menus = {
   postprocess: postprocess_tabs,
   tools: tools_tabs,
   helix: helix_tabs,
+  tomo: tomo_tabs,
   metrics: metrics_tabs,
   debug: debug_tabs
 };

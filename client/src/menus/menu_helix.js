@@ -339,7 +339,7 @@ const helix_tabs = [
   {
     name: 'methods',
     icon: 'bi-wrench-adjustable',
-    title: 'Methods',
+    title: 'Tools',
     widget: 'navtab',
     default:  true, 
     children: [

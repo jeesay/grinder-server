@@ -15,7 +15,7 @@ const ugraph_settings = {
           widget: 'file',
           placeholder:  'Micrographs/*.tif',
           dialog_title:  'Open Movie or Image',
-          filter: '.mrc,.mrcs,.tif,.tiff' ,
+          filter: '.mrc,.mrcs,.tif,.tiff,.err' ,
           option: '--i',
           default:  '',
           help:  `Provide a Linux wildcard that selects all raw movies or micrographs to be imported. The path must be a relative path from the project directory. To import files outside the project directory, first make a symbolic link by an absolute path and then specify the link by a relative path. See the FAQ page on RELION wiki (https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#What_is_the_right_way_to_import_files_outside_the_project_directory.3F) for details.")`
