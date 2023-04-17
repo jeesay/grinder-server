@@ -342,39 +342,7 @@ const import_tabs = [
     title: 'Running',
     widget: 'navtab',
     children: [
-      {
-        name: 'queue_settings',
-        title:  'Queue settings',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'submit_queue',
-            title:  'Submit to queue?',
-            widget: 'bool',
-          },
-          {
-            name: 'queue_name',
-            title:  'Queue name',
-            widget: 'text',
-          },
-          {
-            name: 'queue_command',
-            title:  'Queue submit command',
-            widget: 'text',
-          },
-          {
-            name: 'submit_script',
-            title:  'Standard submission script',
-            widget: 'text',
-          },
-          {
-            name: 'min_core',
-            title:  'Minimum dedicated cores per node',
-            default: 4,
-            widget: 'int',
-          },
-        ]
-      },
+      queue_settings,
       {
         name: 'misc',
         title:  'Misc.',
@@ -382,7 +350,7 @@ const import_tabs = [
         children: [
           {
             name: 'extra_args',
-            title:  'Additional arguments',
+            title:'Additional arguments',
             default: '',
             widget: 'text',
           },
@@ -393,28 +361,7 @@ const import_tabs = [
           },
         ]
       },
-      {
-        name: 'extra_args',
-        title:  'Run',
-        widget: 'fieldset',
-        children: [
-          {
-            name: 'schedule',
-            title:  'Schedule',
-            widget: 'button',
-          },
-          {
-            name: 'run',
-            title:  'Run!',
-            widget: 'button',
-          },
-          {
-            name: 'continue',
-            title:  'Continue',
-            widget: 'button',
-          },
-        ]
-      },
+      ...submit_settings,
     ]
   }
 ];

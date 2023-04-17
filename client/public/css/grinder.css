@@ -300,12 +300,18 @@ details[open] summary {
   margin: 5px 0px;
 }
 
+/*.row:disabled > * {
+  background-color: #ccc;
+}
+*/
+
 .row label:first-child {
     width: 15%;
     display: inline-block;
     text-align: right;
     margin-right: 10px;
 }
+
 /* Menubar */
 
 @media screen and (min-width: 650px) {
@@ -418,16 +424,27 @@ input[type=text] {
 /* Switch */
 
 .switch {
-  display: flex;
+  margin-top: 10px;
 }
 
-.switch input[type=checkbox] {
+.switch.inactive > *:not(:first-child)  {
+  font-style: italic;
+  color: #aaa;
+}
+
+.switch_button {
+  display: inline-block;
+}
+
+.switch_button input[type=checkbox] {
   height: 0;
   width: 0;
   visibility: hidden;
+  float: left;
 }
 
-.switch label {
+
+.switch_button label {
   cursor: pointer;
   text-indent: -9999px;
   width: 50px;
@@ -438,7 +455,7 @@ input[type=text] {
   position: relative;
 }
 
-.switch label:after {
+.switch_button label:after {
   content: '';
   position: absolute;
   top: 2px;
@@ -450,16 +467,16 @@ input[type=text] {
   transition: 0.3s;
 }
 
-.switch input:checked + label {
+.switch_button input:checked + label {
   background: #bada55;
 }
 
-.switch input:checked + label:after {
+.switch_button input:checked + label:after {
   left: calc(100% - 2px);
   transform: translateX(-100%);
 }
 
-.switch input + label:active:after {
+.switch_button input + label:active:after {
   width: 48px;
 }
 

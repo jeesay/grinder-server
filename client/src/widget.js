@@ -57,28 +57,54 @@ const w_button = (desc) => {
 
 const w_switch = (desc) => {
   // TODO
-  return h('div.row',
+  return h('fieldset.switch',
     [
-      h('label',desc.title),
-      h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
-      h('div.switch',
-        [
-          h(`input#${desc.name}_on_off.param`, 
-            {
-              attrs: {
-                type:'checkbox',
-                name:desc.name
-              },
-              props: {
-                checked: (desc.default === true) ? true : false
-              },
-            },
-          ),
-          h('label',{attrs:{'for':`${desc.name}_on_off`}},'Toggle')
-        ]
-      )
+      h('legend',w_switch_button(desc)),
+      ...w_group(desc)
     ]
   );
+}
+
+const w_switch_button = (desc) => {
+  return [
+    h('label',desc.title),
+    h('i.bi.bi-question-circle',{attrs:{title:desc.help}}),
+    h('div.switch_button',
+      [
+        h(`input#${desc.name}_on_off.param`, 
+          {
+            attrs: {
+              type:'checkbox',
+              name:desc.name
+            },
+            props: {
+              checked: (desc.default === true) ? true : false
+            },
+            on: {
+              click: (ev) => {
+                ev.target.checked ? false : true; 
+                if (ev.target.checked) {
+                  ev.target.closest('fieldset').classList.remove('inactive');
+                  ev.target.closest('fieldset').disabled = false;
+                }
+                else { 
+                  ev.target.closest('fieldset').classList.add('inactive');
+                  ev.target.closest('fieldset').disabled = true;
+                } 
+              }
+            }
+          },
+        ),
+        h('label',
+          {
+            attrs: {'for':`${desc.name}_on_off`},
+/*            on: {changed: (ev) => {console.log(ev.target); ev.target.disabled = !ev.target.disabled} } */
+          },
+          'Toggle'
+        )
+      ]
+    )
+  ]
 }
 
 const w_file = (desc) => {
@@ -376,6 +402,7 @@ const w_toolbar = (desc) => {
   console.log('toolbar',desc.title);
   return h('div.toolbar',desc.children.map( wdg => h('button',wdg.title)));
 }
+
 const w_fieldset = (desc) => {
   console.log('fieldset',desc.title);
   return h('fieldset',
@@ -435,11 +462,28 @@ const w_group = (desc) => {
   if ('children' in desc === false) {
     console.log(desc);
   }
-  return desc.children.map( child => {
+
+  // Build HTML Elements
+  const els =  desc.children.map( child => {
     if (types.indexOf(child.widget) !== -1) {
       return creators[types.indexOf(child.widget)](child);
     }
   });
+  
+  // Post-process
+  document.querySelectorAll('.switch').forEach(el => {
+    const sbutton = el.querySelector('.switch_button input');
+    if (sbutton.checked) {
+      el.classList.remove('inactive');
+      el.disabled = false;
+    }
+    else {
+      el.classList.add('inactive');
+      el.disabled = true;
+    } 
+  }) ;
+  
+  return els;
 }
 
 ////////////////////: UPDATE :////////////////////

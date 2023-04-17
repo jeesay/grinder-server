@@ -27,17 +27,12 @@ const thread_settings = {
 
 // Pipeline_jobs.cpp lines 900-1015
 const queue_settings = {
-  name: 'queue_settings',
-  title:  'Queue settings',
-  widget: 'fieldset',
+  name: 'do_queue',
+  title:  'Submit to queue?',
+  widget: 'switch',
+  help: `If set to Yes, the job will be submit to a queue, otherwise \
+the job will be executed locally. Note that only MPI jobs may be sent to a queue. The default can be set through the environment variable RELION_QUEUE_USE.`,
   children: [
-    {
-      name: 'do_queue',
-      title:  'Submit to queue?',
-      widget: 'switch',
-      help: `If set to Yes, the job will be submit to a queue, otherwise \
-the job will be executed locally. Note that only MPI jobs may be sent to a queue. The default can be set through the environment variable RELION_QUEUE_USE.`
-    },
     {
       name: 'queuename',
       title:  'Queue name',

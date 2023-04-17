@@ -66,21 +66,16 @@ with X being the iteration from which one continues the previous run.`
 ];
 
 const class2d_ctf = {
-  name: 'class2d_ctf',
-  title: 'CTF',
-  widget: 'fieldset',
-  children: [
-    {
-      name: 'do_ctf_correction',
-      title: 'Do CTF-correction?',
-      widget: 'switch',
-      default: true, 
-      help:`If set to Yes, CTFs will be corrected inside the MAP refinement.
+  name: 'do_ctf_correction',
+  title: 'Do CTF-correction?',
+  widget: 'switch',
+  default: true, 
+  help:`If set to Yes, CTFs will be corrected inside the MAP refinement.
     The resulting algorithm intrinsically implements the optimal linear, or Wiener filter.
     Note that CTF parameters for all images need to be given in the input STAR file.
     The command 'relion_refine --print_metadata_labels' will print a list of all possible metadata labels for that STAR file.
-    See the RELION Wiki for more details.\n\n Also make sure that the correct pixel size (in Angstrom) is given above!)`
-    },
+    See the RELION Wiki for more details.\n\n Also make sure that the correct pixel size (in Angstrom) is given above!)`,
+  children: [
     {
       name: 'ctf_intact_first_peak',
       title: 'Ignore CTFs until first peak?',
@@ -95,19 +90,14 @@ const class2d_ctf = {
 }
 
 const class2d_sampling = {
-  name: 'class2d_sampling',
-  title: 'Sampling',
-  widget: 'fieldset',
+  name: 'dont_skip_align',
+  title: 'Perform image alignment?',
+  widget: 'switch',
+  default: true,
+  help: `If set to No, then rather than 
+  performing both alignment and classification, only classification will be performed. This allows the use of very focused masks.
+  This requires that the optimal orientations of all particles are already stored in the input STAR file. `,
   children: [
-    {
-      name: 'dont_skip_align',
-      title: 'Perform image alignment?',
-      widget: 'bool',
-      default: true, 
-      help: 'If set to No, then rather than \
-  performing both alignment and classification, only classification will be performed. This allows the use of very focused masks.\
-  This requires that the optimal orientations of all particles are already stored in the input STAR file. '
-    },
     {
       name: 'psi_sampling',
       title: 'In-plane angular sampling:',
@@ -323,14 +313,16 @@ This will affect the time it takes between the progress-bar in the expectation s
     title: 'Use GPU acceleration?',
     widget: 'switch',
     default: false, 
-    help: 'If set to Yes, the job will try to use GPU acceleration.'
-  },
-  {
-    name: 'gpu_ids',
-    title: 'Which GPUs to use:',
-    widget: 'text',
-    default: '', 
-    help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`
+    help: 'If set to Yes, the job will try to use GPU acceleration.',
+    children: [
+      {
+        name: 'gpu_ids',
+        title: 'Which GPUs to use:',
+        widget: 'text',
+        default: '', 
+        help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`
+      },
+    ]
   },
 ];
 

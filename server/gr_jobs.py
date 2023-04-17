@@ -247,6 +247,36 @@ JOBS = [
   {
     'type': "relion.motioncorr.own",
     'menu': 'motioncorr',
+    'job_options': {
+      "do_own_motioncor": 'Yes',
+    },
+    'job_cli_tool': '`which relion_run_motioncorr${MPI}`',
+    'job_cli': {
+      'input_star_mics': '--i',
+      '00': '--o MotionCorr/${JOBID}/corrected_micrographs.star',
+      "first_frame_sum": "--first_frame_sum",
+      "last_frame_sum": "--last_frame_sum",
+      'do_float16':'--float16',
+      '01': "--use_own",
+      "nr_threads": "--j",
+      'fn_defect': '--defect_file',
+      'bin_factor': '--bin_factor',
+      'bfactor': '--bfactor',
+      "dose_per_frame": "--dose_per_frame",
+      "pre_exposure": "--preexposure",
+      "patch_x": "--patch_x",
+      "patch_y": "--patch_y",
+      "eer_grouping": "--eer_grouping",
+      "group_frames": "--group_frames",
+      'fn_gain_ref': '--gainref',
+      'gain_rot': '--gain_rot',
+      'gain_flip': '--gain_flip',
+      "do_dose_weighting": "--dose_weighting",
+      "do_save_noDW": "--save_noDW",
+      "group_for_ps": "--grouping_for_ps" 
+      "other_args": '',
+      '02': '--pipeline_control MotionCorr/${JOBID}/'
+    }
   },
   {
     'type': "relion.polish",
