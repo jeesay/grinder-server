@@ -215,63 +215,57 @@ Note that multiple MotionCor2 processes should not share a GPU; otherwise, it ca
 ];
   
 const dose_weight = {
-    name: 'dose_weighting',
-    title: 'Dose Weighting',
-    widget: 'fieldset',
+    name: 'do_dose_weighting',
+    title: 'Do dose-weighting?',
+    widget: 'switch',
+    default: true ,
+    help: 'If set to Yes, the averaged micrographs will be dose-weighted.',
     children: [
-    // Dose-weight
-    {
-      name: 'do_dose_weighting',
-      title: 'Do dose-weighting?',
-      widget: 'bool',
-      default: true ,
-      help: 'If set to Yes, the averaged micrographs will be dose-weighted.',
-    },
-    {
-      name: 'do_save_noDW',
-      title: 'Save non-dose weighted as well?',
-      widget: 'bool',
-      default: false,
-      help: 'Aligned but non-dose weighted images are sometimes useful in CTF estimation, although there is no difference in most cases. Whichever the choice, CTF refinement job is always done on dose-weighted particles.',
-    },
-    {
-      name: 'dose_per_frame',
-      title: 'Dose per frame (e/A2):',
-      widget: 'range',
-      default: 1, 
-      range_min: 0, 
-      range_max: 5, 
-      range_step: 0.2,
-      help: 'Dose per movie frame (in electrons per squared Angstrom).',
-    },
-    {
-      name: 'pre_exposure',
-      title: 'Pre-exposure (e/A2):',
-      widget: 'range',
-      default: 0, 
-      range_min: 0, 
-      range_max: 5, 
-      range_step: 0.5,
-      help: 'Pre-exposure dose (in electrons per squared Angstrom).',
-    },
-    {
-      name: 'do_save_ps',
-      title: 'Save sum of power spectra?',
-      widget: 'bool',
-      default: true,
-      help: 'Sum of non-dose weighted power spectra provides better signal for CTF estimation. The power spectra can be used by CTFFIND4 but not by GCTF. This option is not available for UCSF MotionCor2. You must use this option when writing in float16.',
-    },
-    {
-      name: 'group_for_ps',
-      title: 'Sum power spectra every e/A2:',
-      widget: 'range',
-      default: 4, 
-      range_min: 0, 
-      range_max: 10, 
-      range_step: 0.5,
-      help: 'McMullan et al (Ultramicroscopy, 2015) sugggest summing power spectra every 4.0 e/A2 gives optimal Thon rings',
-     },
-  ]
+      {
+        name: 'do_save_noDW',
+        title: 'Save non-dose weighted as well?',
+        widget: 'bool',
+        default: false,
+        help: 'Aligned but non-dose weighted images are sometimes useful in CTF estimation, although there is no difference in most cases. Whichever the choice, CTF refinement job is always done on dose-weighted particles.',
+      },
+      {
+        name: 'dose_per_frame',
+        title: 'Dose per frame (e/A2):',
+        widget: 'range',
+        default: 1, 
+        range_min: 0, 
+        range_max: 5, 
+        range_step: 0.2,
+        help: 'Dose per movie frame (in electrons per squared Angstrom).',
+      },
+      {
+        name: 'pre_exposure',
+        title: 'Pre-exposure (e/A2):',
+        widget: 'range',
+        default: 0, 
+        range_min: 0, 
+        range_max: 5, 
+        range_step: 0.5,
+        help: 'Pre-exposure dose (in electrons per squared Angstrom).',
+      },
+      {
+        name: 'do_save_ps',
+        title: 'Save sum of power spectra?',
+        widget: 'bool',
+        default: true,
+        help: 'Sum of non-dose weighted power spectra provides better signal for CTF estimation. The power spectra can be used by CTFFIND4 but not by GCTF. This option is not available for UCSF MotionCor2. You must use this option when writing in float16.',
+      },
+      {
+        name: 'group_for_ps',
+        title: 'Sum power spectra every e/A2:',
+        widget: 'range',
+        default: 4, 
+        range_min: 0, 
+        range_max: 10, 
+        range_step: 0.5,
+        help: 'McMullan et al (Ultramicroscopy, 2015) sugggest summing power spectra every 4.0 e/A2 gives optimal Thon rings',
+       },
+    ]
 }
 
 
@@ -306,23 +300,13 @@ const motioncor_tabs = [
         children: [
           {
             name: 'relioncor2',
-            title: 'Motion correction WITH dose weighting',
+            title: 'Motion correction',
             widget: 'radio',
             option: '--do_movies',
             group: 'motioncor',
             help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
             on_click: (ev) => w_navtab_update({settings: relioncor2_settings})
           },
-          {
-            name: 'relioncor2',
-            title: 'Motion correction without dose weighting',
-            widget: 'radio',
-            option: '--do_movies',
-            group: 'motioncor',
-            help: `If set to Yes, use RELION's own implementation of a MotionCor2-like algorithm by Takanori Nakane. Note that Takanori's program only runs on CPUs but uses multiple threads. Takanori's implementation is most efficient when the number of frames is divisible by the number of threads (e.g. 12 or 18 threads per MPI process for 36 frames). On some machines, setting the OMP_PROC_BIND environmental variable to TRUE accelerates the program.`,
-            on_click: (ev) => w_navtab_update({settings: relioncor2_nodose_settings})
-          },
-
         ]
       },
       {

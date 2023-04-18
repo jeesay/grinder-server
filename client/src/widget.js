@@ -470,7 +470,7 @@ const w_group = (desc) => {
     }
   });
   
-  // Post-process
+  // Post-process for `switch` widget
   document.querySelectorAll('.switch').forEach(el => {
     const sbutton = el.querySelector('.switch_button input');
     if (sbutton.checked) {

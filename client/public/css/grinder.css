@@ -629,6 +629,47 @@ dialog .header nav li:nth-child(2) {
   margin-left: auto;
 }
 
+.filechooser .submenu {
+  display: block;
+  width: 120px;
+  z-index: 99;
+  position: absolute;
+  border: solid 1px #ccc;
+  /* padding: 10px; */
+  background-color: #eee;
+  box-shadow: #444;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  left: 520px;
+  /* visibility: hidden; */
+}
+
+.filechooser .submenu li {
+  cursor: pointer;
+}
+
+.filechooser .submenu li:hover {
+  background-color: #ccc;
+}
+
+.filechooser .submenu li::before {
+  content: "\F26E";
+  font-family: bootstrap-icons !important;
+  vertical-align: middle;
+}
+
+.filechooser .submenu .menuitem::before {
+  visibility: hidden;
+}
+
+.filechooser .submenu .menusep {
+  border-top: solid  1px #ccc;
+}
+
+.filechooser .submenu .menusep::before {
+  content: unset;
+}
+
+
 .filechooser .path {
   line-height: 40px;
   border-bottom: solid 1px #ccc;

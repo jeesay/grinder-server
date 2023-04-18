@@ -340,11 +340,20 @@ const openDialog = (ev) => {
     }
   };
     
-  const closeDialog = (e) => {
+  const closeDialog = (ev) => {
+    ev.preventDefault();
+    dialog.close();
+    dialog.removeEventListener("keydown", trapFocus);
+  };
+
+  const sortby = (ev) => {
+    const sortparams = ev.target.closest('sortby').querySelectorAll('.menuitemselected');
+    
     e.preventDefault();
     dialog.close();
     dialog.removeEventListener("keydown", trapFocus);
   };
+
 
   /************* M A I N *******************/
   let filter_files = ev.target.dataset.filter;
@@ -383,5 +392,21 @@ const openDialog = (ev) => {
   dialog.addEventListener("keydown", trapFocus);
   update_path('.', filter_files);
 };
+
+const fc_sortby = (param) => (ev) => {
+  let param = ev.target.dataset.type;
+  console.log(param);
+  const els = ev.target.closest('#sortby').children;
+  for (const el of els) {
+    if (el.dataset.type == param) {
+      el.classList.remove('menuitemselected');
+      el.classList.add('menuitem');
+    }
+  }
+  ev.target.classList.remove('menuitem');
+  ev.target.classList.add('menuitemselected');
+  
+  // Sort files TODO
+}
 
 

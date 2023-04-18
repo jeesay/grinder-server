@@ -110,7 +110,16 @@
         <ul>
         <li id="dialog_title"></li>
         <li><span class="space"></span></li>
-        <li><a href="#" title="Sort By"><i class="bi bi-sort-down-alt"></i></a></li>
+        <li><a href="#" title="Sort By"><i class="bi bi-sort-down-alt"></i></a>
+          <ul id="sortby" class="submenu">
+          <li class="menuitemselected" data-type="feature" data-param="name" onclick="fc_sortby('feature')(event)">Name</li>
+          <li class="menuitem" data-type="feature" data-param="type" onclick="fc_sortby('feature')(event)">Type</li>
+          <li class="menuitem" data-type="feature" data-param="size" onclick="fc_sortby('feature')(event)">Size</li>
+          <li class="menusep"></li>
+          <li class="menuitemselected" data-type="order" data-param="ascending" onclick="fc_sortby('order')(event)">Ascending</li>
+          <li class="menuitem" data-type="order" data-param="descending" onclick="fc_sortby('order')(event)">Descending</li>
+          </ul>
+        </li>
         <li><a href="#" title="Refresh"><i class="bi bi-arrow-clockwise"></i></a></li>
 <!-- Only for multi-selection
         <li><input type="text" placeholder="&#xf52a; Select files with pattern" style="font-family: 'Asap Condensed', bootstrap-icons !important;"/></li>
