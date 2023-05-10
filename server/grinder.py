@@ -7,6 +7,7 @@ Authors : Texier Louis, Jean-Christophe Taveau
 
 import argparse
 import os
+from datetime import datetime
 import json
 import sys
 import asyncio
@@ -91,16 +92,19 @@ async def run(websocket,message,pathProject):
         args = event['action']['args'].split(' ')
         path = args[args.index('--i')  + 1]
         file_hidden = args.index('--hidden') if '--hidden' in args else -1
-        dirs=[]; files=[]
+        dirs=[]; files=[]; stats= []
         for item in os.listdir(path):
           print(item)
           if file_hidden and item[0] ==  '.':
             continue
           if os.path.isfile(os.path.join(path, item)):
+            statinfo = os.stat(os.path.join(path, item))
             files.append(item)
+            mtime = statinfo.st_mtime
+            stats.append({'size_in_bytes': statinfo.st_size,'mdate': datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M')})
           else:
             dirs.append(item)
-        file_contents = {'dirs':dirs,'files': files}
+        file_contents = {'dirs':dirs,'files': files, 'stats': stats}
         print(file_contents)
         task = asyncio.create_task(send(websocket,file_contents))
         await task

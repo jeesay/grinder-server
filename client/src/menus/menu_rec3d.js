@@ -46,17 +46,19 @@ The resulting algorithm intrinsically implements the optimal linear, or Wiener f
 Note that CTF parameters for all images need to be given in the input STAR file. \
 The command 'relion_refine --print_metadata_labels' will print a list of all possible metadata labels for that STAR file. \
 See the RELION Wiki for more details.\n\n Also make sure that the correct pixel size (in Angstrom) is given above!)`,
-  },
-  {
-    name: 'ctf_intact_first_peak',
-    title:'Ignore CTFs until first peak?',
-    widget: 'bool',
-    option: '--ctf_intact_first_peak',
-    default: false, 
-    help: `If set to Yes, then CTF-amplitude correction will \
-only be performed from the first peak of each CTF onward. This can be useful if the CTF model is inadequate at the lowest resolution. \
-Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
-Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`,
+    children: [
+      {
+        name: 'ctf_intact_first_peak',
+        title:'Ignore CTFs until first peak?',
+        widget: 'bool',
+        option: '--ctf_intact_first_peak',
+        default: false, 
+        help: `If set to Yes, then CTF-amplitude correction will \
+    only be performed from the first peak of each CTF onward. This can be useful if the CTF model is inadequate at the lowest resolution. \
+    Still, in general using higher amplitude contrast on the CTFs (e.g. 10-20%) often yields better results. \
+    Therefore, this option is not generally recommended: try increasing amplitude contrast (in your input STAR file) first!`,
+      }
+    ]
   }
 ]
 
@@ -201,18 +203,19 @@ This will affect the time it takes between the progress-bar in the expectation s
   {
     name: 'use_gpu',
     title:'Use GPU acceleration?',
-    widget: 'bool',
-    option: (flag) => flag ? `--gpu "${document.querySelector('#gpu_ids').value}"` : '',
+    widget: 'switch',
     default: false, 
     help: `If set to Yes, the job will try to use GPU acceleration.`,
-  },
-  {
-    name: 'gpu_ids',
-    title:'Which GPUs to use:',
-    widget: 'text',
-    default: '', 
-    help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`,
-  },
+    children: [
+      {
+        name: 'gpu_ids',
+        title:'Which GPUs to use:',
+        widget: 'text',
+        default: '', 
+        help: `This argument is not necessary. If left empty, the job itself will try to allocate available GPU resources. You can override the default allocation by providing a list of which GPUs (0,1,2,3, etc) to use. MPI-processes are separated by ':', threads by ','. For example: '0,0:1,1:0,0:1,1'`,
+      },
+    ]
+  }
 ];
 
 
@@ -720,13 +723,7 @@ const abinitio_io_tab = {
 
 const abinitio_tab = {
   widget: 'navtab',
-  children: [
-    {
-      widget: 'fieldset',
-      title: 'CTF',
-      children: ctf_rec3d,
-    }
-  ]
+  children: ctf_rec3d
 }
 
 const abinitio_optim_tab = {

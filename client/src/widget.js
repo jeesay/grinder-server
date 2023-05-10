@@ -245,7 +245,7 @@ const w_range = (desc) => h('div.row',
             on: {input: (ev) => {ev.target.nextElementSibling.value = ev.target.value} }
           }
         ),
-        h('output', {dataset: ('option' in desc) ? {option: desc.option} : {} }, desc.default.toString()),
+        h('output.not-allowed', {dataset: ('option' in desc) ? {option: desc.option} : {} }, desc.default.toString()),
         h('a',
           {
             props:{href:'#',title:'Type Value'},

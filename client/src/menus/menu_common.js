@@ -163,18 +163,12 @@ const compute_settings = [
     ]
   },
   {
-    name: 'do_gpu',
-    title: 'GPU acceleration',
-    widget: 'fieldset',
+    name: 'use_gpu',
+    title: 'Use GPU acceleration?',
+    widget: 'switch',
+    default: false, 
+    help: 'If set to Yes, the job will try to use GPU acceleration.',
     children: [
-      {
-        name: 'use_gpu',
-        title: 'Use GPU acceleration?',
-        option: '--gpu',
-        widget: 'switch',
-        default: false, 
-        help: 'If set to Yes, the job will try to use GPU acceleration.'
-      },
       {
         name: 'gpu_ids',
         title: 'Which GPUs to use:',
