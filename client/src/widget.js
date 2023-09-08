@@ -148,7 +148,7 @@ const w_file = (desc) => {
           },
           dataset: ds,
           on: {
-            click: openDialog
+            click: (ev) => {const dialog = new FileChooser(GRINDER.server); dialog.openDialog(ev) }
           }
         }
       )

@@ -1,7 +1,7 @@
 JOBS = [
   {
     'type': "relion.import.movies",
-    'gtype': "relion.import.movies.movies",
+    'tags': ["relion.import.movies","movies"],
     'menu': 'import',
     'out_dir': 'Import/',
     'job_options': {
@@ -35,7 +35,7 @@ JOBS = [
     }
   },  {
     'type': "relion.import.movies",
-    'gtype': "relion.import.movies.micrographs",
+    'tags': ["relion.import.movies","micrographs"],
     'menu': 'import',
     'out_dir': 'Import/',
     'job_options': {
@@ -70,7 +70,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.coords',
+    'tags': ['relion.import.other.coords'],
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -87,7 +87,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.particles',
+    'tags': 'relion.import.other.particles',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -105,7 +105,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.multirefs',
+    'tags': 'relion.import.other.multirefs',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -123,7 +123,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.ref3D',
+    'tags': 'relion.import.other.ref3D',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -141,7 +141,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.mask',
+    'tags': 'relion.import.other.mask',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -158,7 +158,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.micrographs_star',
+    'tags': 'relion.import.other.micrographs_star',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',
@@ -175,7 +175,7 @@ JOBS = [
   },
   {
     'type': "relion.import.other",
-    'gtype': 'relion.import.other.halfmap',
+    'tags': 'relion.import.other.halfmap',
     'menu': 'import',
     'job_options': {
       'do_other': 'Yes',

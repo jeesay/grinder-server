@@ -1,0 +1,210 @@
+/* File Explorer */
+
+.filechooser {
+  display: none;
+  height: 60%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 40%;
+  border: 1px solid black;
+  /* border-radius: 4px 4px 4px 4px; */
+  /* border-radius: calc(5px * var(--ratio)); */
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 0;
+  line-height: unset;
+  font-size: 1.2em;
+}
+
+.filechooser[open]  {
+    display: grid;
+    grid-template-rows: 40px 40px 28px 1fr 40px;
+    overflow: unset;
+}
+
+/* reset */
+dialog ul {
+  position: unset;
+  width: unset;
+  height: unset;
+  list-style: none;
+}
+
+dialog a {
+  all: unset;
+  cursor: pointer;
+  margin: 0;
+  color: #444;
+}
+
+dialog .header {
+  padding: 0 10px;
+  background-color: #ddd; /*#3288bd; */
+  line-height: 40px;
+}
+
+dialog .header nav {
+  position: unset;
+}
+
+dialog .header nav ul {
+  display: flex;
+}
+
+dialog .header .space {
+  display: inline-block;
+  width: 40px;
+}
+
+dialog .header nav li:nth-child(2) {
+  margin-left: auto;
+}
+
+.filechooser .submenu {
+  display: block;
+  width: 120px;
+  z-index: 99;
+  position: absolute;
+  border: solid 1px #ccc;
+  /* padding: 10px; */
+  background-color: #eee;
+  box-shadow: #444;
+  box-shadow: 0 0 #0000, 0 0 #0000, 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  line-height: 1.4em;
+/* 
+  left: 520px;
+  visibility: hidden; 
+ */
+}
+
+.filechooser .submenu li {
+  cursor: pointer;
+}
+
+.filechooser .submenu li:hover {
+  background-color: #ccc;
+}
+
+.filechooser .submenu li::before {
+  content: "\F26E";
+  font-family: bootstrap-icons !important;
+  vertical-align: middle;
+}
+
+.filechooser .submenu .menuitem::before {
+  visibility: hidden;
+}
+
+.filechooser .submenu .menusep {
+  border-top: solid  1px #ccc;
+}
+
+.filechooser .submenu .menusep::before {
+  content: unset;
+}
+
+
+.filechooser .path {
+  line-height: 40px;
+  border-bottom: solid 1px #ccc;
+  background-color: #f7f7f7;
+}
+
+.filechooser footer {
+  height: unset;
+  padding: 0;
+  line-height: 40px;
+  border-top: solid 1px #ccc;
+  background-color: #eee;
+  text-align: right;
+}
+
+.filechooser footer a {
+  padding: 4px 10px;
+  margin: 0 10px;
+  background-color: #ddd; 
+  border-radius: 4px; 
+}
+
+.filechooser footer a:hover {
+  background-color: #ccc; 
+}
+
+.directory {
+  font-weight: bold;
+}
+
+.filehead {
+  display: grid;
+  grid-template-columns: 31fr 120px 250px;
+  margin: 0;
+  padding: 0;
+  border-bottom: solid 1px #ccc;
+  background-color: #f7f7f7;
+  color: #444;
+  font-size: 0.9em;
+}
+
+.fileheaditem {
+  text-align: center;
+  border-right: solid 1px #ccc;
+  background-color: #f7f7f7;
+}
+
+.filetree {
+  width: 100%;
+  height: 100%;
+  font-size: 1em;
+  /* border: solid 1px black; */
+  background-color: #f7f7f7;
+  color: #444;
+  /*padding: 0px 10px;*/
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+
+.filetree ul {
+  list-style: none;
+  margin: 0;
+}
+
+.filetree li {
+  margin:0 ;
+  padding: 0;
+}
+
+.filetree .selected {
+  background-color: #444;
+}
+
+.filetree .selected .file {
+  color: #fff;
+}
+
+.filetree .selected .file i:last-child {
+  visibility: visible;
+}
+
+.filetree a {
+  display: inline-grid;
+  grid-template-columns: 30px 1fr 120px 200px 50px;
+  width: 100%;
+  margin: 0px 10px;
+  padding: 0;
+}
+
+.filetree .file i:last-child {
+  visibility: hidden;
+}
+
+.filetree .size_bytes {
+  text-align: right;
+  margin-right: 15px;
+}
+
+.filetree .mdate {
+  text-align: center;
+}
+
+

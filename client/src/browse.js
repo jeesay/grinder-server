@@ -115,7 +115,7 @@ class FileChooser {
     parent.replaceChildren(...children);
     
     // Step #4 - Get from server the files 
-    content = await this.browse_dir(path);
+    let content = await this.browse_dir(path);
     content = JSON.parse(content);
     // HACK console.log(content);
     
@@ -123,7 +123,7 @@ class FileChooser {
     parent = document.querySelector('dialog .filetree ul');
 
     // Step # 5.2 - Add Folders
-    folders = content.dirs.sort().map( dir => {
+    let folders = content.dirs.sort().map( dir => {
       const child = h('li',[
         h('a.folder',
           {
@@ -143,7 +143,7 @@ class FileChooser {
     });
 
     // Step # 5.3 - Add Files
-    files = content.files.sort().map( (file,index) => {
+    let files = content.files.sort().map( (file,index) => {
       const extension = file.split('.').pop();
       const icon_extension = FileChooser.extensions_and_icons[extension] || 'bi-file-earmark';
       const child = h('li',
@@ -236,8 +236,8 @@ class FileChooser {
       
     const closeDialog = (ev) => {
       ev.preventDefault();
-      dialog.close();
-      dialog.removeEventListener("keydown", trapFocus);
+      this.dialog.close();
+      this.dialog.removeEventListener("keydown", trapFocus);
     };
 
     const sortby = (ev) => {
@@ -283,9 +283,9 @@ class FileChooser {
     });
     
     // Close and Cancel buttons...
-    const closeDialogBtn = document.getElementById("close_dialog");
+    const closeDialogBtn = this.dialog.querySelector("#close_dialog");
     closeDialogBtn.addEventListener("click", closeDialog);
-    document.getElementById('cancel').addEventListener("click", closeDialog);
+    this.dialog.querySelector('#cancel').addEventListener("click", closeDialog);
 
     // Show modal
     this.dialog.showModal();
@@ -398,6 +398,9 @@ class FileChooser {
         ]
       ),
       h('div.path'),
+      h('div.filehead',
+        [h('span.fileheaditem','Name'),h('span.fileheaditem','Size'),h('span.fileheaditem','Date'),]
+      ),
       h('div.filetree',[h('ul')]),
       h('footer',
         [
