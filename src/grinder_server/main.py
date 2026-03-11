@@ -17,14 +17,24 @@ async def config_redirect():
     """Redirects the user from /config to the welcome page."""
     return RedirectResponse(url="/welcome")
 
-@app.get("/welcome")
-async def welcome_message():
+@app.websocket("/welcome")
+async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
-    return {
+    await websocket.accept()
+    await websocket.send_json({
         "status": "success",
-        "message": "Welcome to the File Tree Configuration Server!",
-        "instructions": "Connect to /ws/file-tree via WebSocket to begin."
-    }
+        "message": "Welcome to GRINDER",
+        "instructions": "Wait for software checking"
+    })
+
+# @app.get("/welcome")
+# async def welcome_message():
+#     """The landing page for the redirect."""
+#     return {
+#         "status": "success",
+#         "message": "Welcome to the File Tree Configuration Server!",
+#         "instructions": "Connect to /ws/file-tree via WebSocket to begin."
+#     }
 
 # --- 2. EXISTING: File Tree Logic ---
 
