@@ -8,8 +8,9 @@ version = "0.1.0"
 authors = [{name = "Jean-Christophe Taveau", email = "you@example.com"}]
 readme = "README.md"
 license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 description = "A FastAPI package for file tree and websockets"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "uvicorn",
@@ -21,3 +22,4 @@ where = ["src"]
 [project.scripts]
 # This creates a command line tool, e.g., 'start-my-server'
 grinder-server = "grinder_server.main:run_server"
+
