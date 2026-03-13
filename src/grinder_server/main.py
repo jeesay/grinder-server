@@ -5,8 +5,8 @@ import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 import uvicorn
-from grinder_server.tree import build_file_tree # Clean import
-from grinder_server.utils import find_available_port
+from grinder_server.tree import build_file_tree,build_relion_tree # Clean import
+import grinder_server.utils as gru
 
 app = FastAPI()
 
@@ -21,11 +21,14 @@ async def config_redirect():
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
     await websocket.accept()
-    await websocket.send_json({
-        "status": "success",
-        "message": "Welcome to GRINDER",
-        "instructions": "Wait for software checking"
-    })
+    while True:
+        json = gru.check_environment()
+        await websocket.send_json({
+            "status": "success",
+            "message": "Welcome to GRINDER",
+            "instructions": "Wait for software checking",
+            "environment": json
+        })
 
 # @app.get("/welcome")
 # async def welcome_message():
@@ -44,12 +47,15 @@ async def websocket_file_tree(websocket: WebSocket):
     # ... logic using build_file_tree(path) ...
     try:
         while True:
-            requested_path = await websocket.receive_text()
-            if os.path.exists(requested_path):
-                tree_data = build_file_tree(requested_path)
-                await websocket.send_json(tree_data)
-            else:
-                await websocket.send_json({"error": "Path not found"})
+            requested_filter = await websocket.receive_text()
+            tree_data = build_relion_tree(requested_filter)
+            print(tree_data)
+            await websocket.send_json(tree_data)
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
     except WebSocketDisconnect:
         print("Client disconnected")
 
@@ -74,7 +80,7 @@ def run_server():
     args = parser.parse_args()
 
     # Determine the port
-    port = args.port if args.port else find_available_port(20000, 20100)
+    port = args.port if args.port else gru.find_available_port(20000, 20100)
     
     # Handle the --new argument logic
     if args.new:
