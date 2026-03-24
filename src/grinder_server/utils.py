@@ -1,3 +1,4 @@
+import json
 import os
 import socket
 import star_gate as sg
@@ -30,9 +31,9 @@ def check_environment():
     except FileNotFoundError:
         has_file = False
 
-    return {
+    return json.dumps({
         "file_exists": has_file,
         "env_vars": relion_config,
         "pipeline": cargo.db['pipeline_general']
-    }
+    },indent=2)
 

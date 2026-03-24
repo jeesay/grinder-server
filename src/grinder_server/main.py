@@ -5,7 +5,7 @@ import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 import uvicorn
-from grinder_server.tree import build_file_tree,build_relion_tree # Clean import
+from grinder_server.tree import build_file_tree, build_relion_tree # Clean import
 import grinder_server.utils as gru
 
 app = FastAPI()
@@ -21,14 +21,18 @@ async def config_redirect():
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
     await websocket.accept()
-    while True:
-        json = gru.check_environment()
-        await websocket.send_json({
-            "status": "success",
-            "message": "Welcome to GRINDER",
-            "instructions": "Wait for software checking",
-            "environment": json
-        })
+    try:
+        while True:
+            json = gru.check_environment()
+            await websocket.send_json({
+                "status": "success",
+                "message": "Welcome to GRINDER",
+                "instructions": "Wait for software checking",
+                "environment": json
+            })
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
 
 # @app.get("/welcome")
 # async def welcome_message():
@@ -48,7 +52,8 @@ async def websocket_file_tree(websocket: WebSocket):
     try:
         while True:
             requested_filter = await websocket.receive_text()
-            tree_data = build_relion_tree(requested_filter)
+            print(requested_filter)
+            tree_data = build_relion_tree() # (requested_filter)
             await websocket.send_json(tree_data)
             # if os.path.exists(requested_path):
             #     tree_data = build_relion_tree(requested_filter)
