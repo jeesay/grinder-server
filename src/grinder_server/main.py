@@ -49,7 +49,6 @@ async def websocket_file_tree(websocket: WebSocket):
         while True:
             requested_filter = await websocket.receive_text()
             tree_data = build_relion_tree(requested_filter)
-            print(tree_data)
             await websocket.send_json(tree_data)
             # if os.path.exists(requested_path):
             #     tree_data = build_relion_tree(requested_filter)
