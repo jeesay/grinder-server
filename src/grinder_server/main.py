@@ -20,10 +20,10 @@ async def config_redirect():
 @app.websocket("/welcome")
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
+    json = gru.check_environment()
     await websocket.accept()
     try:
         while True:
-            json = gru.check_environment()
             await websocket.send_json({
                 "status": "success",
                 "message": "Welcome to GRINDER",
@@ -53,7 +53,7 @@ async def websocket_file_tree(websocket: WebSocket):
         while True:
             requested_filter = await websocket.receive_text()
             print(requested_filter)
-            tree_data = build_relion_tree() # (requested_filter)
+            tree_data = await build_relion_tree() # (requested_filter)
             await websocket.send_json(tree_data)
             # if os.path.exists(requested_path):
             #     tree_data = build_relion_tree(requested_filter)

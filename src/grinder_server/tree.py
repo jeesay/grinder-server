@@ -40,7 +40,7 @@ def build_file_tree(path: str) -> Dict[str, Any]:
 
     return item
 
-def build_relion_tree(filter=None):
+async def build_relion_tree(filter=None):
 
     def datablock(star,blockname):
         for k,block in star.blocks.items():
@@ -61,7 +61,11 @@ def build_relion_tree(filter=None):
     }
 
     df = datablock(cargo,'pipeline_nodes')['table']
-    for fn,label in zip(df.rlnPipeLineNodeName.str.split('/'),df.rlnPipeLineNodeTypeLabel):
+    nodename = df.rlnPipeLineNodeName.str.replace('//','/')
+    for fn,label in zip(nodename.str.split('/'),df.rlnPipeLineNodeTypeLabel):
+        # fnclean = fn.copy()
+        # if len(fn) > 3:
+        #     fnclean = [s for s in fn if len(s) != 0]
         parent,job,filename = fn
         # Create Folder, sub-folder
         if parent not in root['dirnames']:

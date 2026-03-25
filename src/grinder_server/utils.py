@@ -22,12 +22,12 @@ def find_available_port(start: int, end: int) -> int:
 def check_environment():  
     # Env var check
     relion_config = {k: v for k, v in os.environ.items() if k.startswith("RELION_")}
-    
+    print(relion_config)
     # `default_pipeline` check
     has_file = True
     try:
         cargo = sg.StarGate()
-        cargo.read('default_pipeline.star') 
+        cargo.read('default_pipeline.star')
     except FileNotFoundError:
         has_file = False
 
