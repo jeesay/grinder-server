@@ -20,30 +20,39 @@ async def config_redirect():
 @app.websocket("/welcome")
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
-    json = gru.check_environment()
+
     await websocket.accept()
     try:
         while True:
+            dict = await gru.check_environment()
+            print(dict)
             await websocket.send_json({
                 "status": "success",
                 "message": "Welcome to GRINDER",
-                "instructions": "Wait for software checking",
-                "environment": json
+                "environment": dict
             })
     except WebSocketDisconnect:
         print("Client disconnected")
 
 
-# @app.get("/welcome")
-# async def welcome_message():
-#     """The landing page for the redirect."""
-#     return {
-#         "status": "success",
-#         "message": "Welcome to the File Tree Configuration Server!",
-#         "instructions": "Connect to /ws/file-tree via WebSocket to begin."
-#     }
-
-# --- 2. EXISTING: File Tree Logic ---
+@app.get("/log")
+async def log_message(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            request = await websocket.receive_text()
+            dirname = request['dirname']
+            jobname = request['jobname']
+            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
+            await websocket.send_json({"log":logtxt})
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 @app.websocket("/ws/file-tree")
 async def websocket_file_tree(websocket: WebSocket):

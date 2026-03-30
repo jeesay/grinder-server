@@ -19,7 +19,7 @@ def find_available_port(start: int, end: int) -> int:
     raise OSError(f"No available ports found in range {start}-{end}")
 
 
-def check_environment():  
+async def check_environment():  
     # Env var check
     relion_config = {k: v for k, v in os.environ.items() if k.startswith("RELION_")}
     print(relion_config)
@@ -28,12 +28,27 @@ def check_environment():
     try:
         cargo = sg.StarGate()
         cargo.read('default_pipeline.star')
+        # Modify `pipelines_processes` in order to have unique process
+        procs = cargo.db['pipeline_processes']['table']
+        procs.apply(lambda row: row)
     except FileNotFoundError:
         has_file = False
 
-    return json.dumps({
+    return {
         "file_exists": has_file,
         "env_vars": relion_config,
-        "pipeline": cargo.db['pipeline_general']
-    },indent=2)
+        "pipeline": cargo.db['pipeline_general'],
+        'nodes': cargo.db['pipeline_nodes']['table'].to_dict(orient='split'),
+        'processes': cargo.db['pipeline_processes']['table'].to_dict(orient='split')
+    }
 
+async def get_logfile(dn,jn,fn='log.txt'):
+    has_file = True
+    data = None
+    try:
+        with open(os.path.join(dn,jn,fn),'r') as f:
+            data = f.readlines()
+    except FileNotFoundError:
+        has_file = False
+    
+    return {"has_file":has_file,"log": data}    
