@@ -44,7 +44,7 @@ def searchDir(tool):
             tool (String) : Name of the parent folder
     '''
     dir = []
-    dir = next(os.walk('./.gimmick'))[1]
+    dir = next(os.walk('./.grinder'))[1]
     if "Saves" in dir :
         dir.remove("Saves")
     if "Trash" in dir :
@@ -60,7 +60,7 @@ def searchDirAlgo(tool):
             tool (String) : Name of the directory to check
     '''
     dir = []
-    dir = next(os.walk(f'./.gimmick/{tool}'))[1]
+    dir = next(os.walk(f'./.grinder/{tool}'))[1]
     with open("./.gimmick/config.json","r") as f:
         result = json.load(f)
     for jobs in result["jobs"] :

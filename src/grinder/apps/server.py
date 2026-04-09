@@ -1,0 +1,206 @@
+# In src/my_app/main.py
+import typer
+from typing import Annotated
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import RedirectResponse, StreamingResponse
+import io
+import os
+import polars as pl
+import uvicorn
+
+from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
+import grinder.core.utils as gru
+
+app = FastAPI()
+
+# --- 1. NEW: Redirect and Welcome Message ---
+
+@app.get("/config")
+async def config_redirect():
+    """Redirects the user from /config to the welcome page."""
+    return RedirectResponse(url="/welcome")
+
+@app.websocket("/welcome")
+async def welcome_message(websocket: WebSocket):
+    """The landing page for the redirect."""
+    await websocket.accept()
+    try:
+        while True:
+            progs, projs = await gru.check_environment()
+            print(dict)
+            await websocket.send_json({
+                "status": "success",
+                "message": "Welcome to GRINDER",
+                "current_dir": os.getcwd().replace(os.sep, '/'),
+                "project_list": projs,
+                "environment": progs
+            })
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+
+@app.get("/log")
+async def log_message(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            request = await websocket.receive_text()
+            dirname = request['dirname']
+            jobname = request['jobname']
+            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
+            await websocket.send_json({"log":logtxt})
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+app.websocket("/job/explore")
+async def job_explore(websocket: WebSocket):
+    # Private
+    def iter_batches():
+        # Write the dataframe to a buffer in IPC Stream format
+        buf = io.BytesIO()
+        df.write_ipc_stream(buf)
+        yield buf.getvalue()
+
+    await websocket.accept()
+    try:
+        while True:
+            request = await websocket.receive_text()
+            metadata = request['metadata']
+            columns = request['columns']
+            jobdir,jobname,_ = request['jobname'].split('/')
+
+            # 0. Check if .grinder/{jobname} is available. If not, prepare the metadata and/or data
+            # TODO
+            print('TODO. run app for ',jobdir,jobname)
+            # 1. Define your Lazy query
+            lf = pl.scan_parquet(os.path.join('.grinder',jobname,metadata))
+
+            # 2. Apply some selection or filtering. Here select columns
+            query = lf.select(columns)
+
+            # 3. Execute and convert to Arrow Stream
+            # For large data, we collect in chunks or as a whole and stream the bytes
+            df = query.collect()
+
+            # 4. Convert to Arrow IPC Stream
+            # We use a buffer to capture the binary data
+            buf = io.BytesIO()
+            df.write_ipc_stream(buf)
+    
+            # 4. Send binary data over WebSocket
+            await websocket.send_bytes(buf.getvalue())
+
+            await websocket.close()
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+@app.websocket("/job/read")
+async def job_read(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            request = await websocket.receive_text()
+            dirname = request['dirname']
+            jobname = request['jobname']
+            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
+            await websocket.send_json({"log":logtxt})
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+@app.websocket("/job/run")
+async def job_run(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            request = await websocket.receive_text()
+            dirname = request['dirname']
+            jobname = request['jobname']
+            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
+            await websocket.send_json({"log":logtxt})
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+
+@app.websocket("/ws/file-tree")
+async def websocket_file_tree(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            requested_filter = await websocket.receive_text()
+            print(requested_filter)
+            tree_data = await build_relion_tree() # (requested_filter)
+            await websocket.send_json(tree_data)
+            # if os.path.exists(requested_path):
+            #     tree_data = build_relion_tree(requested_filter)
+            #     await websocket.send_json(tree_data)
+            # else:
+            #     await websocket.send_json({"error": "Path not found"})
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+# Test websocket
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message text was: {data}")
+
+def run_server(ip,port):
+    # Determine the port logic
+    final_port = port if port else gru.find_available_port(20000, 20100)
+    
+    try:
+        typer.echo(f"Starting server on {ip}:{final_port}")
+        uvicorn.run("grinder.apps.server:app", host=ip, port=final_port, reload=True)
+    except OSError as e:
+        typer.secho(f"Failed to start: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    
+
+# src/grinder_server/main.py
+
+# Create the Typer app object
+helper = typer.Typer(help="Grinder WebSocket Server")
+
+@helper.command()
+def server(
+    ip: Annotated[str, typer.Option(help="IP address to bind the server to")] = "0.0.0.0",
+    port: Annotated[int,  typer.Option(help="Specific port to use")] = None,
+    new: Annotated[ bool, typer.Option("--new", help="Initialize a new session/configuration")] = False,
+):
+    """
+    Starts the Grinder WebSocket server.
+    """
+    
+    # Handle the --new argument logic
+    if new:
+        typer.echo("Initializing new session...")
+        # Add your custom logic here
+
+    run_server(ip,port)
+
+# if __name__ == "__main__":
+#     app()
+
+

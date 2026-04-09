@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "grinder-server"
+name = "grinder"
 version = "0.1.0"
 authors = [{name = "Jean-Christophe Taveau", email = "you@example.com"}]
 readme = "README.md"
@@ -12,8 +12,11 @@ license-files = ["LICENSE"]
 description = "A FastAPI package for file tree and websockets"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi",
-    "uvicorn",
+    "numpy>=2.4.0",
+    "pandas>=3.0.0",
+    "polars[all]>=1.39.0",
+    "typer>=0.24.0",
+    "uvicorn>=0.41.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -21,5 +24,5 @@ where = ["src"]
 
 [project.scripts]
 # This creates a command line tool, e.g., 'start-my-server'
-grinder-server = "grinder_server.main:run_server"
+grinder = "grinder.main:app"
 

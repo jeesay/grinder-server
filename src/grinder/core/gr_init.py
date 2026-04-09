@@ -6,7 +6,6 @@ import re
 import star_gate as sg
 
 
-
 def to_number(s):
   try:
     float_value = float(s)

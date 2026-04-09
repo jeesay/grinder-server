@@ -18,16 +18,35 @@ def find_available_port(start: int, end: int) -> int:
             return port
     raise OSError(f"No available ports found in range {start}-{end}")
 
+def find_relion_dirs(root_path):
+    target_file = 'default_pipeline.star'
+    found_directories = []
 
+    for root, dirs, files in os.walk(root_path):
+        if target_file in files:
+            # Force Unix path
+            found_directories.append(root.replace(os.sep, '/'))
+            # Stop os.walk from recursing into any sub-directories of 'root'
+            dirs.clear() 
+            
+    return found_directories
+
+# Example usage:
+# result = find_pipeline_dirs('/your/search/path')
+# print(result)
 async def check_environment():  
     # Env var check
     relion_config = {k: v for k, v in os.environ.items() if k.startswith("RELION_")}
-    print(relion_config)
+    # Get all the projects in the file tree
+    projects = find_relion_dirs('./')
+    return (relion_config,projects)
+
+async def upload_project(path):
     # `default_pipeline` check
     has_file = True
     try:
         cargo = sg.StarGate()
-        cargo.read('default_pipeline.star')
+        cargo.read(os.path.join(path,'default_pipeline.star'))
         # Modify `pipelines_processes` in order to have unique process
         procs = cargo.db['pipeline_processes']['table']
         procs.apply(lambda row: row)
