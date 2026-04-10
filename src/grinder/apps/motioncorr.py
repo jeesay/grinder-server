@@ -1,9 +1,11 @@
 import os
-import polars as pl
-import typer
-import star_gate as sg
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+import polars as pl
+import typer
+from typing import Annotated
+
+import star_gate as sg
 
 
 def convert_single_file(filetup):
@@ -123,12 +125,20 @@ def convert_file_batch(file_list,batchsize,jobdir):
 app = typer.Typer()
 
 @app.command()
-def main():
-    output_dir = '.grinder/job002/'
-    path = 'MotionCorr/job002/Movies/'
+def motion(
+    path: Annotated[ str, typer.Option("--i", help="Metadata path in MotionCorr/job<xyz>")],
+    output_dir: Annotated[ str, typer.Option("--o", help="Output GRINDER directory")]
+):
 
-    # 1. List all your parquet/star files
-    star_files = list(Path(path).glob("*.star"))
+    # 0. From `corrected_micrographs.star`, extract Movies path and metadata files
+    # TODO
+    fn = os.path.join(path,'corrected_micrographs.star')
+    cargo = sg.StarGate()
+    cargo.read(fn)
+
+    # 1. List all star files
+    metatable = cargo.db['micrographs']['table']
+    star_files = metatable.rlnMicrographMetadata # list(Path(path).glob("*.star"))
     file_list = zip(star_files,[output_dir] * len(star_files))
 
     # Use all available CPU cores

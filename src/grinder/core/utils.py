@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import socket
 import star_gate as sg
 
@@ -18,15 +19,20 @@ def find_available_port(start: int, end: int) -> int:
             return port
     raise OSError(f"No available ports found in range {start}-{end}")
 
+
 def find_relion_dirs(root_path):
     target_file = 'default_pipeline.star'
     found_directories = []
 
-    for root, dirs, files in os.walk(root_path):
+    # topdown=True is required to modify 'dirs' in place to prune the search
+    for root, dirs, files in os.walk(root_path, topdown=True):
         if target_file in files:
-            # Force Unix path
-            found_directories.append(root.replace(os.sep, '/'))
-            # Stop os.walk from recursing into any sub-directories of 'root'
+            # Normalize to Unix-style forward slashes
+            # root.replace(os.sep, '/') 
+            unix_path = Path(root).as_posix() # will automatically use '/' regardless of OS
+            found_directories.append(unix_path)
+            
+            # This prevents os.walk from looking into subfolders of the current root
             dirs.clear() 
             
     return found_directories

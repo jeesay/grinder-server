@@ -1,9 +1,11 @@
 # In src/my_app/main.py
-import typer
-from typing import Annotated
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, StreamingResponse
 import io
+import numpy as np
+import typer
+from typing import Annotated
+
 import os
 import polars as pl
 import uvicorn
@@ -94,6 +96,39 @@ async def job_explore(websocket: WebSocket):
             df.write_ipc_stream(buf)
     
             # 4. Send binary data over WebSocket
+            await websocket.send_bytes(buf.getvalue())
+
+            await websocket.close()
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+app.websocket("/parquet")
+async def job_explore(websocket: WebSocket):
+
+    def generate_df():
+        num_rows = 5000
+        rng = np.random.default_rng(seed=7)
+
+        buildings_data = {
+            "sqft": rng.exponential(scale=1000, size=num_rows),
+            "year": rng.integers(low=1995, high=2023, size=num_rows),
+            "building_type": rng.choice(["A", "B", "C"], size=num_rows),
+        }
+        return pl.DataFrame(buildings_data)
+
+    await websocket.accept()
+    try:
+        while True:
+            # 1. Create test data
+            df = generate_df()
+
+            # 4. Convert to Arrow IPC Stream
+            # We use a buffer to capture the binary data
+            buf = io.BytesIO()
+            df.write_ipc_stream(buf)
+    
+            # 2. Send binary data over WebSocket
             await websocket.send_bytes(buf.getvalue())
 
             await websocket.close()
