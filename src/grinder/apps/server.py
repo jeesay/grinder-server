@@ -60,7 +60,7 @@ async def log_message(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
-app.websocket("/job/explore")
+@app.websocket("/job/explore")
 async def job_explore(websocket: WebSocket):
     # Private
     def iter_batches():
@@ -103,8 +103,8 @@ async def job_explore(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
-app.websocket("/parquet")
-async def job_explore(websocket: WebSocket):
+@app.websocket("/parquet")
+async def parquet_test(websocket: WebSocket):
 
     def generate_df():
         num_rows = 5000
@@ -119,22 +119,35 @@ async def job_explore(websocket: WebSocket):
 
     await websocket.accept()
     try:
-        while True:
-            # 1. Create test data
-            df = generate_df()
+	    # 1. Create test data
+        df = generate_df()
 
-            # 4. Convert to Arrow IPC Stream
-            # We use a buffer to capture the binary data
-            buf = io.BytesIO()
-            df.write_ipc_stream(buf)
+        # 2. Forced conversion to standard Arrow Table
+        table = df.to_arrow()
+
+        # 4. Convert to Arrow IPC Stream
+        # We use a buffer to capture the binary data
+        sink = io.BytesIO()
+        with pa.ipc.new_stream(sink, table.schema) as writer:
+            writer.write_table(table)
+        # df.write_ipc(buf)
+        payload = sink.getvalue()
     
-            # 2. Send binary data over WebSocket
-            await websocket.send_bytes(buf.getvalue())
+        # 2. Send binary data over WebSocket
+        print(f"Stream send : {len(payload)} octets")
+        await websocket.send_bytes(payload)
+        print("Stream sent successfully !")
 
-            await websocket.close()
+        while True :
+            await websocket.receive_text()
 
-    except WebSocketDisconnect:
-        print("Client disconnected")
+        # await websocket.close()
+        
+    except Exception as e :
+        print("Error during sending : {e}")
+
+    # finally :
+    # 	await websocket.close()
 
 @app.websocket("/job/read")
 async def job_read(websocket: WebSocket):
