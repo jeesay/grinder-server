@@ -29,7 +29,6 @@ async def welcome_message(websocket: WebSocket):
     try:
         while True:
             progs, projs = await gru.check_environment()
-            print(dict)
             await websocket.send_json({
                 "status": "success",
                 "message": "Welcome to GRINDER",
@@ -37,6 +36,20 @@ async def welcome_message(websocket: WebSocket):
                 "project_list": projs,
                 "environment": progs
             })
+    except WebSocketDisconnect:
+        print("Client disconnected")
+
+@app.websocket("/project")
+async def project(websocket: WebSocket):
+    """Upload Project"""
+    await websocket.accept()
+    try:
+        while True:
+            request = await websocket.receive_text()
+            print(request)
+            project_path = request
+            pipeline = await gru.upload_project(project_path)
+            await websocket.send_json(pipeline)
     except WebSocketDisconnect:
         print("Client disconnected")
 
@@ -103,8 +116,8 @@ async def job_explore(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
-app.websocket("/parquet")
-async def job_explore(websocket: WebSocket):
+@app.websocket("/parquet")
+async def test_parquet(websocket: WebSocket):
 
     def generate_df():
         num_rows = 5000

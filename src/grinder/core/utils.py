@@ -60,8 +60,6 @@ async def upload_project(path):
         has_file = False
 
     return {
-        "file_exists": has_file,
-        "env_vars": relion_config,
         "pipeline": cargo.db['pipeline_general'],
         'nodes': cargo.db['pipeline_nodes']['table'].to_dict(orient='split'),
         'processes': cargo.db['pipeline_processes']['table'].to_dict(orient='split')
