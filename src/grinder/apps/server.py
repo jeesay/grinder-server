@@ -15,6 +15,7 @@ import pyarrow as pa
 
 from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
 import grinder.core.utils as gru
+from ..core.stargate_module import StarGate as sg
 
 app = FastAPI()
 
@@ -136,7 +137,9 @@ async def parquet_test(websocket: WebSocket):
     await websocket.accept()
     try:
 	    # 1. Create test data
-        df = generate_df()
+        # df = generate_df()
+        path_to_parquet = "/mnt/HD002/tomo/ESRF_PatAB/mx2441_Grid5/.grinder/job002/mx2441_grid5_12134_shifts.parquet"
+        df = pl.read_parquet(path_to_parquet)
 
         # 2. Forced conversion to standard Arrow Table
         table = df.to_arrow()
@@ -160,10 +163,90 @@ async def parquet_test(websocket: WebSocket):
         # await websocket.close()
         
     except Exception as e :
-        print("Error during sending : {e}")
+        print(f"Error during sending : {e}")
 
     # finally :
     # 	await websocket.close()
+
+@app.websocket("/ws/dataviz")
+async def websocket_dataviz(websocket: WebSocket):
+    """
+    Expecting message : "get_data:<job_id>:<source_file>"
+    ex : "get_data:MotionCorr/job002:corrected_micrograph.star
+    """
+    import pandas as pd
+
+    RELION_DIR = os.path.abspath(".")
+
+
+    await websocket.accept()
+    print(f"[/ws/dataviz] Connection : {websocket.client}")
+
+    try : 
+        while True :
+            request = await websocket.receive_text()
+            print(f"[/ws/dataviz] request={request}")
+
+            if not request.startswith("get_data:"):
+                await websocket.send_json({"error" : f"Unknown request : {request}"})
+                continue
+
+            parts = request.split(":", 2)
+            if len(parts) != 3 :
+                await websocket.send_json({"error": "Expected format : get_data:<job_id>:<source_file>"})
+                continue
+
+            _, job_id, source_file = parts
+
+            try :
+                stem = os.path.splitext(source_file)[0] # without extension
+                grinder_dir = os.path.join(RELION_DIR, ".grinder", job_id.replace("/", os.sep))
+                parquet_path = os.path.join(grinder_dir, f"{stem}.parquet")
+                star_path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), source_file)
+
+                if not os.path.exists(parquet_path):
+                    if not os.path.exists(star_path):
+                        await websocket.send_json({"error" : f"Source file not found : {star_path}"})
+                        continue
+
+                    print(f"[/ws/dataviz] Conversion {source_file} -> parquet...")
+                    os.makedirs(grinder_dir, exist_ok=True)
+
+                    cargo = sg.StarGate()
+                    cargo.read(star_path)
+
+                    df = None
+                    for k, block in cargo.blocks.items():
+                        if "table" in block:
+                            df = pl.from_pandas(pd.DataFrame(block["table"]["rows"], columns=block["table"]["header"]))
+                            break
+                    
+                    if df is None:
+                        await websocket.send_json({"error" : "No table found in .star file"})
+                        continue
+
+                    df.write_parquet(parquet_path)
+                    print(f"[/ws/dataviz] Parquet saved : {parquet_path}")
+
+                df = pl.read_parquet(parquet_path)
+                table = df.to_arrow()
+
+                sink = io.BytesIO()
+                with pa.ipc.new_stream(sink, table.schema) as writer :
+                    writer.write_table(table)
+                payload = sink.getvalue()
+
+                print(f"[/ws/dataviz] Sending {len(payload)} octets for {job_id}/{source_file}")
+                
+                await websocket.send_bytes(payload)
+            
+            except Exception as e :
+                import traceback
+                traceback.print_exc()
+                await websocket.send_json({"error" : str(e)})
+    
+    except WebSocketDisconnect:
+        print(f"[/ws/dataviz] Client disconnected")
 
 @app.websocket("/job/read")
 async def job_read(websocket: WebSocket):
@@ -229,6 +312,53 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         data = await websocket.receive_text()
         await websocket.send_text(f"Message text was: {data}")
+
+@app.websocket("/ws/explore")
+async def websocket_explore(websocket: WebSocket):
+    # RELION jobs management
+    RELION_DIR = os.path.abspath(".")
+    await websocket.accept()
+    print(f"[ws/explore] Connection : {websocket.client} | RELION_DIR={RELION_DIR}")
+
+    try : 
+        while True:
+            request = await websocket.receive_text()
+            print(f"[ws/explore] request={request}")
+
+            # job_list
+            if request == "job_list" :
+                tree_data = await build_relion_tree()
+                await websocket.send_json(tree_data)
+            
+            # job_params : <job_id>
+            elif request.startswith("job_params:"):
+                job_id = request.split(":",1)[1].strip()
+
+                try:
+                    content = _read_job_star(job_id)
+                    await websocket.send_json({"job_id": job_id, "data" : content})
+                except FileNotFoundError as e :
+                    await websocket.send_json({"error" : str(e)})
+
+            else :
+                await websocket.send_json({"error" : f"Unknown request : {request}"})
+
+    except WebSocketDisconnect:
+        print(f"[ws/explore] Client disconnected")
+
+def _read_job_star(job_id: str) -> str:
+    """
+    Read job.star from a given job.
+    job_id example : "MotionCorr/job001"
+    Raise FileNotFoundError if file doesn't exist
+    """
+    RELION_DIR = os.path.abspath(".")
+
+    path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), "job.star")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"job.star not found for : {job_id}")
+    with open(path, "r", encoding="utf-8") as f :
+        return f.read()
 
 def run_server(ip,port):
     # Determine the port logic
