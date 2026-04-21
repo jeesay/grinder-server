@@ -2,6 +2,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, StreamingResponse
 import io
+import json
 import numpy as np
 import typer
 from typing import Annotated
@@ -168,14 +169,15 @@ async def parquet_test(websocket: WebSocket):
 @app.websocket("/job/read")
 async def job_read(websocket: WebSocket):
     await websocket.accept()
-    # ... logic using build_file_tree(path) ...
     try:
         while True:
             request = await websocket.receive_text()
-            dirname = request['dirname']
-            jobname = request['jobname']
-            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
-            await websocket.send_json({"log":logtxt})
+            req = json.loads(request)
+            projname = req['projpath']
+            dirname = req['dirname']
+            jobname = req['jobname']
+            logs = await gru.get_jobfiles(projname,dirname,jobname) # (requested_filter)
+            await websocket.send_json(logs)
             # if os.path.exists(requested_path):
             #     tree_data = build_relion_tree(requested_filter)
             #     await websocket.send_json(tree_data)

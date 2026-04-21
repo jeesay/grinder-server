@@ -65,13 +65,38 @@ async def upload_project(path):
         'processes': cargo.db['pipeline_processes']['table'].to_dict(orient='split')
     }
 
-async def get_logfile(dn,jn,fn='log.txt'):
+async def get_jobfiles(pn,dn,jn):
+
+    def _convert(nodetype,df):
+        # Try to guess
+        if nodetype == 'relion.class2d':
+            do_vdam = df.loc[df['rlnJobOptionVariable'] == 'do_grad'].iloc[0]['rlnJobOptionValue'].lower() == 'yes'
+            do_em   = df.loc[df['rlnJobOptionVariable'] == 'do_em'  ].iloc[0]['rlnJobOptionValue'].lower() == 'yes'
+            return nodetype + '.vdam' if do_vdam else nodetype + '.em'
+        else:
+            return nodetype
+        
     has_file = True
-    data = None
+    log = None
+    error = None
+    params = None
     try:
-        with open(os.path.join(dn,jn,fn),'r') as f:
-            data = f.readlines()
+        # if .grinder/<jn> does not exist
+        fn = "run.out"
+        with open(os.path.join(pn,dn,jn,fn),'r') as f:
+            log = f.readlines()
+        fn = "run.err"
+        with open(os.path.join(pn,dn,jn,fn),'r') as f:
+            error = f.readlines()
+        fn = "job.star"
+        cargo = sg.StarGate()
+        cargo.read(os.path.join(pn,dn,jn,fn))
+        params_head = cargo.db['job']
+        params = cargo.db['joboptions_values']['table']
+        nodetype = _convert(params_head['rlnJobTypeLabel'],params)
+        params_head['rlnJobTypeLabel'] = nodetype
+        # else goto .grinder/<jn>/job.json
     except FileNotFoundError:
         has_file = False
     
-    return {"has_file":has_file,"log": data}    
+    return {"has_file":has_file,"log": log,"err":error,"params_head":params_head, "params":params.to_dict(orient='split')}    
