@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import socket
 import star_gate as sg
+import logging
 
 def is_port_in_use(port: int, host: str = 'localhost') -> bool:
     """Checks if a port is already being used on the host."""
@@ -50,12 +51,22 @@ async def check_environment():
 async def upload_project(path):
     # `default_pipeline` check
     has_file = True
+
+    logging.basicConfig(
+        format='%(levelname)-8s[%(asctime)s]: %(message)s',
+        level=logging.INFO,
+        datefmt='%Y-%m-%d %H:%M:%S')
+
     try:
+        logging.info('Parse default_pipeline.star')
         cargo = sg.StarGate()
         cargo.read(os.path.join(path,'default_pipeline.star'))
+        logging.info('Get `pipeline_processes` table in default_pipeline.star')
         # Modify `pipelines_processes` in order to have unique process
         procs = cargo.db['pipeline_processes']['table']
+        logging.info('Update `pipeline_processes` table in default_pipeline.star')
         procs.apply(lambda row: row)
+        logging.info('End of `pipeline_processes` datablock in default_pipeline.star')
     except FileNotFoundError:
         has_file = False
 
@@ -67,6 +78,18 @@ async def upload_project(path):
 
 async def get_jobfiles(pn,dn,jn):
 
+    def _curatelog(logtxt,errtxt):
+        curated = ''
+        mouse = '~~(,_,">'
+        for line in logtxt:
+            if mouse in line:
+                if line.count('.') == 60:
+                    curated += line
+                # <progress id="file" max="60" value="60">100%</progress>
+            else:
+                curated += f'INFO: {line}' 
+        return curated
+
     def _convert(nodetype,df):
         # Try to guess
         if nodetype == 'relion.class2d':
@@ -77,8 +100,8 @@ async def get_jobfiles(pn,dn,jn):
             return nodetype
         
     has_file = True
-    log = None
-    error = None
+    log = ''
+    error = ''
     params = None
     try:
         # if .grinder/<jn> does not exist
@@ -93,10 +116,12 @@ async def get_jobfiles(pn,dn,jn):
         cargo.read(os.path.join(pn,dn,jn,fn))
         params_head = cargo.db['job']
         params = cargo.db['joboptions_values']['table']
+        # Cleanup
         nodetype = _convert(params_head['rlnJobTypeLabel'],params)
+        clean_log = _curatelog(log,error)
         params_head['rlnJobTypeLabel'] = nodetype
         # else goto .grinder/<jn>/job.json
     except FileNotFoundError:
         has_file = False
     
-    return {"has_file":has_file,"log": log,"err":error,"params_head":params_head, "params":params.to_dict(orient='split')}    
+    return {"has_file":has_file,"log": clean_log,"params_head":params_head, "params":params.to_dict(orient='split')}    
