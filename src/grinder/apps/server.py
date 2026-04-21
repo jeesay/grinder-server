@@ -78,7 +78,7 @@ async def log_message(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
-@app.websocket("/job/explore")
+@app.websocket("/tmp/explore")
 async def job_explore(websocket: WebSocket):
     # Private
     def iter_batches():
@@ -169,86 +169,6 @@ async def parquet_test(websocket: WebSocket):
     # finally :
     # 	await websocket.close()
 
-@app.websocket("/ws/dataviz")
-async def websocket_dataviz(websocket: WebSocket):
-    """
-    Expecting message : "get_data:<job_id>:<source_file>"
-    ex : "get_data:MotionCorr/job002:corrected_micrograph.star
-    """
-    import pandas as pd
-
-    RELION_DIR = os.path.abspath(".")
-
-
-    await websocket.accept()
-    print(f"[/ws/dataviz] Connection : {websocket.client}")
-
-    try : 
-        while True :
-            request = await websocket.receive_text()
-            print(f"[/ws/dataviz] request={request}")
-
-            if not request.startswith("get_data:"):
-                await websocket.send_json({"error" : f"Unknown request : {request}"})
-                continue
-
-            parts = request.split(":", 2)
-            if len(parts) != 3 :
-                await websocket.send_json({"error": "Expected format : get_data:<job_id>:<source_file>"})
-                continue
-
-            _, job_id, source_file = parts
-
-            try :
-                stem = os.path.splitext(source_file)[0] # without extension
-                grinder_dir = os.path.join(RELION_DIR, ".grinder", job_id.replace("/", os.sep))
-                parquet_path = os.path.join(grinder_dir, f"{stem}.parquet")
-                star_path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), source_file)
-
-                if not os.path.exists(parquet_path):
-                    if not os.path.exists(star_path):
-                        await websocket.send_json({"error" : f"Source file not found : {star_path}"})
-                        continue
-
-                    print(f"[/ws/dataviz] Conversion {source_file} -> parquet...")
-                    os.makedirs(grinder_dir, exist_ok=True)
-
-                    cargo = sg.StarGate()
-                    cargo.read(star_path)
-
-                    df = None
-                    for k, block in cargo.blocks.items():
-                        if "table" in block:
-                            df = pl.from_pandas(pd.DataFrame(block["table"]["rows"], columns=block["table"]["header"]))
-                            break
-                    
-                    if df is None:
-                        await websocket.send_json({"error" : "No table found in .star file"})
-                        continue
-
-                    df.write_parquet(parquet_path)
-                    print(f"[/ws/dataviz] Parquet saved : {parquet_path}")
-
-                df = pl.read_parquet(parquet_path)
-                table = df.to_arrow()
-
-                sink = io.BytesIO()
-                with pa.ipc.new_stream(sink, table.schema) as writer :
-                    writer.write_table(table)
-                payload = sink.getvalue()
-
-                print(f"[/ws/dataviz] Sending {len(payload)} octets for {job_id}/{source_file}")
-                
-                await websocket.send_bytes(payload)
-            
-            except Exception as e :
-                import traceback
-                traceback.print_exc()
-                await websocket.send_json({"error" : str(e)})
-    
-    except WebSocketDisconnect:
-        print(f"[/ws/dataviz] Client disconnected")
-
 @app.websocket("/job/read")
 async def job_read(websocket: WebSocket):
     await websocket.accept()
@@ -269,6 +189,25 @@ async def job_read(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
+@app.websocket("/job/explore")
+async def websocket_dataviz(websocket: WebSocket):
+    """
+    Expecting message : "get_data:<job_id>:<source_file>"
+    ex : "get_data:MotionCorr/job002:corrected_micrograph.star
+    """
+    await websocket.accept()
+    try : 
+        while True :
+            request = await websocket.receive_text()
+            print(f"[/job/data] request={request}")
+
+            if not request.startswith("get_data:"):
+                await websocket.send_json({"error" : f"Unknown request : {request}"})
+                continue
+
+    except WebSocketDisconnect:
+        print(f"[/job/data] Client disconnected")
+        
 @app.websocket("/job/run")
 async def job_run(websocket: WebSocket):
     await websocket.accept()
