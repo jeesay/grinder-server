@@ -46,24 +46,47 @@ helper = typer.Typer()
 @helper.command()
 def import(
     path: Annotated[str, typer.Option("--i", help="Metadata path in Import/job<xyz>")],
-    output_dir:  Annotated[str, typer.Option("--odir", help="Output RELION|GRINDER directory")],
-    output_file: Annotated[str, typer.Option("--ofile", help="Output star|parquet file")],
-    optics_group_name: Annotated[str, typer.Option(help="Optics Group Name")],
-    optics_group_mtf,
-    angpix,
-    kV,
-    Cs,
-    Q0,
-    beamtilt_x,
-    beamtilt_y,
-    nodetype: Annotated[str],
+    output_dir:  Annotated[str, typer.Option("--odir", help="Output directory (e.g. 'Import/job001/')"],
+    output_file: Annotated[str, typer.Option("--ofile", help="Output file name (e.g. 'movies.star')")],
+    nodetype: Annotated[str, typer.Option("--type", help="RELION  nodetype (e.g. movies, micrographs, boxes, etc.)],
+    optics_group_mtf: Annotated[str,typer.Option(help="Name for this optics group's MTF (Only for movies/mics)")],
     pipeline_control: Annotated[str],
+    version:Annotated[str,typer.Option(help="Print RELION and GRINDER versions and exit")],
+    optics_group_name: Annotated[str, typer.Option(help="Name for this optics group (Only for movies/mics)")]=opticsGroup1,
+    angpix:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=1.0,
+    kV:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=300,
+    Cs:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=2.7,
+    Q0:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=0.1,
+    beamtilt_x:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=0.0,
+    beamtilt_y:Annotated[float,typer.Option(help="Pixel size (Angstrom) (Only for movies/mics)")]=0.0,
+    cont:Annotated[bool,typer.Option("--continue",help="Continue an old run, add more files to the same import directory")]=False,
     # do_movies: Annotated[bool] = False,
     # do_micrographs: Annotated[bool] = False,
     # do_coordinates: Annotated[bool] = False,
     # do_halfmaps: Annotated[bool] = False,
     # do_particles: Annotated[bool] = False,
 ):
+    #                                --i : Input (wildcard) filename
+    #                             --odir : Output directory (e.g. "Import/job001/"
+    #                            --ofile : Output file name (e.g. "movies.star"
+    #                --do_movies (false) : Import movies
+    #           --do_micrographs (false) : Import micrographs
+    #           --do_coordinates (false) : Import coordinates
+    #              --do_halfmaps (false) : Import unfiltered half maps
+    #             --do_particles (false) : Import particle STAR files
+    #   --particles_optics_group_name () : Rename optics group for all imported particles (e.g. "opticsGroupLMBjan2019"
+    #                 --do_other (false) : Import anything else
+    # ====== Specific options for movies or micrographs ===== 
+    # --optics_group_name (opticsGroup1) : Name for this optics group
+    #              --optics_group_mtf () : Name for this optics group's MTF
+    #                     --angpix (1.0) : Pixel size (Angstrom)
+    #                         --kV (300) : Voltage (kV)
+    #                         --Cs (2.7) : Spherical aberration (mm)
+    #                         --Q0 (0.1) : Amplitude contrast
+    #                 --beamtilt_x (0.0) : Beam tilt (X; mrad)
+    #                 --beamtilt_y (0.0) : Beam tilt (Y; mrad)
+    #                 --continue (false) : Continue and old run, add more files to the same import directory
+    #                          --version : Print RELION version and exit
 
     # Movies
     fn_out = {
