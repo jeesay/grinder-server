@@ -24,7 +24,7 @@ def histogram(data):
 def plot2d(data):
     pass    
 
-def render3d(data)!
+def render3d(data):
     pass
 
 def table(data):
@@ -37,56 +37,60 @@ def violin(data):
     pass
 
 def graphics(data):
-    parts = data.split(":", 2)
-    if len(parts) != 3 :
-        await websocket.send_json({"error": "Expected format : get_data:<job_id>:<source_file>"})
-        continue
+    ## Fonction chef d'orchestre --> dispatche dans les autres fonctions 
 
-    _, job_id, source_file = parts
+    pass
 
-    try :
-        stem = os.path.splitext(source_file)[0] # without extension
-        grinder_dir = os.path.join(RELION_DIR, ".grinder", job_id.replace("/", os.sep))
-        parquet_path = os.path.join(grinder_dir, f"{stem}.parquet")
-        star_path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), source_file)
+    # parts = data.split(":", 2)
+    # if len(parts) != 3 :
+    #     await websocket.send_json({"error": "Expected format : get_data:<job_id>:<source_file>"})
+    #     continue
 
-        if not os.path.exists(parquet_path):
-            if not os.path.exists(star_path):
-                await websocket.send_json({"error" : f"Source file not found : {star_path}"})
-                continue
+    # _, job_id, source_file = parts
 
-            print(f"[/ws/dataviz] Conversion {source_file} -> parquet...")
-            os.makedirs(grinder_dir, exist_ok=True)
+    # try :
+    #     stem = os.path.splitext(source_file)[0] # without extension
+    #     grinder_dir = os.path.join(RELION_DIR, ".grinder", job_id.replace("/", os.sep))
+    #     parquet_path = os.path.join(grinder_dir, f"{stem}.parquet")
+    #     star_path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), source_file)
 
-            cargo = sg.StarGate()
-            cargo.read(star_path)
+    #     if not os.path.exists(parquet_path):
+    #         if not os.path.exists(star_path):
+    #             await websocket.send_json({"error" : f"Source file not found : {star_path}"})
+    #             continue
 
-            df = None
-            for k, block in cargo.blocks.items():
-                if "table" in block:
-                    df = pl.from_pandas(pd.DataFrame(block["table"]["rows"], columns=block["table"]["header"]))
-                    break
+    #         print(f"[/ws/dataviz] Conversion {source_file} -> parquet...")
+    #         os.makedirs(grinder_dir, exist_ok=True)
+
+    #         cargo = sg.StarGate()
+    #         cargo.read(star_path)
+
+    #         df = None
+    #         for k, block in cargo.blocks.items():
+    #             if "table" in block:
+    #                 df = pl.from_pandas(pd.DataFrame(block["table"]["rows"], columns=block["table"]["header"]))
+    #                 break
             
-            if df is None:
-                await websocket.send_json({"error" : "No table found in .star file"})
-                continue
+    #         if df is None:
+    #             await websocket.send_json({"error" : "No table found in .star file"})
+    #             continue
 
-            df.write_parquet(parquet_path)
-            print(f"[/ws/dataviz] Parquet saved : {parquet_path}")
+    #         df.write_parquet(parquet_path)
+    #         print(f"[/ws/dataviz] Parquet saved : {parquet_path}")
 
-        df = pl.read_parquet(parquet_path)
-        table = df.to_arrow()
+    #     df = pl.read_parquet(parquet_path)
+    #     table = df.to_arrow()
 
-        sink = io.BytesIO()
-        with pa.ipc.new_stream(sink, table.schema) as writer :
-            writer.write_table(table)
-        payload = sink.getvalue()
+    #     sink = io.BytesIO()
+    #     with pa.ipc.new_stream(sink, table.schema) as writer :
+    #         writer.write_table(table)
+    #     payload = sink.getvalue()
 
-        print(f"[/ws/dataviz] Sending {len(payload)} octets for {job_id}/{source_file}")
+    #     print(f"[/ws/dataviz] Sending {len(payload)} octets for {job_id}/{source_file}")
         
-        await websocket.send_bytes(payload)
+    #     await websocket.send_bytes(payload)
     
-    except Exception as e :
-        import traceback
-        traceback.print_exc()
-        await websocket.send_json({"error" : str(e)})
+    # except Exception as e :
+    #     import traceback
+    #     traceback.print_exc()
+    #     await websocket.send_json({"error" : str(e)})
