@@ -1,7 +1,6 @@
 # import skimage as ski
 # import mrcfile as mrc
 import os 
-import asyncio
 import star_gate as sg
 
 
@@ -18,11 +17,7 @@ def heatmap(data):
     pass
     
 def histogram(data):
-    if is_dirty:
-        # Calc histogram
-        pass
-    else:
-        pass
+    pass
     
 def plot2d(data):
     pass    
@@ -40,7 +35,6 @@ def violin(data):
     pass
 
 async def get_dataviz_package(path, dataviz_rows):
-    ## Fonction chef d'orchestre --> dispatche dans les autres fonctions 
     final_payload = {
                 "type" : "dataviz_package",
                 "widget" : {}
@@ -52,7 +46,7 @@ async def get_dataviz_package(path, dataviz_rows):
     for row in dataviz_rows:
         id_viz, label, widget, pos, size, data_query, _ = row
         
-        # Ignorer le conteneur 'grid' lui-même pour l'envoi de données
+        # Ignore the 'grid' container itself for sending data
         if widget == 'grid' or data_query == '?': continue
 
         try :
@@ -74,19 +68,21 @@ async def get_dataviz_package(path, dataviz_rows):
 
             # 3. Extract columns with parser
             # We take Table object of corresponding datablock
-            block = gate.datablock(table_name)
-            if block :
-                table = block.table()
-                if table :
+            block = gate.db[table_name]
+            if block is not None :
+                df = block['table']
+                if df is not None :
                     column_data = {}
-                    num_rows = len(table.rows())
+                    num_rows = len(df)
 
                     for col_name in columns_needed :
                         if col_name == "rlnIndex" :
                             column_data["rlnIndex"] = list(range(1, num_rows + 1))
-                        else:
+                        elif col_name in df.columns :
                             # StarGate's column(headname) Methode
-                            column_data[col_name] = table.column(col_name)
+                            column_data[col_name] = df[col_name].tolist()
+                        else:
+                            print(f"Warning: {col_name} column not in STAR file")
 
                     # 4. Adding package
                     final_payload["widget"][id_viz] = {
@@ -98,7 +94,7 @@ async def get_dataviz_package(path, dataviz_rows):
                         "data" : column_data
                     }
             else:
-                print(f"Block {table_name} introuvable dans {file_path}")
+                print(f"Block {table_name} not found in {file_path}")
 
         except Exception as e :
             print(f"Error in {id_viz}: {e}")
