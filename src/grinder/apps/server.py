@@ -45,7 +45,7 @@ async def welcome_message(websocket: WebSocket):
                 "environment": progs
             })
     except WebSocketDisconnect:
-        print("Client disconnected /welcome")
+        print("[/welcome] Client disconnected")
 
 @app.websocket("/project")
 async def project(websocket: WebSocket):
@@ -59,7 +59,7 @@ async def project(websocket: WebSocket):
             pipeline = await gru.upload_project(project_path)
             await websocket.send_json(pipeline)
     except WebSocketDisconnect:
-        print("Client disconnected /project")
+        print("[/project] Client disconnected")
 
 
 @app.get("/log")
@@ -79,7 +79,7 @@ async def log_message(websocket: WebSocket):
             # else:
             #     await websocket.send_json({"error": "Path not found"})
     except WebSocketDisconnect:
-        print("Client disconnected /log")
+        print("[/log] Client disconnected")
 
 @app.websocket("/tmp/explore")
 async def job_explore(websocket: WebSocket):
@@ -190,7 +190,7 @@ async def job_read(websocket: WebSocket):
             # else:
             #     await websocket.send_json({"error": "Path not found"})
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("[/job/read] Client disconnected")
 
 @app.websocket("/job/data")
 async def websocket_dataviz(websocket: WebSocket):
@@ -226,7 +226,7 @@ async def websocket_dataviz(websocket: WebSocket):
             await websocket.send_json(package)
 
     except WebSocketDisconnect:
-        print(f"[/job/data] Client disconnected")
+        print("[/job/data] Client disconnected")
         
 @app.websocket("/job/run")
 async def job_run(websocket: WebSocket):
@@ -305,7 +305,7 @@ async def websocket_explore(websocket: WebSocket):
                 await websocket.send_json({"error" : f"Unknown request : {request}"})
 
     except WebSocketDisconnect:
-        print(f"[ws/explore] Client disconnected")
+        print("[ws/explore] Client disconnected")
 
 def _read_job_star(job_id: str) -> str:
     """
