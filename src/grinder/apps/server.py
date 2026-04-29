@@ -44,7 +44,7 @@ async def welcome_message(websocket: WebSocket):
                 "environment": progs
             })
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("Client disconnected /welcome")
 
 @app.websocket("/project")
 async def project(websocket: WebSocket):
@@ -58,7 +58,7 @@ async def project(websocket: WebSocket):
             pipeline = await gru.upload_project(project_path)
             await websocket.send_json(pipeline)
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("Client disconnected /project")
 
 
 @app.get("/log")
@@ -78,7 +78,7 @@ async def log_message(websocket: WebSocket):
             # else:
             #     await websocket.send_json({"error": "Path not found"})
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("Client disconnected /log")
 
 @app.websocket("/tmp/explore")
 async def job_explore(websocket: WebSocket):
