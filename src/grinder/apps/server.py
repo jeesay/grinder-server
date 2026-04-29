@@ -16,6 +16,7 @@ import pyarrow as pa
 
 from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
 import grinder.core.utils as gru
+import grinder.core.graphics as grg
 
 import star_gate as sg
 
@@ -191,21 +192,38 @@ async def job_read(websocket: WebSocket):
     except WebSocketDisconnect:
         print("Client disconnected")
 
-@app.websocket("/job/explore")
+@app.websocket("/job/data")
 async def websocket_dataviz(websocket: WebSocket):
     """
-    Expecting message : "get_data:<job_id>:<source_file>"
-    ex : "get_data:MotionCorr/job002:corrected_micrograph.star
+    Expecting message : "{"projpath":"xxx","dirname"xxx" ","jobname":"xxx"}"
+    ex : "{"projpath":".","dirname":"MotionCorr","jobname":"job002"}
     """
     await websocket.accept()
+    data_plot = []
     try : 
         while True :
             request = await websocket.receive_text()
-            print(f"[/job/data] request={request}")
+            # print(f"[/job/data] request={request}")
 
-            if not request.startswith("get_data:"):
+            if len(request) == 0:
                 await websocket.send_json({"error" : f"Unknown request : {request}"})
                 continue
+
+            req = json.loads(request)
+
+            req["request"] = json.loads(req["request"])
+            req["data"] = json.loads(req["data"])
+
+            print(f"[/job/data] request cleaned = {req}")
+
+            job_path = os.path.join(req["request"]["projpath"], req["request"]["dirname"], req["request"]["jobname"])
+            dataviz_rows = req["data"]['datablocks']['default']['dataviz']['rows']
+
+            print('\n', "path : ", job_path, '\n', '&& dataviz rows : ', dataviz_rows)
+            
+            package = await grg.get_dataviz_package(job_path, dataviz_rows)
+
+            await websocket.send_json(package)
 
     except WebSocketDisconnect:
         print(f"[/job/data] Client disconnected")

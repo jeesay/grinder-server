@@ -1,5 +1,7 @@
-import skimage as ski
-import mrcfile as mrc
+# import skimage as ski
+# import mrcfile as mrc
+import os 
+import star_gate as sg
 
 
 def image(data):
@@ -15,11 +17,7 @@ def heatmap(data):
     pass
     
 def histogram(data):
-    if is_dirty:
-        # Calc histogram
-        pass
-    else:
-        pass
+    pass
     
 def plot2d(data):
     pass    
@@ -36,61 +34,69 @@ def trajectories(data):
 def violin(data):
     pass
 
-def graphics(data):
-    ## Fonction chef d'orchestre --> dispatche dans les autres fonctions 
+async def get_dataviz_package(path, dataviz_rows):
+    final_payload = {
+                "type" : "dataviz_package",
+                "widget" : {}
+            }
 
-    pass
+    # We keep a cache for star file loaded toa void to read again the same file 6 times if many graphs use it
+    star_cache = {}
 
-    # parts = data.split(":", 2)
-    # if len(parts) != 3 :
-    #     await websocket.send_json({"error": "Expected format : get_data:<job_id>:<source_file>"})
-    #     continue
-
-    # _, job_id, source_file = parts
-
-    # try :
-    #     stem = os.path.splitext(source_file)[0] # without extension
-    #     grinder_dir = os.path.join(RELION_DIR, ".grinder", job_id.replace("/", os.sep))
-    #     parquet_path = os.path.join(grinder_dir, f"{stem}.parquet")
-    #     star_path = os.path.join(RELION_DIR, job_id.replace("/", os.sep), source_file)
-
-    #     if not os.path.exists(parquet_path):
-    #         if not os.path.exists(star_path):
-    #             await websocket.send_json({"error" : f"Source file not found : {star_path}"})
-    #             continue
-
-    #         print(f"[/ws/dataviz] Conversion {source_file} -> parquet...")
-    #         os.makedirs(grinder_dir, exist_ok=True)
-
-    #         cargo = sg.StarGate()
-    #         cargo.read(star_path)
-
-    #         df = None
-    #         for k, block in cargo.blocks.items():
-    #             if "table" in block:
-    #                 df = pl.from_pandas(pd.DataFrame(block["table"]["rows"], columns=block["table"]["header"]))
-    #                 break
-            
-    #         if df is None:
-    #             await websocket.send_json({"error" : "No table found in .star file"})
-    #             continue
-
-    #         df.write_parquet(parquet_path)
-    #         print(f"[/ws/dataviz] Parquet saved : {parquet_path}")
-
-    #     df = pl.read_parquet(parquet_path)
-    #     table = df.to_arrow()
-
-    #     sink = io.BytesIO()
-    #     with pa.ipc.new_stream(sink, table.schema) as writer :
-    #         writer.write_table(table)
-    #     payload = sink.getvalue()
-
-    #     print(f"[/ws/dataviz] Sending {len(payload)} octets for {job_id}/{source_file}")
+    for row in dataviz_rows:
+        id_viz, label, widget, pos, size, data_query, _ = row
         
-    #     await websocket.send_bytes(payload)
-    
-    # except Exception as e :
-    #     import traceback
-    #     traceback.print_exc()
-    #     await websocket.send_json({"error" : str(e)})
+        # Ignore the 'grid' container itself for sending data
+        if widget == 'grid' or data_query == '?': continue
+
+        try :
+
+            # 1. Parsing of data_query
+            file_part, query_part = data_query.split('?')
+            table_name, cols_str = query_part.replace(']', '').split('[')
+            columns_needed = cols_str.split(',')
+
+            print(file_part, '\n', query_part, '\n', table_name, '\n', cols_str, '\n', columns_needed)
+
+            # 2. Loading STAR file (with cache)
+            file_path = os.path.join(path, file_part)
+            if file_path not in star_cache :
+                cargo = sg.StarGate()
+                cargo.read(file_path)
+                star_cache[file_path] = cargo
+            gate = star_cache[file_path]
+
+            # 3. Extract columns with parser
+            # We take Table object of corresponding datablock
+            block = gate.db[table_name]
+            if block is not None :
+                df = block['table']
+                if df is not None :
+                    column_data = {}
+                    num_rows = len(df)
+
+                    for col_name in columns_needed :
+                        if col_name == "rlnIndex" :
+                            column_data["rlnIndex"] = list(range(1, num_rows + 1))
+                        elif col_name in df.columns :
+                            # StarGate's column(headname) Methode
+                            column_data[col_name] = df[col_name].tolist()
+                        else:
+                            print(f"Warning: {col_name} column not in STAR file")
+
+                    # 4. Adding package
+                    final_payload["widget"][id_viz] = {
+                        "id" : id_viz,
+                        "label" : label,
+                        "widget" : widget,
+                        "pos" : pos,
+                        "size" : size,
+                        "data" : column_data
+                    }
+            else:
+                print(f"Block {table_name} not found in {file_path}")
+
+        except Exception as e :
+            print(f"Error in {id_viz}: {e}")
+
+    return final_payload
