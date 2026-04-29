@@ -3,9 +3,35 @@
 import os 
 import star_gate as sg
 
+from pathlib import Path
+import mrcfile
+from PIL import Image
+import numpy as np
 
-def image(data):
-    pass
+
+def mrc_to_webp(mrc_path: Path, webp_path: Path, size: int=512):
+    """
+    Convert .mrc to WebP in cache, resize to size px
+    """
+    with mrcfile.open(mrc_path, mode='r', permissive=True) as mrc :
+        data = mrc.data
+        # Movie (stack) --> taking frames's mean
+        if data.ndim == 3 :
+            frame = data.mean(axis=0)
+        else :
+            frame = data[0] if data.ndim > 2 else data
+        
+    # Normalization 0-255
+    f_min, f_max = frame.min(), frame.max()
+    if f_max > f_min :
+        normalized = ((frame - f_min) / (f_max - f_min) * 255).astype(np.uint8)
+    else :
+        normalized = np.zeros_like(frame, dtype=np.uint8)
+
+    img = Image.fromarray(normalized).convert("L")
+    img.thumbnail((size,size), Image.LANCZOS)
+    img.save(webp_path, "WEBP", quality = 80)
+    
 
 def interactive(data):
     pass

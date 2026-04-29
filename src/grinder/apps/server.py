@@ -228,6 +228,7 @@ async def websocket_dataviz(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("[/job/data] Client disconnected")
+
         
 @app.websocket("/job/run")
 async def job_run(websocket: WebSocket):
