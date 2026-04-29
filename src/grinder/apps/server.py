@@ -36,7 +36,7 @@ async def welcome_message(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            progs, projs = await gru.check_environment()
+            progs, projs = gru.check_environment()
             await websocket.send_json({
                 "status": "success",
                 "message": "Welcome to GRINDER",

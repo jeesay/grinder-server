@@ -41,7 +41,7 @@ def find_relion_dirs(root_path):
 # Example usage:
 # result = find_pipeline_dirs('/your/search/path')
 # print(result)
-async def check_environment():  
+def check_environment():  
     # Env var check
     relion_config = {k: v for k, v in os.environ.items() if k.startswith("RELION_")}
     # Get all the projects in the file tree
