@@ -4,11 +4,11 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 import io
 import json
 import numpy as np
-import typer
-from typing import Annotated
-
 import os
 import polars as pl
+import subprocess
+import typer
+from typing import Annotated
 import uvicorn
 
 import asyncio
@@ -235,10 +235,16 @@ async def job_run(websocket: WebSocket):
     try:
         while True:
             request = await websocket.receive_text()
-            dirname = request['dirname']
-            jobname = request['jobname']
-            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
-            await websocket.send_json({"log":logtxt})
+            response = json.loads(request)
+            projname = response['current_project']['path']
+            # Step #1 - Create `job.star`
+            # Step #2 - Create `job_pipeline.star`
+            # Step #3 - Create cli
+            command = "ls -1"
+            # Step #4 - Run subprocess
+            process = subprocess.Popen(f'cd {projname} && {command}', shell=True)
+            # Step #5 - Return process running
+            await websocket.send_json({"process":'running'})
             # if os.path.exists(requested_path):
             #     tree_data = build_relion_tree(requested_filter)
             #     await websocket.send_json(tree_data)
