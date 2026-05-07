@@ -243,7 +243,6 @@ async def job_run(websocket: WebSocket):
             # Step #2 - Create `job_pipeline.star`
             # Step #3 - Create cli
             command = gjb.create_command(response)
-            command = "grinder test --message 'Hello World!' --repeat 20 --odir Movies --ofile files.star"
             # Step #4 - Run subprocess
             newpath = os.path.join(projname,jobname)
             if not os.path.exists(newpath):
