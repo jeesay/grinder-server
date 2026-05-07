@@ -236,19 +236,21 @@ async def job_run(websocket: WebSocket):
     try:
         while True:
             request = await websocket.receive_text()
-            response = json.loads(request)
-            projname = response['current_project']['path']
-            jobname = response['current_job']['jobpath']
+            metadata = json.loads(request)
+            projname = metadata['current_project']['path']
+            jobname = metadata['current_job']['jobpath']
+            rlnpath = os.path.join(projname,jobname)
             # Step #1 - Create `job.star`
+            gjb.create_jobstar(metadata,rlnpath)
             # Step #2 - Create `job_pipeline.star`
+            # gjb.create_jobpipelinestar(metadata,rlnpath)
             # Step #3 - Create cli
-            command = gjb.create_command(response)
+            command = gjb.create_command(metadata)
             # Step #4 - Run subprocess
-            newpath = os.path.join(projname,jobname)
-            if not os.path.exists(newpath):
-                os.makedirs(newpath)
-            log_info = os.path.join(os.getcwd(),projname,jobname,'run.out')
-            log_err = os.path.join(os.getcwd(),projname,jobname,'run.err')
+            if not os.path.exists(rlnpath):
+                os.makedirs(rlnpath)
+            log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
+            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')
             # process = asyncio.run(gjb.run_command_asyncio(command)) 
             process = subprocess.Popen(f'cd {projname} && {command} 2> {log_err} 1> {log_info}', shell=True)
             # Step #5 - Return process running

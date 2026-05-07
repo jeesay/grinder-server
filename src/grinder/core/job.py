@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import star_gate as sg
@@ -12,21 +13,25 @@ def create_defaultpipeline(path):
     #
     cargo.write(os.path.join(path,'default_pipeline.star'))
 
-def create_jobstar(metadata):
+def create_jobstar(metadata,rlnpath):
     cargo = sg.StarGate()
     # Datablock `job`
-    job = sg.DataBlock('job')
-    job.set('rlnJobTypeLabel',metadata.nodetype)
-    job.set('rlnJobIsContinue',metadata.cont)
+    job = sg.Block('job')
+    job.set('rlnJobTypeLabel',metadata['current_job']['tag'])
+    if 'continue' in metadata['current_job']:
+        job.set('rlnJobIsContinue',1 if metadata['continue'] == 'true' else 0)
+    else:
+        job.set('rlnJobIsContinue',0)
     job.set('rlnJobIsTomo',0)
     cargo.add(job)
     # Datablock `joboptions_values`
     table = sg.Table()
-    table.from_json(metadata.joboptions)
-    job = sg.DataBlock('joboptions_values')
+    table.from_dict(metadata['joboptions'])
+    job = sg.Block('joboptions_values')
     job.add(table)
     cargo.add(job)
-    cargo.write(metadata.outdir,'job.star')
+    print(cargo)
+    cargo.save(rlnpath,'job.star')
 
 def create_jobpipelinestar(metadata,job_counter):
     cargo = sg.StarGate()
