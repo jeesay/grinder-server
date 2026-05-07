@@ -17,6 +17,7 @@ import pyarrow as pa
 from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
 import grinder.core.utils as gru
 import grinder.core.graphics as grg
+import grinder.core.job as gjb
 
 import star_gate as sg
 
@@ -237,12 +238,20 @@ async def job_run(websocket: WebSocket):
             request = await websocket.receive_text()
             response = json.loads(request)
             projname = response['current_project']['path']
+            jobname = response['current_job']['jobpath']
             # Step #1 - Create `job.star`
             # Step #2 - Create `job_pipeline.star`
             # Step #3 - Create cli
-            command = "ls -1"
+            command = gjb.create_command(response)
+            command = "grinder test --message 'Hello World!' --repeat 20 --odir Movies --ofile files.star"
             # Step #4 - Run subprocess
-            process = subprocess.Popen(f'cd {projname} && {command}', shell=True)
+            newpath = os.path.join(projname,jobname)
+            if not os.path.exists(newpath):
+                os.makedirs(newpath)
+            log_info = os.path.join(os.getcwd(),projname,jobname,'run.out')
+            log_err = os.path.join(os.getcwd(),projname,jobname,'run.err')
+            # process = asyncio.run(gjb.run_command_asyncio(command)) 
+            process = subprocess.Popen(f'cd {projname} && {command} 2> {log_err} 1> {log_info}', shell=True)
             # Step #5 - Return process running
             await websocket.send_json({"process":'running'})
             # if os.path.exists(requested_path):

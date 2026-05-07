@@ -1,31 +1,8 @@
-import asyncio
 import logging
+import sys
 import time
 import typer
 from typing import Annotated
-
-async def run_command_asyncio(command):
-    process = await asyncio.create_subprocess_shell(
-        command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-
-    async def log_output(stream, logger_func):
-        while True:
-            line = await stream.readline()
-            if line:
-                logger_func(line.decode().strip())
-            else:
-                break
-
-    # Run the two reads in "background"
-    await asyncio.gather(
-        log_output(process.stdout, logging.info),
-        log_output(process.stderr, logging.error)
-    )
-    
-    await process.wait()
 
 ###################### MAIN ######################
 app = typer.Typer()
@@ -39,10 +16,22 @@ def test(
     reverse: Annotated[bool, typer.Option("--rev", help="Output GRINDER directory")] = False,
     txt_mode: Annotated[str, typer.Option("--case", help="Output GRINDER directory")] = "unchanged",
 ):
+    
+    # Logging Basic Configuration
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+    logger = logging.getLogger("ExternalProcess")
   
     msg = ''
     if reverse:
         msg = txt[::-1]
+
+    if N < 0:
+        logger.error('`--repeat` must be a positive int number')
+
     match txt_mode:
         case "lower":
             msg = txt.lower
@@ -56,7 +45,7 @@ def test(
 
     for i in range(N):
         time.sleep(10)
-        print(i,msg,sep=",")
+        logger.info(f'Create file ./{output_dir}/file{i:02d}.csv')
 
   # Run bash command
   # cli = "for i in {1..10}; do echo 'Data line '$i; sleep 0.2; done"

@@ -1,3 +1,8 @@
+import asyncio
+import logging
+import os
+import star_gate as sg
+
 JOBS = [
   {
     'type': "relion.import.movies",
@@ -273,7 +278,7 @@ JOBS = [
       'gain_flip': '--gain_flip',
       "do_dose_weighting": "--dose_weighting",
       "do_save_noDW": "--save_noDW",
-      "group_for_ps": "--grouping_for_ps" 
+      "group_for_ps": "--grouping_for_ps" ,
       "other_args": '',
       '02': '--pipeline_control MotionCorr/${JOBID}/'
     }
@@ -307,3 +312,95 @@ JOBS = [
     'menu': 'tools',
   }
 ]
+
+def create_defaultpipeline(path):
+    cargo = sg.StarGate()
+    # 
+    general = sg.DataBlock('pipeline_general') 
+    general.set('rlnPipeLineJobCounter',1)
+    cargo.add(general)
+    #
+    cargo.write(os.path.join(path,'default_pipeline.star'))
+
+def create_jobstar(metadata):
+    cargo = sg.StarGate()
+    # Datablock `job`
+    job = sg.DataBlock('job')
+    job.set('rlnJobTypeLabel',metadata.nodetype)
+    job.set('rlnJobIsContinue',metadata.cont)
+    job.set('rlnJobIsTomo',0)
+    cargo.add(job)
+    # Datablock `joboptions_values`
+    table = sg.Table()
+    table.from_json(metadata.joboptions)
+    job = sg.DataBlock('joboptions_values')
+    job.add(table)
+    cargo.add(job)
+    cargo.write(metadata.outdir,'job.star')
+
+def create_jobpipelinestar(metadata,job_counter):
+    cargo = sg.StarGate()
+    # Datablock `pipeline_general`
+    general = sg.DataBlock('pipeline_general')
+    general.set('rlnPipeLineJobCounter', job_counter)
+    cargo.add(general)
+    # Datablock `joboptions_values`
+    table = sg.Table(
+        columns = [
+            'rlnPipeLineProcessName', 
+            'rlnPipeLineProcessAlias', 
+            'rlnPipeLineProcessTypeLabel',
+            'rlnPipeLineProcessStatus'
+        ]
+    )
+    table.from_json(metadata.joboptions)
+    proc = sg.DataBlock('pipeline_processes')
+    proc.add(table)
+    cargo.add(job)
+    # Datablock `pipeline_nodes`
+    nods = sg.DataBlock('pipeline_processes')
+    # Example
+    # input : Extract/job019/particles.star ParticlesData.star.relion 
+    # output: Class2D/job020/run_it200_data.star ParticlesData.star.relion.class2d 
+    # output: Class2D/job020/run_it200_optimiser.star ProcessData.star.relion.optimiser.class2d
+    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineNodeName','rlnPipeLineNodeTypeLabel'])
+    nods.add(table)
+    cargo.add(nods)
+    # Datablock `pipeline_input_edges`
+    iedges = sg.DataBlock('pipeline_propipeline_input_edges')
+    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineEdgeFromNode','rlnPipeLineEdgeProcess'])
+    iedges.add(table)
+    cargo.add(iedges)
+    # Datablock `pipeline_output_edges`
+    oedges = sg.DataBlock('pipeline_output_edges')
+    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineEdgeProcess','rlnPipeLineEdgeToNode'])
+    oedges.add(table)
+    cargo.add(iedges)
+    # Save
+    cargo.write(metadata.outdir,'job_pipeline.star')
+    # metadata
+
+
+
+async def run_command_asyncio(command):
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    async def log_output(stream, logger_func):
+        while True:
+            line = await stream.readline()
+            if line:
+                logger_func(line.decode().strip())
+            else:
+                break
+
+    # On lance les deux lectures en "background"
+    await asyncio.gather(
+        log_output(process.stdout, logging.info),
+        log_output(process.stderr, logging.error)
+    )
+    
+    await process.wait()
