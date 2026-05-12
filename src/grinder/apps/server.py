@@ -82,60 +82,71 @@ async def log_message(websocket: WebSocket):
     except WebSocketDisconnect:
         print("[/log] Client disconnected")
 
-@app.get("/log/test")
+@app.websocket("/log/test")
 async def log_message(websocket: WebSocket):
     await websocket.accept()
-    # ... logic using build_file_tree(path) ...
+
     try:
         while True:
-            req = await websocket.receive_text()
-            print(f"requete = {req}")
-            projname = req['projpath']
-            dirname = req['dirname']
-            jobname = req['jobname']
-            success_file = "RELION_JOB_EXIT_SUCCESS"
-            failed_file = "RELION_JOB_EXIT_FAILED"
-            data = await gru.get_jobfiles(projname,dirname,jobname) # (requested_filter)
-            print("DATAAAAAAAAAAAAAAA       ", data)
-            logfile = data["log"]
-            print("BBBBBBBBBBBBBBBBB         ", logfile)
-            if os.path.isfile(dirname/jobname/success_file) or os.path.isfile(dirname/jobname/failed_file) :
+            request = await websocket.receive_text()
+            metadata = json.loads(request)
+            projname = metadata['current_project']['path']
+            jobname = metadata['current_job']['jobpath']
+            rlnpath = os.path.join(projname,jobname)
+            print("relion path : ", rlnpath)
+
+            # projname = req["projpath"]
+            # dirname = req["dirname"]
+            # jobname = req["jobname"]
+
+            logfile = os.path.join(rlnpath, "run.out")
+            print("logfile : ", logfile)
+
+            if not os.path.exists(logfile):
+                await websocket.send_json({
+                    "type": "error",
+                    "content": f"Log file not found: {logfile}"
+                })
+                continue
+
+            # Envoi initial complet
+            with open(logfile, "r") as f:
+                full_content = f.read()
+
+            await websocket.send_json({
+                "type": "full_log",
+                "content": full_content
+            })
+
+            # Si job terminé → pas de monitoring
+            success_file = os.path.join(rlnpath, "RELION_JOB_EXIT_SUCCESS")
+            failed_file = os.path.join(rlnpath, "RELION_JOB_EXIT_FAILED")
+
+            if os.path.isfile(success_file) or os.path.isfile(failed_file):
                 await websocket.send_json({"log":logfile})
-                # if os.path.exists(requested_path):
-                #     tree_data = build_relion_tree(requested_filter)
-                #     await websocket.send_json(tree_data)
-                # else:
-                #     await websocket.send_json({"error": "Path not found"})
-            else : 
-                if req['command'] == "start_monitoring":
-                    print("log command received")
-                    # We launch file reading to background
-                    asyncio.create_task(tail_file(websocket, logfile))
-                else:
-                    await websocket.send(f"Commande unknwon : {req['command']}")
+
+            else :
+                await tail_file(websocket, logfile)
 
     except WebSocketDisconnect:
         print("[/log] Client disconnected")
 
-async def tail_file(websocket, file_path):
-    """Wtach new lines append to log.txt and send them."""
-    if not os.path.exists(file_path):
-        await websocket.send(f"Error : file {file_path} doesn't exist.")
-        return
 
-    print(f"Start monitoring of : {file_path}")
-    
+async def tail_file(websocket: WebSocket, file_path: str):
     with open(file_path, "r") as f:
-        
+        f.seek(0, os.SEEK_END)
+
         while True:
             line = f.readline()
+
             if not line:
-                # No new lines, we waiting a bit before re-try
                 await asyncio.sleep(0.5)
                 continue
-            
-            # sending new lines to client
-            await websocket.send(line.strip())
+
+            await websocket.send_json({
+                "type": "log_update",
+                "content": line.rstrip()
+            })
 
 @app.websocket("/tmp/explore")
 async def job_explore(websocket: WebSocket):
