@@ -308,7 +308,7 @@ async def job_run(websocket: WebSocket):
             jobname = metadata['current_job']['jobpath']
             rlnpath = os.path.join(projname,jobname)
             # Step #1 - Create `job.star`
-            gjb.create_jobstar(metadata,rlnpath)
+            # gjb.create_jobstar(metadata,rlnpath)
             # Step #2 - Create `job_pipeline.star`
             # gjb.create_jobpipelinestar(metadata,rlnpath)
             # Step #3 - Create cli
