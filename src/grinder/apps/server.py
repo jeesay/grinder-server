@@ -17,6 +17,7 @@ import pyarrow as pa
 from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
 import grinder.core.utils as gru
 import grinder.core.graphics as grg
+import grinder.core.log as glog
 import grinder.core.job as gjb
 
 import star_gate as sg
@@ -63,79 +64,45 @@ async def project(websocket: WebSocket):
         print("[/project] Client disconnected")
 
 
-@app.get("/log")
+@app.websocket("/log")
 async def log_message(websocket: WebSocket):
     await websocket.accept()
-    # ... logic using build_file_tree(path) ...
     try:
         while True:
-            request = await websocket.receive_text()
-            dirname = request['dirname']
-            jobname = request['jobname']
-            logtxt = await gru.get_logfile(dirname,jobname) # (requested_filter)
-            await websocket.send_json({"log":logtxt})
-            # if os.path.exists(requested_path):
-            #     tree_data = build_relion_tree(requested_filter)
-            #     await websocket.send_json(tree_data)
-            # else:
-            #     await websocket.send_json({"error": "Path not found"})
-    except WebSocketDisconnect:
-        print("[/log] Client disconnected")
-
-@app.get("/log/test")
-async def log_message(websocket: WebSocket):
-    await websocket.accept()
-    # ... logic using build_file_tree(path) ...
-    try:
-        while True:
-            req = await websocket.receive_text()
-            print(f"requete = {req}")
-            projname = req['projpath']
-            dirname = req['dirname']
-            jobname = req['jobname']
+            response = await websocket.receive_text()
+            resp = json.loads(response)
+            print(f"response = {resp}")
+            pn = resp['projpath']
+            dn = resp['dirname']
+            jn = resp['jobname']
             success_file = "RELION_JOB_EXIT_SUCCESS"
             failed_file = "RELION_JOB_EXIT_FAILED"
-            data = await gru.get_jobfiles(projname,dirname,jobname) # (requested_filter)
-            print("DATAAAAAAAAAAAAAAA       ", data)
-            logfile = data["log"]
-            print("BBBBBBBBBBBBBBBBB         ", logfile)
-            if os.path.isfile(dirname/jobname/success_file) or os.path.isfile(dirname/jobname/failed_file) :
-                await websocket.send_json({"log":logfile})
+            if os.path.isfile(os.path.join(pn,dn,jn,success_file)) or os.path.isfile(os.path.join(pn,dn,jn,failed_file)) :
+                fn = "run.out"
+                with open(os.path.join(pn,dn,jn,fn),'r') as f:
+                    log = f.readlines()
+                fn = "run.err"
+                with open(os.path.join(pn,dn,jn,fn),'r') as f:
+                    error = f.readlines()
+                logfile = os.path.join(pn,dn,jn,fn)
+                logtxt = glog.curate_log(log,error)
+                await websocket.send_json({"log":logtxt})
                 # if os.path.exists(requested_path):
                 #     tree_data = build_relion_tree(requested_filter)
                 #     await websocket.send_json(tree_data)
                 # else:
                 #     await websocket.send_json({"error": "Path not found"})
             else : 
-                if req['command'] == "start_monitoring":
+                if resp['command'] == "start_monitoring":
                     print("log command received")
                     # We launch file reading to background
-                    asyncio.create_task(tail_file(websocket, logfile))
+                    logfile = os.path.join(pn,dn,jn,'run.out')
+                    asyncio.create_task(glog.tail_log(websocket, logfile))
                 else:
-                    await websocket.send(f"Commande unknwon : {req['command']}")
+                    await websocket.send(f"Command unknown : {resp['command']}")
 
     except WebSocketDisconnect:
         print("[/log] Client disconnected")
-
-async def tail_file(websocket, file_path):
-    """Wtach new lines append to log.txt and send them."""
-    if not os.path.exists(file_path):
-        await websocket.send(f"Error : file {file_path} doesn't exist.")
-        return
-
-    print(f"Start monitoring of : {file_path}")
-    
-    with open(file_path, "r") as f:
-        
-        while True:
-            line = f.readline()
-            if not line:
-                # No new lines, we waiting a bit before re-try
-                await asyncio.sleep(0.5)
-                continue
-            
-            # sending new lines to client
-            await websocket.send(line.strip())
 
 @app.websocket("/tmp/explore")
 async def job_explore(websocket: WebSocket):
@@ -297,9 +264,9 @@ async def job_run(websocket: WebSocket):
             jobname = metadata['current_job']['jobpath']
             rlnpath = os.path.join(projname,jobname)
             # Step #1 - Create `job.star`
-            gjb.create_jobstar(metadata,rlnpath)
+            # TODO gjb.create_jobstar(metadata,rlnpath)
             # Step #2 - Create `job_pipeline.star`
-            # gjb.create_jobpipelinestar(metadata,rlnpath)
+            # TODO gjb.create_jobpipelinestar(metadata,rlnpath)
             # Step #3 - Create cli
             command = gjb.create_command(metadata)
             # Step #4 - Run subprocess

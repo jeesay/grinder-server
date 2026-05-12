@@ -1,3 +1,8 @@
+import asyncio
+import json
+import os
+
+
 # All the directory names of the different types of jobs defined inside the pipeline
 PROC_IMPORT_MOV_LABELNEW = "relion.import.movie"       # Import any file as a Node of a given type
 PROC_IMPORT_MIC_LABELNEW = "relion.import.mic"       # Import any file as a Node of a given type
@@ -42,8 +47,8 @@ PROC_TOMO_RECONSTRUCT_TOMOGRAM_LABELNEW = "relion.reconstructtomograms" # Recons
 # Misc.
 PROC_EXTERNAL_LABELNEW = "relion.external"     # For running non-relion programs
 
-def _curatelog(logtxt,errtxt):
-    curated = ''
+def curate_log(logtxt,errtxt):
+    curated = errtxt + '\n'
     mouse = '~~(,_,">'
     for line in logtxt:
         if mouse in line:
@@ -54,3 +59,21 @@ def _curatelog(logtxt,errtxt):
             curated += f'INFO: {line}' 
     return curated
 
+async def tail_log(websocket, file_path):
+    """Watch new lines append to log.txt and send them."""
+    if not os.path.exists(file_path):
+        await websocket.send(f"ERROR : Log File {file_path} does not exist.")
+        return
+
+    print(f"Start monitoring of : {file_path}")
+    
+    with open(file_path, "r") as f: 
+        while True:
+            line = f.readline()
+            if line.strip():
+                # No new lines, we are waiting a bit before re-try
+                await asyncio.sleep(1.0)
+                print('LINE',line)
+                # sending new lines to client
+                msg = {'log_type': 'log_update','content': line.strip()}
+                await websocket.send_json(msg)
