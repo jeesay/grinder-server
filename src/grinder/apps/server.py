@@ -1,4 +1,5 @@
 # In src/my_app/main.py
+import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, StreamingResponse
 import io
@@ -7,11 +8,12 @@ import numpy as np
 import os
 import polars as pl
 import subprocess
+import sys
 import typer
 from typing import Annotated
 import uvicorn
 
-import asyncio
+
 import pyarrow as pa
 
 from grinder.core.tree import build_file_tree, build_relion_tree # Clean import
@@ -22,6 +24,9 @@ import grinder.core.job as gjb
 
 import star_gate as sg
 
+# Force Windows to use the correct event loop for subprocesses
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 app = FastAPI()
 
@@ -36,6 +41,7 @@ async def config_redirect():
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
     await websocket.accept()
+    print(f"Current loop: {asyncio.get_running_loop()}")
     try:
         while True:
             progs, projs = gru.check_environment()
@@ -269,25 +275,42 @@ async def job_run(websocket: WebSocket):
             # TODO gjb.create_jobpipelinestar(metadata,rlnpath)
             # Step #3 - Create cli
             command = gjb.create_command(metadata)
-            # Step #4 - Run subprocess
+
+            # Step #4 - Run ASYNC subprocess
             if not os.path.exists(rlnpath):
                 os.makedirs(rlnpath)
             log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
-            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')
-            # process = asyncio.run(gjb.run_command_asyncio(command)) 
-            process = subprocess.Popen(f'cd {projname} && {command} 2> {log_err} 1> {log_info}', shell=True)
-            
-            # Step #5 - Return process running
-            await websocket.send_json({"process":'running'})
-            # if os.path.exists(requested_path):
-            #     tree_data = build_relion_tree(requested_filter)
-            #     await websocket.send_json(tree_data)
-            # else:
-            #     await websocket.send_json({"error": "Path not found"})
+            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')         
+            # This does NOT block the whole server
+            full_command = f'cd {projname} && {command} 2> {log_err} 1> {log_info}'
+            print(full_command)
+            # process = subprocess.Popen(full_command, shell=True)
+            process = await asyncio.create_subprocess_shell(full_command)
+            running_file = "RELION_JOB_RUNNING"
+            with  open(os.path.join(projname,jobname,running_file),'w') as f :
+                pass
 
-            print("process pid : ", process.pid, '\n Process return code : ', process.returncode)
+            # Step #5 - Start the log tailer as a background task
+            tailer_task = asyncio.create_task(glog.tail_log(websocket, log_info))
+
+            # Step #6 - Return process running
+            await websocket.send_json({"type": "process", "status": "running", "pid": process.pid})
+
+            # Step #7 Wait for the process to finish without blocking other connections
+            return_code = await process.wait()
+
+            if return_code == 0:
+                os.remove(os.path.join(projname,jobname,running_file))
+                success_file = "RELION_JOB_EXIT_SUCCESS"
+                with open(os.path.join(projname,jobname,success_file),'w') as f :
+                    pass
+
+            # Step #8 - Cleanup: stop the tailer and inform the client
+            tailer_task.cancel()
+            await websocket.send_json({"type": "process", "status": "finished", "pid": process.pid, "exit_code": return_code})
+
     except WebSocketDisconnect:
-        print("Client disconnected")
+        print("[/job/run] Client disconnected")
 
 
 @app.websocket("/ws/file-tree")

@@ -48,7 +48,7 @@ PROC_TOMO_RECONSTRUCT_TOMOGRAM_LABELNEW = "relion.reconstructtomograms" # Recons
 PROC_EXTERNAL_LABELNEW = "relion.external"     # For running non-relion programs
 
 def curate_log(logtxt,errtxt):
-    curated = errtxt + '\n'
+    curated = str(errtxt) + '\n'
     mouse = '~~(,_,">'
     for line in logtxt:
         if mouse in line:
@@ -61,19 +61,27 @@ def curate_log(logtxt,errtxt):
 
 async def tail_log(websocket, file_path):
     """Watch new lines append to log.txt and send them."""
-    if not os.path.exists(file_path):
-        await websocket.send(f"ERROR : Log File {file_path} does not exist.")
-        return
+    # if not os.path.exists(file_path):
+    #     await websocket.send(f"ERROR : Log File {file_path} does not exist.")
+    #     return
+
+    # Ensure file exists before starting
+    while not os.path.exists(file_path):
+        await asyncio.sleep(0.1)
 
     print(f"Start monitoring of : {file_path}")
     
     with open(file_path, "r") as f: 
+        # Move to the end of the file if you only want new logs
+        f.seek(0, os.SEEK_END)
+
         while True:
             line = f.readline()
             if line.strip():
                 # No new lines, we are waiting a bit before re-try
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(0.2)
                 print('LINE',line)
                 # sending new lines to client
-                msg = {'log_type': 'log_update','content': line.strip()}
+                msg = {'type': 'log','content': line.strip()}
                 await websocket.send_json(msg)
+

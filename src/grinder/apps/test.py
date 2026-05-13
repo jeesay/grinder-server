@@ -46,21 +46,13 @@ def test(
         case _:
             msg = txt
 
-    running_file = "RELION_JOB_RUNNING"
-    with  open(os.path.join(output_dir,running_file),'w') as f :
-        pass
     
     for i in range(N):
         time.sleep(10)
         logger.info(f'Create file ./{output_dir}/file{i:02d}.csv')
     
-    logger.info("Done !")
+    logger.info("Done!")
 
-    os.remove(os.path.join(output_dir,running_file))
-
-    success_file = "RELION_JOB_EXIT_SUCCESS"
-    with  open(os.path.join(output_dir,success_file),'w') as f :
-        pass
   # Run bash command
   # cli = "for i in {1..10}; do echo 'Data line '$i; sleep 0.2; done"
   # asyncio.run(run_command_asyncio(cli))
