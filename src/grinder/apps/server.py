@@ -276,6 +276,7 @@ async def job_run(websocket: WebSocket):
             log_err = os.path.join(os.getcwd(),rlnpath,'run.err')
             # process = asyncio.run(gjb.run_command_asyncio(command)) 
             process = subprocess.Popen(f'cd {projname} && {command} 2> {log_err} 1> {log_info}', shell=True)
+            
             # Step #5 - Return process running
             await websocket.send_json({"process":'running'})
             # if os.path.exists(requested_path):
@@ -283,6 +284,8 @@ async def job_run(websocket: WebSocket):
             #     await websocket.send_json(tree_data)
             # else:
             #     await websocket.send_json({"error": "Path not found"})
+
+            print("process pid : ", process.pid, '\n Process return code : ', process.returncode)
     except WebSocketDisconnect:
         print("Client disconnected")
 
