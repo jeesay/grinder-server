@@ -59,29 +59,74 @@ def curate_log(logtxt,errtxt):
             curated += f'INFO: {line}' 
     return curated
 
-async def tail_log(websocket, file_path):
-    """Watch new lines append to log.txt and send them."""
-    # if not os.path.exists(file_path):
-    #     await websocket.send(f"ERROR : Log File {file_path} does not exist.")
-    #     return
 
-    # Ensure file exists before starting
-    while not os.path.exists(file_path):
-        await asyncio.sleep(0.1)
+# async def tail_log(websocket, file_path):
+#     """Watch new lines append to log.txt and send them."""
+#     # if not os.path.exists(file_path):
+#     #     await websocket.send(f"ERROR : Log File {file_path} does not exist.")
+#     #     return
 
-    print(f"Start monitoring of : {file_path}")
+#     # Ensure file exists before starting
+#     while not os.path.exists(file_path):
+#         await asyncio.sleep(0.1)
+
+#     print(f"Start monitoring of : {file_path}")
     
-    with open(file_path, "r") as f: 
-        # Move to the end of the file if you only want new logs
-        f.seek(0, os.SEEK_END)
+#     with open(file_path, "r") as f: 
+#         # Move to the end of the file if you only want new logs
+#         f.seek(0, os.SEEK_END)
 
-        while True:
+#         while True:
+#             line = f.readline()
+#             if line.strip():
+#                 # No new lines, we are waiting a bit before re-try
+#                 await asyncio.sleep(0.2)
+#                 print('LINE',line)
+#                 # sending new lines to client
+#                 msg = {'type': 'log','content': line.strip()}
+#                 await websocket.send_json(msg)
+
+
+async def tail_log(websocket, file_path, stop_event: asyncio.Event):
+    """Watch new lines in run.out and stop when job exits."""
+    if not os.path.exists(file_path):
+        await websocket.send_json({"log_type": "error", "content": f"File not found : {file_path}"})
+        return
+
+    job_dir      = os.path.dirname(file_path)
+    success_file = os.path.join(job_dir, "RELION_JOB_EXIT_SUCCESS")
+    failed_file  = os.path.join(job_dir, "RELION_JOB_EXIT_FAILED")
+
+    print(f"[log] Start monitoring : {file_path}")
+
+    with open(file_path, "r") as f:
+        # Send all content first
+        existing = f.readlines()
+        if existing:
+            await websocket.send_json({
+                "log_type": "log_init",
+                "content":  "".join(existing)
+            })
+
+        # Watch new lines
+        while not stop_event.is_set():
             line = f.readline()
-            if line.strip():
-                # No new lines, we are waiting a bit before re-try
-                await asyncio.sleep(0.2)
-                print('LINE',line)
-                # sending new lines to client
-                msg = {'type': 'log','content': line.strip()}
-                await websocket.send_json(msg)
 
+            if line:
+                # New lines available --> send them instantly
+                await websocket.send_json({
+                    "log_type": "log_update",
+                    "content":  line.rstrip()
+                })
+            else:
+                # No new lines --> check if job is done
+                if os.path.exists(success_file):
+                    await websocket.send_json({"log_type": "job_done", "status": "success"})
+                    break
+                elif os.path.exists(failed_file):
+                    await websocket.send_json({"log_type": "job_done", "status": "failed"})
+                    break
+                # else wait a bit before retry
+                await asyncio.sleep(0.5)
+
+    print(f"[log] Stop monitoring : {file_path}")

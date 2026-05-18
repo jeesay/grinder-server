@@ -73,11 +73,16 @@ async def project(websocket: WebSocket):
 @app.websocket("/log")
 async def log_message(websocket: WebSocket):
     await websocket.accept()
+
+    # stop_event allow to stop tail_log
+    stop_event  = asyncio.Event()
+    monitor_task = None
+
     try:
         while True:
             response = await websocket.receive_text()
             resp = json.loads(response)
-            print(f"response = {resp}")
+            print(f"[/log] response = {resp}")
             pn = resp['projpath']
             dn = resp['dirname']
             jn = resp['jobname']
@@ -92,7 +97,12 @@ async def log_message(websocket: WebSocket):
                     error = f.readlines()
                 logfile = os.path.join(pn,dn,jn,fn)
                 logtxt = glog.curate_log(log,error)
-                await websocket.send_json({"log":logtxt})
+                status = "success" if os.path.isfile(success_file) else "failed"
+                await websocket.send_json({
+                    "log_type": "log_complete",
+                    "content":  logtxt,
+                    "status":   status
+                })
                 # if os.path.exists(requested_path):
                 #     tree_data = build_relion_tree(requested_filter)
                 #     await websocket.send_json(tree_data)
@@ -101,13 +111,23 @@ async def log_message(websocket: WebSocket):
             else : 
                 if resp['command'] == "start_monitoring":
                     print("log command received")
+                    # Cancel previous monitoring if existing one
+                    if monitor_task and not monitor_task.done():
+                        stop_event.set() # flag for stop process
+                        await monitor_task  # waiting for process to end clearly
+                        stop_event.clear() # reinitialize for next process
+
                     # We launch file reading to background
                     logfile = os.path.join(pn,dn,jn,'run.out')
-                    asyncio.create_task(glog.tail_log(websocket, logfile))
+                    monitor_task = asyncio.create_task(glog.tail_log(websocket, logfile, stop_event))
                 else:
                     await websocket.send(f"Command unknown : {resp['command']}")
 
     except WebSocketDisconnect:
+        # Stoping monitoring on disconnection
+        if monitor_task and not monitor_task.done():
+            stop_event.set()
+            await asyncio.wait_for(monitor_task, timeout=2.0)
         print("[/log] Client disconnected")
 
 @app.websocket("/tmp/explore")
