@@ -1,6 +1,6 @@
 import typer
 from importlib.metadata import version, PackageNotFoundError
-from grinder.apps import server, motioncorr, test
+from grinder.apps import server, motioncorr, test, import_cs
 
 
 app = typer.Typer(help="Suite of GRINDER tools")
@@ -36,6 +36,7 @@ def sharp():
 app.add_typer(server.helper)
 app.add_typer(motioncorr.app)
 app.add_typer(test.app)
+app.add_typer(import_cs.app)
 
 if __name__ == "__main__":
     app()
