@@ -295,7 +295,7 @@ async def job_run(websocket: WebSocket):
             # TODO gjb.create_jobpipelinestar(metadata,rlnpath)
             # Step #3 - Create cli
             command = gjb.create_command(metadata)
-
+            status = 'pending'
             # Step #4 - Run ASYNC subprocess
             if not os.path.exists(rlnpath):
                 os.makedirs(rlnpath)
@@ -309,12 +309,13 @@ async def job_run(websocket: WebSocket):
             running_file = "RELION_JOB_RUNNING"
             with  open(os.path.join(projname,jobname,running_file),'w') as f :
                 pass
+            status = 'running'
 
             # Step #5 - Start the log tailer as a background task
             tailer_task = asyncio.create_task(glog.tail_log(websocket, log_info))
 
             # Step #6 - Return process running
-            await websocket.send_json({"type": "process", "status": "running", "pid": process.pid})
+            await websocket.send_json({"type": "process", "status": status, "pid": process.pid})
 
             # Step #7 Wait for the process to finish without blocking other connections
             return_code = await process.wait()
@@ -322,12 +323,19 @@ async def job_run(websocket: WebSocket):
             if return_code == 0:
                 os.remove(os.path.join(projname,jobname,running_file))
                 success_file = "RELION_JOB_EXIT_SUCCESS"
+                status = 'success'
                 with open(os.path.join(projname,jobname,success_file),'w') as f :
                     pass
-
+            else:
+                os.remove(os.path.join(projname,jobname,running_file))
+                failed_file = "RELION_JOB_EXIT_FAILED"
+                status = 'failed'
+                with open(os.path.join(projname,jobname,failed_file),'w') as f :
+                    pass   
+                     
             # Step #8 - Cleanup: stop the tailer and inform the client
             tailer_task.cancel()
-            await websocket.send_json({"type": "process", "status": "finished", "pid": process.pid, "exit_code": return_code})
+            await websocket.send_json({"type": "process", "status": status, "pid": process.pid, "exit_code": return_code})
 
     except WebSocketDisconnect:
         print("[/job/run] Client disconnected")
