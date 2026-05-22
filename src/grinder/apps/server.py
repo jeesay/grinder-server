@@ -248,7 +248,6 @@ async def websocket_dataviz(websocket: WebSocket):
     ex : "{"projpath":".","dirname":"MotionCorr","jobname":"job002"}
     """
     await websocket.accept()
-    data_plot = []
     try : 
         while True :
             request = await websocket.receive_text()
@@ -270,12 +269,48 @@ async def websocket_dataviz(websocket: WebSocket):
 
             print('\n', "path : ", job_path, '\n', '&& dataviz rows : ', dataviz_rows)
             
-            package = await grg.get_dataviz_package(job_path, dataviz_rows)
+            package = await grg.get_dataviz_package(job_path, dataviz_rows, "dataviz_package")
 
             await websocket.send_json(package)
 
     except WebSocketDisconnect:
         print("[/job/data] Client disconnected")
+
+
+@app.websocket("/ws/micrographs")
+async def ws_micrographs(websocket: WebSocket):
+    """
+    Expecting message : "{"projpath":"xxx","dirname"xxx" ","jobname":"xxx"}"
+    ex : "{"projpath":".","dirname":"MotionCorr","jobname":"job002"}
+    """
+    await websocket.accept()
+    try:
+        while True:
+
+            request = await websocket.receive_text()
+            # print(f"[/job/data] request={request}")
+
+            if len(request) == 0:
+                await websocket.send_json({"error" : f"Unknown request : {request}"})
+                continue
+
+            req = json.loads(request)
+
+            req["request"] = json.loads(req["request"])
+            req["data"] = json.loads(req["data"])
+
+            print(f"[/ws/micrographs] request cleaned = {req}")
+
+            job_path = os.path.join(req["request"]["projpath"], req["request"]["dirname"], req["request"]["jobname"])
+            rows = req["data"]['datablocks']['default']['micrograph']['rows']
+
+            print('\n', "path : ", job_path, '\n', '&& rows : ', rows)
+            
+            package = await grg.get_dataviz_package(job_path, rows, "mics_viewer")
+            await websocket.send_json(package)
+                
+    except WebSocketDisconnect:
+        print("[/ws/micrographs] Client disconnected")
 
         
 @app.websocket("/job/run")

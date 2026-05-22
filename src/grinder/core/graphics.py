@@ -60,16 +60,16 @@ def trajectories(data):
 def violin(data):
     pass
 
-async def get_dataviz_package(path, dataviz_rows):
+async def get_dataviz_package(path, rows, type):
     final_payload = {
-                "type" : "dataviz_package",
+                "type" : type,
                 "widget" : {}
             }
 
     # We keep a cache for star file loaded toa void to read again the same file 6 times if many graphs use it
     star_cache = {}
 
-    for row in dataviz_rows:
+    for row in rows:
         id_viz, label, widget, pos, size, data_query, _ = row
         
         # Ignore the 'grid' container itself for sending data
