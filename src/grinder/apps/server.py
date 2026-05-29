@@ -45,6 +45,8 @@ async def welcome_message(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
+            # Required for websocket completion
+            dummy = await websocket.receive_text() 
             progs, projs = gru.get_environment()
             await websocket.send_json({
                 "status": "success",
