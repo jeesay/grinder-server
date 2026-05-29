@@ -41,11 +41,12 @@ def find_relion_dirs(root_path):
 # Example usage:
 # result = find_pipeline_dirs('/your/search/path')
 # print(result)
-def check_environment():  
+def get_environment():  
     # Env var check
     relion_config = {k: v for k, v in os.environ.items() if k.startswith("RELION_")}
     # Get all the projects in the file tree
     projects = find_relion_dirs('./')
+    print(relion_config,projects)
     return (relion_config,projects)
 
 async def upload_project(path):

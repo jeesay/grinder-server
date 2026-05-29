@@ -26,7 +26,9 @@ import star_gate as sg
 
 # Force Windows to use the correct event loop for subprocesses
 if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    print("ERROR : windows OS not supported")
+    sys.exit(1)
 
 app = FastAPI()
 
@@ -41,10 +43,9 @@ async def config_redirect():
 async def welcome_message(websocket: WebSocket):
     """The landing page for the redirect."""
     await websocket.accept()
-    print(f"Current loop: {asyncio.get_running_loop()}")
     try:
         while True:
-            progs, projs = gru.check_environment()
+            progs, projs = gru.get_environment()
             await websocket.send_json({
                 "status": "success",
                 "message": "Welcome to GRINDER",
