@@ -21,8 +21,7 @@ dependencies = [
 
 # This enables the tool
 [tool.setuptools_scm]
-version_scheme = 'no-guess-dev'
-local_scheme = 'no-local-version'
+local_scheme = "node-and-date"
 
 [tool.setuptools.packages.find]
 where = ["src"]
