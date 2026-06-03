@@ -16,11 +16,15 @@ dependencies = [
     "pandas>=3.0.0",
     "polars[all]>=1.39.0",
     "typer>=0.24.0",
-    "uvicorn>=0.41.0"
+    "uvicorn>=0.41.0",
+    "star_gate @ git+https://github.com/crazybiocomputing/star_gate@main"
 ]
 
 [tool.hatch.version]
 source = "versioningit"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [project.scripts]
 # This creates a command line tool, e.g., 'start-my-server'
