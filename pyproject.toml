@@ -13,6 +13,7 @@ description = "A FastAPI package for file tree and websockets"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.136.1",
+    "mrcfile>=1.5.4",
     "numpy>=2.4.0",
     "pandas>=3.0.0",
     "polars[all]>=1.39.0",
