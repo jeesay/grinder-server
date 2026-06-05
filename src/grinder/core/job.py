@@ -3,18 +3,22 @@ import json
 import logging
 import os
 import star_gate as sg
+import grinder.core.log as glog
 
 def create_defaultpipeline(path):
-    cargo = sg.StarGate()
+    starship = sg.StarGate()
     # 
     general = sg.DataBlock('pipeline_general') 
     general.set('rlnPipeLineJobCounter',1)
-    cargo.add(general)
+    starship.add(general)
     #
-    cargo.write(os.path.join(path,'default_pipeline.star'))
+    starship.write(os.path.join(path,'default_pipeline.star'))
 
-def create_jobstar(metadata,rlnpath):
-    cargo = sg.StarGate()
+def create_jobstar(metadata):
+    projpath = metadata['current_job']['projpath']
+    jobpath = metadata['current_job']['jobpath']
+    rlnpath = os.path.join(projpath,jobpath) 
+    starship = sg.StarGate()
     # Datablock `job`
     job = sg.Block('job')
     job.set('rlnJobTypeLabel',metadata['current_job']['tag'])
@@ -23,57 +27,118 @@ def create_jobstar(metadata,rlnpath):
     else:
         job.set('rlnJobIsContinue',0)
     job.set('rlnJobIsTomo',0)
-    cargo.add(job)
+    starship.add(job)
     # Datablock `joboptions_values`
+    # Update jobpath
+    jo = next(filter(lambda opt: opt['key'] == 'JOB_OUTDIR', metadata['joboptions']))
+    jo['value'] = metadata['current_job']['jobpath']
     table = sg.Table()
-    table.from_dict(metadata['joboptions'])
+    table.from_data(metadata['joboptions'])
+    table.columns = ['rlnJobOptionVariable','rlnJobOptionValue'] 
     job = sg.Block('joboptions_values')
     job.add(table)
-    cargo.add(job)
-    print(cargo)
-    cargo.save(rlnpath,'job.star')
+    starship.add(job)
+    starship.save(os.path.join(rlnpath,'job.star'))
 
-def create_jobpipelinestar(metadata,job_counter):
-    cargo = sg.StarGate()
+def create_jobpipelinestar(metadata):
+    projpath = metadata['current_job']['projpath']
+    jobpath = metadata['current_job']['jobpath']
+    rlnpath = os.path.join(projpath,jobpath)
+    starship = sg.StarGate()
+    general = sg.Block('pipeline_general')
+    procs   = sg.Block('pipeline_processes')
+    nods = sg.Block('pipeline_nodes')
+    nods.add(sg.Table())
+    iedges = sg.Block('pipeline_input_edges')
+    iedges.add(sg.Table())
+    oedges = sg.Block('pipeline_output_edges')
+    oedges.add(sg.Table())
+    starship.add(general)
+    starship.add(procs)
+    starship.add(nods)
+    starship.add(iedges)
+    starship.add(oedges)
     # Datablock `pipeline_general`
-    general = sg.DataBlock('pipeline_general')
-    general.set('rlnPipeLineJobCounter', job_counter)
-    cargo.add(general)
-    # Datablock `joboptions_values`
-    table = sg.Table(
-        columns = [
-            'rlnPipeLineProcessName', 
-            'rlnPipeLineProcessAlias', 
-            'rlnPipeLineProcessTypeLabel',
-            'rlnPipeLineProcessStatus'
-        ]
-    )
-    table.from_json(metadata.joboptions)
-    proc = sg.DataBlock('pipeline_processes')
-    proc.add(table)
-    cargo.add(job)
-    # Datablock `pipeline_nodes`
-    nods = sg.DataBlock('pipeline_processes')
+    job_counter = 1
+    general.set('rlnPipeLineJobCounter',job_counter + 1)
+    # Datablock `pipeline_processes`
+    table = sg.Table()
+    cols = ['rlnPipeLineProcessName','rlnPipeLineProcessAlias','rlnPipeLineProcessTypeLabel','rlnPipeLineProcessStatus']
+    row = [
+        jobpath, 
+        'None', # At that time, no way to set an alias in GRINDER
+        metadata['current_job']['tag'],
+        'Running'
+    ]
+    table.from_data([row],columns=cols)
+    procs.add(table)
+    # Node Datablocks `pipeline_nodes`, `pipeline_input_edges`, and `pipeline_output_edges`
+    for node in metadata['nodes']:
+        if node['nodetype'] == 'output':
+            nn = os.path.join(jobpath,node['filename'])
+            nt = node['filetype']
+            row = {'rlnPipeLineNodeName': nn,'rlnPipeLineNodeTypeLabel': nt, 'rlnPipeLineNodeTypeLabelDepth': 1}
+            nods.table().append(row)
+            row = {'rlnPipeLineEdgeProcess': jobpath,'rlnPipeLineEdgeToNode': nn}
+            oedges.table().append(row)
+        if node['nodetype'] == 'input':
+            # Get the input data typed by the user
+            id = node['id']
+            fn = metadata['job_options'][id]
+            efn = os.path.join(jobpath,fn)
+            row = {'rlnPipeLineEdgeFromNode': efn,'rlnPipeLineEdgeProcess': jobpath}
+            iedges.table().append(row)
+    # Save
+    starship.save(os.path.join(rlnpath,'job_pipeline.star'))
+
+
+def update_defaultpipelinestar(metadata):
+    projpath = metadata['current_job']['projpath']
+    jobpath = metadata['current_job']['jobpath']
+    rlnpath = os.path.join(projpath,jobpath)
+    starship = sg.StarGate()
+    # Read <project_root>/default_pipeline.star
+    starship.read(os.path.join(rlnpath,'default_pipeline.star'))
+    # Datablock `pipeline_general`
+    general = starship.datablock('pipeline_general')
+    job_counter = general.get('rlnPipeLineJobCounter')
+    general.set('rlnPipeLineJobCounter', job_counter + 1) 
+    # Datablock `pipeline_processes`
+    table = starship.datablock('pipeline_processes').table()
+    row = {
+        'rlnPipeLineProcessName': jobpath,
+        'rlnPipeLineProcessAlias': 'None', # At that time, no way to set an alias in GRINDER
+        'rlnPipeLineProcessTypeLabel': metadata['current_job']['tag'],
+        'rlnPipeLineProcessStatus': 'Running'
+    }
+    table.append(row)
+    # Node Datablocks `pipeline_nodes`, `pipeline_input_edges`, and `pipeline_output_edges`
+    nods = starship.datablock('pipeline_nodes')
+    iedges = starship.datablock('pipeline_input_edges')
+    oedges = sg.DataBlock('pipeline_output_edges')
     # Example
     # input : Extract/job019/particles.star ParticlesData.star.relion 
     # output: Class2D/job020/run_it200_data.star ParticlesData.star.relion.class2d 
     # output: Class2D/job020/run_it200_optimiser.star ProcessData.star.relion.optimiser.class2d
-    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineNodeName','rlnPipeLineNodeTypeLabel'])
-    nods.add(table)
-    cargo.add(nods)
-    # Datablock `pipeline_input_edges`
-    iedges = sg.DataBlock('pipeline_propipeline_input_edges')
-    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineEdgeFromNode','rlnPipeLineEdgeProcess'])
-    iedges.add(table)
-    cargo.add(iedges)
-    # Datablock `pipeline_output_edges`
-    oedges = sg.DataBlock('pipeline_output_edges')
-    table = sg.Table(data = metadata.nodes, columns = ['rlnPipeLineEdgeProcess','rlnPipeLineEdgeToNode'])
-    oedges.add(table)
-    cargo.add(iedges)
+    for node in metadata['nodes']:
+        if node['nodetype'] == 'output':
+            nn = os.path.join(jobpath,node['filename'])
+            nt = node['filetype']
+            row = {'rlnPipeLineNodeName': nn,'rlnPipeLineNodeTypeLabel': nt}
+            nods.append(row)
+            row = {'rlnPipeLineEdgeProcess': jobpath,'rlnPipeLineEdgeToNode': nn}
+            oedges.append(row)
+        if node['nodetype'] == 'input':
+            # Get the input data typed by the user
+            id = node['id']
+            fn = metadata['job_options'][id]
+            efn = os.path.join(jobpath,fn)
+            row = {'rlnPipeLineEdgeFromNode': efn,'rlnPipeLineEdgeProcess': jobpath}
+            iedges.append(row)
     # Save
-    cargo.write(metadata.outdir,'job_pipeline.star')
-    # metadata
+    starship.write(os.path.join(jobpath,'job_pipeline.star'))
+    starship.write('default_pipeline.star')
+
 
 def create_command(metadata):
     jobargs = metadata['command']
@@ -108,25 +173,97 @@ def create_command(metadata):
     print(cli)
     return cli
 
-async def run_command_asyncio(command):
+async def run_command_asyncio(command,projname,jobname,websocket):
+
+    async def log_output(stream, logger_func):
+        while True:
+            line = await stream.readline()
+            if line:
+                # Dispatch line
+                log_line = line.decode().strip()
+                logger_func(log_line)
+                with open(os.path.join(file_path,'log.txt'), "a") as f: 
+                    # Move to the end of the file if you only want new logs
+                    f.write(log_line)
+                    # sending new lines to client
+                msg = {'type': 'log','content': log_line}
+                await websocket.send_json(msg)
+
+    file_path = os.path.join(projname,jobname)
     process = await asyncio.create_subprocess_shell(
         command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
 
-    async def log_output(stream, logger_func):
-        while True:
-            line = await stream.readline()
-            if line:
-                logger_func(line.decode().strip())
-            else:
-                break
+    running_file = "RELION_JOB_RUNNING"
+    with  open(os.path.join(projname,jobname,running_file),'w') as f :
+        pass
+    status = 'running'
 
-    # On lance les deux lectures en "background"
+
+    # Run the two reads in "background"
     await asyncio.gather(
         log_output(process.stdout, logging.info),
         log_output(process.stderr, logging.error)
     )
     
-    await process.wait()
+    stdout,stderr = await process.communicate()
+
+    if process.returncode == 0:
+        os.remove(os.path.join(projname,jobname,running_file))
+        success_file = "RELION_JOB_EXIT_SUCCESS"
+        status = 'success'
+        with open(os.path.join(projname,jobname,success_file),'w') as f :
+            pass
+    else:
+        os.remove(os.path.join(projname,jobname,running_file))
+        failed_file = "RELION_JOB_EXIT_FAILED"
+        status = 'failed'
+        with open(os.path.join(projname,jobname,failed_file),'w') as f :
+            pass 
+
+    return process
+
+
+
+async def run_command(command,projname,jobname,websocket):
+    rlnpath = os.path.join(projname,jobname)
+    log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
+    log_err = os.path.join(os.getcwd(),rlnpath,'run.err')   
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    running_file = "RELION_JOB_RUNNING"
+    with  open(os.path.join(projname,jobname,running_file),'w') as f :
+        pass
+    status = 'running'
+
+    # Step #5 - Start the log tailer as a background task
+    tailer_task = asyncio.create_task(glog.tail_log(websocket, log_info))
+
+    # Step #6 - Return process running
+    await websocket.send_json({"type": "process", "status": status, "pid": process.pid})
+
+    # Step #7 Wait for the process to finish without blocking other connections
+    # return_code = await process.wait() 
+    stdout, stderr = await process.communicate()
+
+    os.remove(os.path.join(projname,jobname,running_file))
+    if process.returncode == 0:
+        success_file = "RELION_JOB_EXIT_SUCCESS"
+        status = 'success'
+        with open(os.path.join(projname,jobname,success_file),'w') as f :
+            pass
+    else:
+        failed_file = "RELION_JOB_EXIT_FAILED"
+        status = 'failed'
+        with open(os.path.join(projname,jobname,failed_file),'w') as f :
+            pass 
+
+    # Step #8 - Cleanup: stop the tailer 
+    tailer_task.cancel()  
+    return process
+                     

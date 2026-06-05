@@ -6,6 +6,7 @@ import io
 import json
 import numpy as np
 import os
+import pathlib
 import polars as pl
 import subprocess
 import sys
@@ -327,10 +328,12 @@ async def job_run(websocket: WebSocket):
             projname = metadata['current_project']['path']
             jobname = metadata['current_job']['jobpath']
             rlnpath = os.path.join(projname,jobname)
+            # Step #0 - Create directory
+            pathlib.Path(rlnpath).mkdir(parents=True, exist_ok=True)
             # Step #1 - Create `job.star`
-            # TODO gjb.create_jobstar(metadata,rlnpath)
+            gjb.create_jobstar(metadata)
             # Step #2 - Create `job_pipeline.star`
-            # TODO gjb.create_jobpipelinestar(metadata,rlnpath)
+            gjb.create_jobpipelinestar(metadata)
             # Step #3 - Create cli
             command = gjb.create_command(metadata)
             status = 'pending'
@@ -338,42 +341,14 @@ async def job_run(websocket: WebSocket):
             if not os.path.exists(rlnpath):
                 os.makedirs(rlnpath)
             log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
-            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')         
+            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')       
             # This does NOT block the whole server
             full_command = f'cd {projname} && {command} 2> {log_err} 1> {log_info}'
             print(full_command)
             # process = subprocess.Popen(full_command, shell=True)
-            process = await asyncio.create_subprocess_shell(full_command)
-            running_file = "RELION_JOB_RUNNING"
-            with  open(os.path.join(projname,jobname,running_file),'w') as f :
-                pass
-            status = 'running'
-
-            # Step #5 - Start the log tailer as a background task
-            tailer_task = asyncio.create_task(glog.tail_log(websocket, log_info))
-
-            # Step #6 - Return process running
-            await websocket.send_json({"type": "process", "status": status, "pid": process.pid})
-
-            # Step #7 Wait for the process to finish without blocking other connections
-            return_code = await process.wait()
-
-            if return_code == 0:
-                os.remove(os.path.join(projname,jobname,running_file))
-                success_file = "RELION_JOB_EXIT_SUCCESS"
-                status = 'success'
-                with open(os.path.join(projname,jobname,success_file),'w') as f :
-                    pass
-            else:
-                os.remove(os.path.join(projname,jobname,running_file))
-                failed_file = "RELION_JOB_EXIT_FAILED"
-                status = 'failed'
-                with open(os.path.join(projname,jobname,failed_file),'w') as f :
-                    pass   
-                     
+            process = await gjb.run_command(full_command,projname,jobname,websocket)
             # Step #8 - Cleanup: stop the tailer and inform the client
-            tailer_task.cancel()
-            await websocket.send_json({"type": "process", "status": status, "pid": process.pid, "exit_code": return_code})
+            await websocket.send_json({"type": "process", "status": status, "pid": process.pid, "exit_code": process.returncode})
 
     except WebSocketDisconnect:
         print("[/job/run] Client disconnected")

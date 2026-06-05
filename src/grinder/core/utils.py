@@ -64,7 +64,7 @@ async def upload_project(path):
         cargo.read(os.path.join(path,'default_pipeline.star'))
         logging.info('Get `pipeline_processes` table in default_pipeline.star')
         # Modify `pipelines_processes` in order to have unique process
-        procs = cargo.db['pipeline_processes']['table']
+        procs = cargo.datablock('pipeline_processes').table().df
         logging.info('Update `pipeline_processes` table in default_pipeline.star')
         procs.apply(lambda row: row)
         logging.info('End of `pipeline_processes` datablock in default_pipeline.star')
@@ -72,9 +72,9 @@ async def upload_project(path):
         has_file = False
 
     return {
-        "pipeline": cargo.db['pipeline_general'],
-        'nodes': cargo.db['pipeline_nodes']['table'].to_dict(orient='split'),
-        'processes': cargo.db['pipeline_processes']['table'].to_dict(orient='split')
+        "pipeline": cargo.datablock('pipeline_general').db,
+        'nodes': cargo.datablock('pipeline_nodes').table().to_dict(orient='split'),
+        'processes': cargo.datablock('pipeline_processes').table().to_dict(orient='split')
     }
 
 async def get_jobfiles(pn,dn,jn):
