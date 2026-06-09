@@ -8,6 +8,7 @@ import numpy as np
 import os
 import pathlib
 import polars as pl
+import signal
 import subprocess
 import sys
 import typer
@@ -32,6 +33,9 @@ if sys.platform == 'win32':
     sys.exit(1)
 
 app = FastAPI()
+
+# Global variable
+running_processes = {}
 
 # --- 1. NEW: Redirect and Welcome Message ---
 
@@ -341,18 +345,38 @@ async def job_run(websocket: WebSocket):
             if not os.path.exists(rlnpath):
                 os.makedirs(rlnpath)
             log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
-            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')       
+            log_err = os.path.join(os.getcwd(),rlnpath,'run.err')    
+            await gjb.run_command_io(command,projname,jobname,websocket,running_processes)   
             # This does NOT block the whole server
-            full_command = f'cd {projname} && {command} 2> {log_err} 1> {log_info}'
-            print(full_command)
+            # full_command = f'cd {projname} && {command} 2> {log_err} 1> {log_info}'
+            # print(full_command)
             # process = subprocess.Popen(full_command, shell=True)
-            process = await gjb.run_command(full_command,projname,jobname,websocket)
+            # process = await gjb.run_command(full_command,projname,jobname,websocket)
             # Step #8 - Cleanup: stop the tailer and inform the client
-            await websocket.send_json({"type": "process", "status": status, "pid": process.pid, "exit_code": process.returncode})
+            # await websocket.send_json({"type": "process", "status": status, "pid": process.pid, "exit_code": process.returncode})
 
     except WebSocketDisconnect:
         print("[/job/run] Client disconnected")
 
+@app.websocket("/job/stop")
+async def stop_job(websocket: WebSocket):
+    await websocket.accept()
+    # ... logic using build_file_tree(path) ...
+    try:
+        while True:
+            data = await websocket.receive_json()
+            # Something like: {"action": "stop","projname": "EMPIAR", "jobname": "Class2D/job001"}
+            if data["action"] == "stop":
+                process,ws = running_processes.get( (data["projname"],data["jobname"]))
+                msg = "ABORTED: Job aborted by user";
+                await ws.send_json({"type": "stdout","content": msg});
+                if process:
+                    os.killpg(
+                        process.pid,
+                        signal.SIGTERM
+                    )
+    except WebSocketDisconnect:
+        print("[/job/stop] Client disconnected")
 
 @app.websocket("/ws/file-tree")
 async def websocket_file_tree(websocket: WebSocket):
