@@ -94,9 +94,13 @@
      <!-- li id="debug"><i class="bi bi-bug"></i>Debug</a></li -->
       <!-- li id="import"><i class="bi bi-folder2-open"></i> Explore</a></li -->
     </ul>
+
   </aside>
   
   <main>
+<button id="refreshBtn">Load File Tree</button>
+<pre id="treeDisplay"></pre>
+
     <section class="tabs">
     </section>
   </main>
@@ -173,6 +177,38 @@
     // Go to Home, first
     document.querySelector('aside #home').click();
     
+const socket = new WebSocket("ws://localhost:20000/ws/file-tree");
+const refreshBtn = document.getElementById("refreshBtn");
+const treeDisplay = document.getElementById("treeDisplay");
+
+// Trigger the tree update on click
+refreshBtn.addEventListener("click", () => {
+    // Sending "." requests the current directory root
+    socket.send("."); 
+});
+
+// Update the UI when the server responds
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    treeDisplay.textContent = JSON.stringify(data, null, 2);
+};
+
+
+/*
+// Make sure this matches the port dynamically assigned by your utils.py
+const socket = new WebSocket("ws://localhost:20000/ws/filetree");
+
+socket.onopen = () => {
+    // Request the tree for the current directory
+    socket.send("."); 
+};
+
+socket.onmessage = (event) => {
+    const fileTree = JSON.parse(event.data);
+    console.log("Received File Tree:", fileTree);
+};
+console.info('Socket',socket);
+*/
   </script>
 </body>
 </html>

@@ -248,6 +248,7 @@ const connect_to_ws_server = async () => {
       alert(`[Open] Connection established with server ws://${ip_address}:${port}/`);
       document.getElementById('connect').innerHTML = '<i class="bi bi-wifi"></i>Connected';
       document.getElementById('connect').style.color = 'lightgreen';
+      console.info('WELCOME')
   }
   else {
       alert(`[Fail] Unable to connect to the server ws://${ip_address}:${port}/`);

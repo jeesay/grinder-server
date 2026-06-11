@@ -5,6 +5,7 @@ import os
 import star_gate as sg
 import grinder.core.log as glog
 
+
 def create_defaultpipeline(path):
     starship = sg.StarGate()
     # 
@@ -267,3 +268,182 @@ async def run_command(command,projname,jobname,websocket):
     tailer_task.cancel()  
     return process
                      
+
+async def run_command_io(
+    command,
+    projname,
+    jobname,
+    websocket,
+    running_processes
+):
+    job_path = os.path.join(projname, jobname)
+
+    log_info = os.path.join(job_path, "run.out")
+    log_err = os.path.join(job_path, "run.err")
+
+
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=projname,
+        start_new_session=True
+    )
+
+    # Running...
+    running_processes[(projname, jobname)] = [process,websocket]
+    running_file = os.path.join(job_path, "RELION_JOB_RUNNING")
+    with open(running_file, "w"):
+        pass
+
+    await websocket.send_json(
+        {
+            "type": "process",
+            "status": "running",
+            "pid": process.pid,
+        }
+    )
+
+    async def consume_stream(stream, logfile, stream_type):
+        with open(logfile, "a", buffering=1) as f:
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                text = line.decode(errors="replace").rstrip()
+                # stockage fichier
+                f.write(text + "\n")
+                f.flush()
+                # websocket
+                await websocket.send_json(
+                    {
+                        "type": stream_type,
+                        "content": text,
+                    }
+                )
+                # logs serveur
+                if stream_type == "stderr":
+                    logging.error(text)
+                else:
+                    logging.info(text)
+
+    stdout_task = asyncio.create_task(
+        consume_stream(
+            process.stdout,
+            log_info,
+            "stdout"
+        )
+    )
+
+    stderr_task = asyncio.create_task(
+        consume_stream(
+            process.stderr,
+            log_err,
+            "stderr"
+        )
+    )
+
+   # Run the tasks and the process wait concurrently
+    await asyncio.gather(
+        stdout_task, 
+        stderr_task, 
+        process.wait()
+    )
+    return_code = process.returncode
+
+    # End of running...
+    running_processes.pop((projname, jobname), None)
+    os.remove(running_file)
+
+    msg = ''
+    if return_code == -15:
+        status = "aborted"
+        with open(os.path.join(job_path, "RELION_JOB_EXIT_ABORTED"), "w"):
+            pass
+        logging.warning("Process terminated with SIGTERM")
+        msg = 'Job stopped by user'
+    elif return_code == 0:
+        status = "success"
+        with open(os.path.join(job_path, "RELION_JOB_EXIT_SUCCESS"), "w"):
+            pass
+    else:
+        status = "failed"
+        msg = "Job Failed"
+        with open(os.path.join(job_path, "RELION_JOB_EXIT_FAILED"), "w"):
+            pass
+
+    await websocket.send_json(
+        {
+            "type": "process",
+            "status": status,
+            "pid": process.pid,
+            "message": msg,
+            "exit_code": return_code,
+        }
+    )
+
+    return return_code
+
+async def run_command_io_gather(command, projname, jobname, websocket):
+    rlnpath = os.path.join(projname, jobname)
+    log_info = os.path.join(os.getcwd(), rlnpath, 'run.out')
+    log_err  = os.path.join(os.getcwd(), rlnpath, 'run.err')
+
+    async def stream_to_file_and_ws(stream, log_path, log_func):
+        """Lit le stream ligne par ligne, écrit dans le fichier ET envoie au client."""
+        with open(log_path, "a") as f:
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                decoded = line.decode().strip()
+                log_func(decoded)
+                f.write(decoded + "\n")
+                f.flush()  # Garantit l'écriture immédiate sur disque
+                await websocket.send_json({"type": "log", "content": decoded})
+
+    # Lancement du sous-processus (sans redirection shell, on gère nous-mêmes)
+    process = await asyncio.create_subprocess_shell(
+        f'cd {projname} && {command}',
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+
+    # Fichier sentinelle "job en cours"
+    running_file = os.path.join(projname, jobname, "RELION_JOB_RUNNING")
+    open(running_file, 'w').close()
+
+    # Notifie le client que le job démarre
+    await websocket.send_json({"type": "process", "status": "running", "pid": process.pid})
+
+    try:
+        # Lecture simultanée stdout → run.out  /  stderr → run.err
+        # gather() bloque jusqu'à ce que les deux streams soient épuisés,
+        # ce qui n'arrive qu'à la fin du processus → garantit le return_code.
+        await asyncio.gather(
+            stream_to_file_and_ws(process.stdout, log_info, logging.info),
+            stream_to_file_and_ws(process.stderr, log_err,  logging.error),
+        )
+    finally:
+        # Attend la fin propre du processus et récupère le return_code
+        await process.wait()
+
+        os.remove(running_file)
+
+        if process.returncode == 0:
+            status = "success"
+            sentinel = "RELION_JOB_EXIT_SUCCESS"
+        else:
+            status = "failed"
+            sentinel = "RELION_JOB_EXIT_FAILED"
+
+        open(os.path.join(projname, jobname, sentinel), 'w').close()
+
+        # Notifie le client du résultat final avec le return_code
+        await websocket.send_json({
+            "type": "process",
+            "status": status,
+            "returncode": process.returncode,
+        })
+
+    return process

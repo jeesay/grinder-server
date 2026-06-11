@@ -26,12 +26,6 @@ import grinder.core.job as gjb
 
 import star_gate as sg
 
-# Force Windows to use the correct event loop for subprocesses
-if sys.platform == 'win32':
-    # asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    print("ERROR : windows OS not supported")
-    sys.exit(1)
-
 app = FastAPI()
 
 # Global variable
@@ -478,6 +472,12 @@ def server(
     Starts the Grinder WebSocket server.
     """
     
+    # Force Windows to use the correct event loop for subprocesses
+    if sys.platform == 'win32':
+        # asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        print("ERROR : windows OS not supported")
+        sys.exit(1)
+        
     # Handle the --new argument logic
     if new:
         typer.echo("Initializing new session...")
