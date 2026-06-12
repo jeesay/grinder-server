@@ -334,13 +334,13 @@ async def job_run(websocket: WebSocket):
             gjb.create_jobpipelinestar(metadata)
             # Step #3 - Create cli
             command = gjb.create_command(metadata)
-            status = 'pending'
+            status = 'Pending'
             # Step #4 - Run ASYNC subprocess
             if not os.path.exists(rlnpath):
                 os.makedirs(rlnpath)
             log_info = os.path.join(os.getcwd(),rlnpath,'run.out')
             log_err = os.path.join(os.getcwd(),rlnpath,'run.err')    
-            await gjb.run_command_io(command,projname,jobname,websocket,running_processes)   
+            await gjb.run_command_io(command, metadata, websocket,running_processes)   
             # This does NOT block the whole server
             # full_command = f'cd {projname} && {command} 2> {log_err} 1> {log_info}'
             # print(full_command)
