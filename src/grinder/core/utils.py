@@ -115,8 +115,8 @@ async def get_jobfiles(pn,dn,jn):
         fn = "job.star"
         cargo = sg.StarGate()
         cargo.read(os.path.join(pn,dn,jn,fn))
-        params_head = cargo.db['job']
-        params = cargo.db['joboptions_values']['table']
+        params_head = cargo.datablock('job')
+        params = cargo.datablock('joboptions_values').table().df()
         # Cleanup
         nodetype = _convert(params_head['rlnJobTypeLabel'],params)
         clean_log = _curatelog(log,error)
