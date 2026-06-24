@@ -94,31 +94,29 @@ async def get_dataviz_package(path, rows, type):
 
             # 3. Extract columns with parser
             # We take Table object of corresponding datablock
-            block = gate.db[table_name]
-            if block is not None :
-                df = block['table']
-                if df is not None :
-                    column_data = {}
-                    num_rows = len(df)
+            df = gate.datablock(table_name).table().df
+            if df is not None :
+                column_data = {}
+                num_rows = len(df)
 
-                    for col_name in columns_needed :
-                        if col_name == "rlnIndex" :
-                            column_data["rlnIndex"] = list(range(1, num_rows + 1))
-                        elif col_name in df.columns :
-                            # StarGate's column(headname) Methode
-                            column_data[col_name] = df[col_name].tolist()
-                        else:
-                            print(f"Warning: {col_name} column not in STAR file")
+                for col_name in columns_needed :
+                    if col_name == "rlnIndex" :
+                        column_data["rlnIndex"] = list(range(1, num_rows + 1))
+                    elif col_name in df.columns :
+                        # StarGate's column(headname) Methode
+                        column_data[col_name] = df[col_name].tolist()
+                    else:
+                        print(f"Warning: {col_name} column not in STAR file")
 
-                    # 4. Adding package
-                    final_payload["widget"][id_viz] = {
-                        "id" : id_viz,
-                        "label" : label,
-                        "widget" : widget,
-                        "pos" : pos,
-                        "size" : size,
-                        "data" : column_data
-                    }
+                # 4. Adding package
+                final_payload["widget"][id_viz] = {
+                    "id" : id_viz,
+                    "label" : label,
+                    "widget" : widget,
+                    "pos" : pos,
+                    "size" : size,
+                    "data" : column_data
+                }
             else:
                 print(f"Block {table_name} not found in {file_path}")
 
